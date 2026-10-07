@@ -1,0 +1,164 @@
+"use client";
+import Link from "next/link";
+import {
+  ArrowUpRight,
+  Menu,
+  ShoppingBag,
+  UserRound,
+  X,
+  MapPin,
+} from "lucide-react";
+import { useState } from "react";
+import { useApp, Text } from "./provider";
+export function Header() {
+  const { lang, setLang, user, cart } = useApp();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div className="announcement">
+        <span>
+          <span className="status-dot" />{" "}
+          <Text
+            bn="একটি অ্যাকাউন্ট। প্রতিদিনের সব সেবা।"
+            en="One account. Your everyday, connected."
+          />
+        </span>
+        <Link href="/contact?interest=partner">
+          <Text bn="আমাদের সাথে ব্যবসা করুন" en="Grow with U Service" />{" "}
+          <ArrowUpRight size={13} />
+        </Link>
+      </div>
+      <header className="header">
+        <Link href="/" className="brand">
+          <span className="brandmark">
+            u<span>•</span>
+          </span>
+          <span>
+            U SERVICE <b>BD</b>
+            <small>YOUR EVERYDAY PARTNER</small>
+          </span>
+        </Link>
+        <nav
+          className={open ? "nav open" : "nav"}
+          aria-label="Main navigation"
+          onClick={() => setOpen(false)}
+        >
+          <Link href="/catalog">
+            <Text bn="আমাদের সেবা" en="Explore services" />
+          </Link>
+          <Link href="/pages/about">
+            <Text bn="আমাদের গল্প" en="Our story" />
+          </Link>
+          <Link href="/#how-it-works">
+            <Text bn="যেভাবে কাজ করে" en="How it works" />
+          </Link>
+          <Link href="/contact">
+            <Text bn="যোগাযোগ" en="Contact" />
+          </Link>
+        </nav>
+        <div className="header-actions">
+          <button
+            className="lang-switch"
+            onClick={() => setLang(lang === "bn" ? "en" : "bn")}
+            aria-label="Change language"
+          >
+            {lang === "bn" ? "EN" : "বাংলা"}
+          </button>
+          <Link
+            href="/checkout"
+            className="icon-button"
+            aria-label={`Shopping bag, ${cart.reduce((s, i) => s + i.quantity, 0)} items`}
+          >
+            <ShoppingBag size={21} />
+            {cart.length > 0 && (
+              <span className="badge">
+                {cart.reduce((s, i) => s + i.quantity, 0)}
+              </span>
+            )}
+          </Link>
+          <Link href={user ? "/account" : "/login"} className="account-button">
+            <UserRound size={17} />
+            <span>
+              {user ? (
+                user.first_name || user.username
+              ) : (
+                <Text bn="লগইন" en="Sign in" />
+              )}
+            </span>
+          </Link>
+          <button
+            className="mobile-menu icon-button"
+            aria-label="Toggle navigation"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
+      </header>
+    </>
+  );
+}
+export function Footer() {
+  return (
+    <footer>
+      <div className="footer-grid">
+        <div>
+          <Link href="/" className="brand">
+            <span className="brandmark">
+              u<span>•</span>
+            </span>
+            <span>
+              U SERVICE <b>BD</b>
+              <small>YOUR EVERYDAY PARTNER</small>
+            </span>
+          </Link>
+          <p>
+            <Text
+              bn="প্রতিদিনের জীবনকে আরও সহজ করতে, আপনার পাশে।"
+              en="A little less hassle. A lot more living. We’re here for your everyday."
+            />
+          </p>
+          <span className="location">
+            <MapPin size={16} /> Bangladesh · BDT ৳
+          </span>
+        </div>
+        <div>
+          <h3>
+            <Text bn="আমাদের বিভাগ" en="Our divisions" />
+          </h3>
+          <Link href="/catalog?division=food">U Food</Link>
+          <Link href="/catalog?division=shop">U Shop</Link>
+          <Link href="/catalog?division=pharmacy">U Pharmacy</Link>
+          <Link href="/catalog?division=services">U Services</Link>
+        </div>
+        <div>
+          <h3>
+            <Text bn="একসাথে এগিয়ে চলুন" en="Build with us" />
+          </h3>
+          <Link href="/contact?interest=partner">Become a partner</Link>
+          <Link href="/contact?interest=provider">Become a provider</Link>
+          <Link href="/contact?interest=rider">Become a rider</Link>
+          <Link href="/portal">Operations portal</Link>
+        </div>
+        <div>
+          <h3>
+            <Text bn="আমরা আছি পাশে" en="Here to help" />
+          </h3>
+          <Link href="/account">Your account</Link>
+          <Link href="/contact">Contact & support</Link>
+          <Link href="/pages/privacy">Privacy information</Link>
+          <Link href="/pages/terms">Terms of use</Link>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} U Service BD Limited</span>
+        <span>
+          <Text
+            bn="বাংলাদেশের জন্য, ভালোবাসা নিয়ে।"
+            en="Made for everyday life in Bangladesh."
+          />
+        </span>
+      </div>
+    </footer>
+  );
+}

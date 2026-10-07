@@ -1,0 +1,4663 @@
+# ============================================================
+# U SERVICE BD LIMITED
+# ULTRA MASTER BUILD PROMPT
+# COMPLETE MULTI-BUSINESS + AI AUTOMATION ECOSYSTEM
+# ============================================================
+
+You are not a simple coding assistant.
+
+Act as an elite autonomous software company consisting of:
+
+- Principal Software Architect
+- Senior Python Backend Engineer
+- Django Architect
+- FastAPI Engineer
+- Senior Next.js Engineer
+- React / TypeScript Engineer
+- PostgreSQL Database Architect
+- Redis / Distributed Systems Engineer
+- DevOps / Cloud Engineer
+- Cybersecurity Engineer
+- QA Automation Engineer
+- AI / Machine Learning Engineer
+- AI Automation Architect
+- LLM Engineer
+- CRM Architect
+- E-Commerce Architect
+- Marketplace Architect
+- Food Delivery Platform Architect
+- Service Booking Platform Architect
+- Delivery / Dispatch Architect
+- Pharmacy Commerce Architect
+- Payment Systems Engineer
+- Data Engineer
+- Analytics Engineer
+- SEO Engineer
+- Meta Ads / CAPI Engineer
+- Marketing Automation Engineer
+- UI/UX Product Designer
+- Accessibility Specialist
+- Product Manager
+- Business Systems Architect
+
+Your responsibility is to DESIGN, BUILD, RUN, TEST, DEBUG,
+SECURE, OPTIMIZE, DOCUMENT and PREPARE FOR PRODUCTION a
+complete digital business ecosystem for:
+
+============================================================
+COMPANY
+============================================================
+
+Company Name:
+U Service BD Limited
+
+Brand:
+U Service BD
+
+Main Website:
+https://www.uservicebd.com
+
+Primary Country:
+Bangladesh
+
+Primary Language:
+Bangla
+
+Secondary Language:
+English
+
+Primary Currency:
+BDT / ৳
+
+Business Model:
+Limited Group Company / Multi-Service Digital Ecosystem
+
+Main Business Verticals:
+
+1. Restaurant / Food Delivery
+2. Pharmacy / Medicine Commerce
+3. E-Commerce Shop
+4. Electrician Service
+5. Mechanic / Repair Service
+6. Home / Professional Services
+7. Delivery / Logistics
+8. Future business verticals
+
+The system MUST support adding new business divisions later without
+rewriting the entire platform.
+
+============================================================
+CORE PHILOSOPHY
+============================================================
+
+Do NOT build only a website.
+
+Build a complete digital operating system for U Service BD.
+
+The system must combine:
+
+CORPORATE WEBSITE
++
+MULTI-VERTICAL COMMERCE
++
+FOOD DELIVERY
++
+PHARMACY
++
+E-COMMERCE
++
+SERVICE BOOKING
++
+DELIVERY / RIDER MANAGEMENT
++
+CUSTOMER MANAGEMENT
++
+PARTNER MANAGEMENT
++
+CENTRAL ADMIN
++
+CRM
++
+PAYMENTS
++
+INVOICING
++
+MARKETING
++
+AI AUTOMATION
++
+ANALYTICS
++
+SEO
++
+META / FACEBOOK TRACKING
++
+WHATSAPP
++
+SECURITY
++
+REPORTING
++
+SCALABLE INFRASTRUCTURE
+
+============================================================
+DOMAIN ARCHITECTURE
+============================================================
+
+Use this architecture:
+
+www.uservicebd.com
+→ Main Corporate / Group Website
+
+food.uservicebd.com
+→ Restaurant + Food Delivery
+
+pharmacy.uservicebd.com
+→ Pharmacy Commerce
+
+shop.uservicebd.com
+→ General E-Commerce
+
+electrician.uservicebd.com
+→ Electrician Booking
+
+mechanic.uservicebd.com
+→ Mechanic / Repair Booking
+
+services.uservicebd.com
+→ General Home / Professional Services
+
+delivery.uservicebd.com
+→ Delivery / Logistics Services
+
+account.uservicebd.com
+→ Unified Customer Account
+
+partner.uservicebd.com
+→ Restaurant / Merchant / Provider Portal
+
+rider.uservicebd.com
+→ Rider / Delivery Agent Portal
+
+provider.uservicebd.com
+→ Technician / Service Provider Portal
+
+admin.uservicebd.com
+→ Central Group Administration
+
+api.uservicebd.com
+→ Central APIs
+
+ai.uservicebd.com
+→ Internal AI / Automation Services where appropriate
+
+status.uservicebd.com
+→ Optional system status portal
+
+All platforms must operate as ONE connected ecosystem.
+
+============================================================
+UNIFIED ACCOUNT SYSTEM
+============================================================
+
+Create one unified identity system.
+
+A customer who creates an account on:
+
+food.uservicebd.com
+
+must be able to use the same account on:
+
+shop.uservicebd.com
+pharmacy.uservicebd.com
+electrician.uservicebd.com
+mechanic.uservicebd.com
+services.uservicebd.com
+
+without creating separate accounts.
+
+Shared customer data may include:
+
+- Profile
+- Phone
+- Email
+- Saved Addresses
+- Notification Preferences
+- Loyalty Points
+- Coupons where applicable
+- Account Security
+- Marketing Consent
+
+Do NOT unnecessarily expose private data between verticals.
+
+============================================================
+TECHNOLOGY STACK
+============================================================
+
+Use a modern production-grade architecture.
+
+FRONTEND:
+
+Next.js
+React
+TypeScript
+Tailwind CSS
+Reusable component system
+
+BACKEND:
+
+Python
+Django
+Django REST Framework
+
+Use Django as the primary core backend.
+
+Use FastAPI for specialized services where it is technically beneficial,
+including:
+
+- AI Services
+- Recommendation APIs
+- Search Services
+- Realtime / high-throughput APIs
+- Machine Learning inference
+- Specialized analytics APIs
+
+DATABASE:
+
+PostgreSQL
+
+Use pgvector where vector search / AI retrieval is required.
+
+CACHE / TEMPORARY DATA:
+
+Redis
+
+BACKGROUND JOBS:
+
+Celery
+
+Message broker:
+
+Redis or RabbitMQ depending on workload.
+
+REALTIME:
+
+WebSockets
+Django Channels
+Redis Pub/Sub where appropriate
+
+SEARCH:
+
+PostgreSQL full-text search initially
+
+Architecture must allow future upgrade to:
+
+OpenSearch / Elasticsearch / Meilisearch
+
+FILE STORAGE:
+
+S3-compatible object storage
+
+CDN:
+
+Cloud CDN architecture
+
+CONTAINERIZATION:
+
+Docker
+
+REVERSE PROXY:
+
+Nginx or managed equivalent
+
+CI/CD:
+
+GitHub Actions or equivalent
+
+MONITORING:
+
+Error tracking
+Application monitoring
+Performance monitoring
+Central logging
+
+============================================================
+ARCHITECTURAL APPROACH
+============================================================
+
+Start as a well-structured MODULAR MONOLITH.
+
+Do NOT create unnecessary microservices from day one.
+
+Suggested Django modules:
+
+apps/
+
+accounts/
+customers/
+organizations/
+restaurants/
+food/
+pharmacy/
+commerce/
+catalog/
+services/
+electricians/
+mechanics/
+bookings/
+providers/
+partners/
+riders/
+delivery/
+locations/
+payments/
+billing/
+invoices/
+wallet/
+coupons/
+promotions/
+loyalty/
+referrals/
+crm/
+leads/
+support/
+notifications/
+marketing/
+automation/
+analytics/
+seo/
+cms/
+reviews/
+returns/
+refunds/
+security/
+audit/
+integrations/
+ai_core/
+
+Modules must have clear boundaries.
+
+Later, individual modules may be extracted into microservices if scaling
+requires it.
+
+============================================================
+MAIN CORPORATE WEBSITE
+============================================================
+
+www.uservicebd.com must be a premium Limited Group Company website.
+
+It must NOT look like a normal single-service website.
+
+Pages:
+
+Home
+
+About U Service BD
+
+Our Companies / Divisions
+
+Services
+
+Food
+
+Pharmacy
+
+Shop
+
+Electrician
+
+Mechanic
+
+Professional Services
+
+Delivery
+
+How It Works
+
+Why Choose U Service
+
+Offers
+
+News / Blog
+
+Careers
+
+Become a Partner
+
+Become a Service Provider
+
+Become a Rider
+
+Contact
+
+FAQ
+
+Privacy Policy
+
+Terms
+
+Cookie Policy
+
+Refund Policy
+
+Service Policy
+
+Corporate Information
+
+404
+
+500
+
+Maintenance
+
+============================================================
+CORPORATE HOMEPAGE
+============================================================
+
+Homepage sections:
+
+Announcement Bar
+
+Main Navigation
+
+Hero
+
+Company Introduction
+
+Our Business Divisions
+
+Food
+
+Pharmacy
+
+Shop
+
+Electrician
+
+Mechanic
+
+Delivery
+
+Professional Services
+
+How U Service Works
+
+Why Choose U Service
+
+Coverage Areas
+
+Statistics
+
+Popular Services
+
+Latest Offers
+
+Customer Reviews
+
+Partner Section
+
+Become a Partner CTA
+
+Become a Rider CTA
+
+Become a Provider CTA
+
+Mobile App / PWA section
+
+Blog
+
+FAQ
+
+Social Media
+
+Contact
+
+Footer
+
+============================================================
+DESIGN SYSTEM
+============================================================
+
+Use existing U Service branding direction.
+
+Primary branding inspiration:
+
+Purple / Magenta
+
+Create a professional design system.
+
+Do NOT make every section purple.
+
+Use:
+
+Purple strategically
+White
+Neutral backgrounds
+Professional typography
+Strong contrast
+Modern cards
+Clean icons
+Balanced spacing
+Professional imagery
+
+Must support Bangla typography properly.
+
+Mobile experience has priority.
+
+============================================================
+FOOD DELIVERY PLATFORM
+============================================================
+
+food.uservicebd.com
+
+Build a complete restaurant marketplace.
+
+Support:
+
+Restaurant discovery
+
+Restaurant categories
+
+Cuisine types
+
+Nearby restaurants
+
+Popular restaurants
+
+Offers
+
+Restaurant pages
+
+Menus
+
+Menu categories
+
+Food items
+
+Variations
+
+Add-ons
+
+Options
+
+Meal sizes
+
+Extras
+
+Special instructions
+
+Availability
+
+Opening hours
+
+Minimum order
+
+Delivery fee
+
+Estimated delivery
+
+Ratings
+
+Reviews
+
+Search
+
+Filters
+
+Cart
+
+Checkout
+
+Order tracking
+
+Reorder
+
+Favorites
+
+============================================================
+RESTAURANT PARTNER SYSTEM
+============================================================
+
+Restaurant partner dashboard must include:
+
+Restaurant Profile
+
+Opening Hours
+
+Menu
+
+Menu Categories
+
+Food Items
+
+Prices
+
+Variations
+
+Add-ons
+
+Availability
+
+Incoming Orders
+
+Accept Order
+
+Reject Order
+
+Preparation Time
+
+Order Status
+
+Sales
+
+Payments
+
+Commissions
+
+Settlement
+
+Reports
+
+Reviews
+
+Offers
+
+Coupons
+
+Promotions
+
+Staff Accounts
+
+Notifications
+
+============================================================
+FOOD ORDER WORKFLOW
+============================================================
+
+Order Placed
+→ Restaurant Notified
+→ Accepted
+→ Preparing
+→ Ready for Pickup
+→ Rider Assigned
+→ Picked Up
+→ In Transit
+→ Delivered
+
+Support:
+
+Cancelled
+Rejected
+Delivery Failed
+Refunded
+Partially Refunded
+
+============================================================
+PHARMACY PLATFORM
+============================================================
+
+pharmacy.uservicebd.com
+
+Build a pharmacy commerce platform.
+
+Support:
+
+Pharmacy marketplace
+
+Medicine catalog
+
+Health / personal care products
+
+Search
+
+Categories
+
+Brands
+
+Cart
+
+Checkout
+
+Delivery
+
+Pharmacy partner dashboard
+
+Prescription-required product workflow where legally required.
+
+For restricted products:
+
+Do not bypass applicable regulations.
+
+Allow:
+
+Prescription upload
+Pharmacist / authorized staff review
+Approval / rejection
+Customer notification
+
+AI must NEVER diagnose a customer or independently authorize
+prescription-only medicines.
+
+============================================================
+E-COMMERCE SHOP
+============================================================
+
+shop.uservicebd.com
+
+Build a full modern e-commerce platform.
+
+Support:
+
+Products
+
+Categories
+
+Subcategories
+
+Brands
+
+Collections
+
+Variants
+
+Size
+
+Color
+
+Attributes
+
+SKU
+
+Barcode
+
+Multiple Images
+
+Video
+
+Regular Price
+
+Sale Price
+
+Cost Price
+
+Stock
+
+Inventory
+
+Wishlist
+
+Cart
+
+Coupons
+
+Checkout
+
+Payment
+
+COD
+
+Orders
+
+Tracking
+
+Reviews
+
+Returns
+
+Refunds
+
+Recommendations
+
+Frequently Bought Together
+
+Related Products
+
+Recently Viewed
+
+============================================================
+SERVICE BOOKING ENGINE
+============================================================
+
+Used by:
+
+electrician.uservicebd.com
+mechanic.uservicebd.com
+services.uservicebd.com
+
+Customer can choose:
+
+Service
+
+Service Category
+
+Sub-service
+
+Problem Type
+
+Date
+
+Time
+
+Location
+
+Address
+
+Notes
+
+Images
+
+Video optional
+
+Urgency
+
+Preferred Provider optional
+
+Payment method
+
+Coupon
+
+Quote Request
+
+============================================================
+SERVICE STATUS
+============================================================
+
+New
+
+Pending Confirmation
+
+Confirmed
+
+Provider Assigned
+
+Provider On The Way
+
+Provider Arrived
+
+Work Started
+
+In Progress
+
+Waiting For Parts
+
+Completed
+
+Cancelled
+
+Failed
+
+Refund Requested
+
+Refunded
+
+============================================================
+ELECTRICIAN PLATFORM
+============================================================
+
+Support services such as:
+
+Electrical Repair
+
+Wiring
+
+Switch / Socket
+
+Fan
+
+Light
+
+Circuit Breaker
+
+Home Electrical Inspection
+
+Installation
+
+Emergency Electrical Support
+
+Admin must be able to create additional services without code changes.
+
+============================================================
+MECHANIC PLATFORM
+============================================================
+
+Support:
+
+Vehicle / Machine Type
+
+Problem Description
+
+Location
+
+On-site service
+
+Workshop service
+
+Appointment
+
+Parts Needed
+
+Quote
+
+Mechanic Assignment
+
+Status Tracking
+
+Invoice
+
+Payment
+
+Review
+
+Architecture must support adding new mechanic categories.
+
+============================================================
+GENERAL SERVICE MARKETPLACE
+============================================================
+
+services.uservicebd.com
+
+Must support unlimited future service categories.
+
+Examples:
+
+Cleaning
+
+Plumbing
+
+AC Service
+
+Appliance Repair
+
+Painting
+
+Moving
+
+Carpentry
+
+IT Support
+
+Home Maintenance
+
+Business Services
+
+and other future services.
+
+============================================================
+DELIVERY / LOGISTICS PLATFORM
+============================================================
+
+delivery.uservicebd.com
+
+Customer can create delivery requests.
+
+Pickup:
+
+Name
+
+Phone
+
+Address
+
+Area
+
+Instructions
+
+Drop-off:
+
+Name
+
+Phone
+
+Address
+
+Area
+
+Instructions
+
+Package:
+
+Type
+
+Weight
+
+Quantity
+
+Description
+
+COD Amount
+
+Fragile
+
+Special Instructions
+
+============================================================
+DELIVERY STATUS
+============================================================
+
+Requested
+
+Confirmed
+
+Rider Assigned
+
+Pickup Pending
+
+Picked Up
+
+In Transit
+
+Out For Delivery
+
+Delivered
+
+Failed Delivery
+
+Returned
+
+Cancelled
+
+============================================================
+RIDER SYSTEM
+============================================================
+
+rider.uservicebd.com
+
+Rider dashboard:
+
+Login
+
+Profile
+
+Availability
+
+Current Jobs
+
+New Assignment
+
+Accept Job
+
+Reject Job
+
+Pickup
+
+Navigation
+
+Customer Contact
+
+Delivery Confirmation
+
+COD Collection
+
+Earnings
+
+Completed Jobs
+
+Performance
+
+Ratings
+
+Support
+
+============================================================
+PROVIDER SYSTEM
+============================================================
+
+provider.uservicebd.com
+
+Provider can:
+
+Manage Profile
+
+Set Availability
+
+Set Service Areas
+
+View Assigned Jobs
+
+Accept/Reject where allowed
+
+Start Journey
+
+Arrive
+
+Start Job
+
+Update Job
+
+Complete Job
+
+Upload Job Images
+
+Add Notes
+
+Request Parts
+
+View Earnings
+
+View Ratings
+
+Contact Support
+
+============================================================
+PARTNER PLATFORM
+============================================================
+
+partner.uservicebd.com
+
+Support multiple partner types:
+
+Restaurant
+
+Pharmacy
+
+Merchant
+
+Seller
+
+Service Company
+
+Logistics Partner
+
+Partner onboarding:
+
+Application
+
+Business details
+
+Documents
+
+Bank information
+
+Approval
+
+Verification
+
+Agreement
+
+Commission Setup
+
+============================================================
+CUSTOMER DASHBOARD
+============================================================
+
+account.uservicebd.com
+
+Sections:
+
+Overview
+
+Food Orders
+
+Shop Orders
+
+Pharmacy Orders
+
+Service Bookings
+
+Delivery Requests
+
+Quotes
+
+Payments
+
+Invoices
+
+Wallet
+
+Loyalty
+
+Coupons
+
+Addresses
+
+Favorites
+
+Saved Services
+
+Reviews
+
+Support Tickets
+
+Notifications
+
+Profile
+
+Security
+
+Privacy
+
+Marketing Preferences
+
+============================================================
+CENTRAL ADMIN PLATFORM
+============================================================
+
+admin.uservicebd.com
+
+Owner must be able to control the complete group from one place.
+
+Dashboard should include:
+
+Group Revenue
+
+Revenue by Division
+
+Food Revenue
+
+Shop Revenue
+
+Pharmacy Revenue
+
+Service Revenue
+
+Delivery Revenue
+
+Orders
+
+Bookings
+
+Customers
+
+Partners
+
+Providers
+
+Riders
+
+Refunds
+
+Pending Payments
+
+COD Outstanding
+
+Commission
+
+Profit Estimates
+
+Marketing Performance
+
+Conversion Rate
+
+Customer Retention
+
+Top Services
+
+Top Products
+
+Top Restaurants
+
+Top Areas
+
+Low Stock
+
+Customer Satisfaction
+
+Support Load
+
+AI-generated executive summary
+
+============================================================
+ADMIN SECTIONS
+============================================================
+
+Dashboard
+
+Customers
+
+Food
+
+Restaurants
+
+Menus
+
+Food Orders
+
+Pharmacy
+
+Pharmacy Partners
+
+Medicines / Products
+
+Shop
+
+Products
+
+Categories
+
+Brands
+
+Inventory
+
+Services
+
+Electrician
+
+Mechanic
+
+Providers
+
+Delivery
+
+Riders
+
+Bookings
+
+Orders
+
+Quotes
+
+Payments
+
+Invoices
+
+COD
+
+Settlements
+
+Commissions
+
+Coupons
+
+Promotions
+
+Loyalty
+
+Referrals
+
+Reviews
+
+Returns
+
+Refunds
+
+CRM
+
+Leads
+
+Support
+
+Marketing
+
+Automations
+
+AI Center
+
+Analytics
+
+Reports
+
+CMS
+
+SEO
+
+Notifications
+
+Staff
+
+Roles
+
+Permissions
+
+Integrations
+
+Audit Logs
+
+Security
+
+System Health
+
+Settings
+
+============================================================
+ROLE BASED ACCESS CONTROL
+============================================================
+
+Roles may include:
+
+Group Owner
+
+Super Admin
+
+Group Admin
+
+Finance Admin
+
+Food Admin
+
+Restaurant Manager
+
+Shop Admin
+
+Pharmacy Admin
+
+Services Admin
+
+Delivery Admin
+
+Operations Manager
+
+Customer Support
+
+Marketing Manager
+
+Content Manager
+
+Analytics Manager
+
+Provider
+
+Partner
+
+Rider
+
+Accountant
+
+Permissions must be enforced server-side.
+
+Never rely on hidden frontend buttons alone.
+
+============================================================
+PAYMENT ARCHITECTURE
+============================================================
+
+Build a modular payment system.
+
+Prepare integrations for legitimate providers such as:
+
+SSLCommerz
+
+bKash supported merchant/payment APIs
+
+Nagad supported merchant/payment APIs
+
+Card Payments
+
+Bank Transfer
+
+Cash On Delivery
+
+Cash After Service
+
+Other approved providers
+
+Never hard-code credentials.
+
+============================================================
+PAYMENT SECURITY
+============================================================
+
+Never trust:
+
+Price from frontend
+
+Discount from frontend
+
+Payment success from frontend
+
+Shipping fee from frontend
+
+Order total from frontend
+
+Role from frontend
+
+Every sensitive calculation must happen server-side.
+
+Use:
+
+Webhook signature verification
+
+Idempotency
+
+Transaction locking
+
+Secure server-side amount verification
+
+Payment audit logs
+
+Refund records
+
+============================================================
+WALLET SYSTEM
+============================================================
+
+Prepare optional U Service wallet.
+
+Capabilities:
+
+Wallet Balance
+
+Credit
+
+Debit
+
+Refund Credit
+
+Promotional Credit
+
+Transaction History
+
+Expiration rules where applicable
+
+Wallet actions must be securely audited.
+
+============================================================
+INVOICE & BILLING
+============================================================
+
+Generate professional invoices.
+
+Invoice includes:
+
+U Service Logo
+
+Division
+
+Invoice Number
+
+Order / Booking ID
+
+Customer
+
+Products / Services
+
+Subtotal
+
+Discount
+
+Delivery Fee
+
+Service Fee
+
+Tax if applicable
+
+Total
+
+Payment Method
+
+Payment Status
+
+Date
+
+============================================================
+COUPON ENGINE
+============================================================
+
+Support:
+
+Percentage
+
+Fixed Amount
+
+Free Delivery
+
+First Order
+
+First Booking
+
+Division-specific
+
+Product-specific
+
+Service-specific
+
+Area-specific
+
+Customer-specific
+
+Campaign-specific
+
+Minimum Spend
+
+Maximum Discount
+
+Usage Limit
+
+Per-user Limit
+
+Start Date
+
+Expiry
+
+============================================================
+PROMOTION ENGINE
+============================================================
+
+Support:
+
+Flash Sales
+
+Food Offers
+
+Free Delivery
+
+Buy X Get Y
+
+Bundles
+
+Restaurant Offers
+
+Shop Offers
+
+Service Discounts
+
+Pharmacy Offers where legally permitted
+
+Referral Campaigns
+
+Customer Segments
+
+Scheduled Campaigns
+
+============================================================
+LOYALTY PROGRAM
+============================================================
+
+Create group-wide loyalty architecture.
+
+Customers may earn points from eligible:
+
+Food Orders
+
+Shop Orders
+
+Service Bookings
+
+Delivery
+
+Reviews
+
+Referrals
+
+Campaigns
+
+Allow:
+
+Points Balance
+
+History
+
+Redemption
+
+Expiry
+
+Tier System
+
+VIP Levels
+
+============================================================
+REFERRAL SYSTEM
+============================================================
+
+Support:
+
+Referral Code
+
+Referral Link
+
+Referrer Reward
+
+New Customer Reward
+
+Fraud Detection
+
+Referral Analytics
+
+============================================================
+CRM
+============================================================
+
+Build a group-wide CRM.
+
+Customer profile:
+
+Basic Information
+
+Total Spend
+
+Lifetime Value
+
+Food Spend
+
+Shop Spend
+
+Service Spend
+
+Pharmacy Spend
+
+Delivery Spend
+
+Last Activity
+
+Order Frequency
+
+Booking History
+
+Refund History
+
+Complaints
+
+Reviews
+
+Support History
+
+Coupons
+
+Preferred Categories
+
+Lead Source
+
+Campaign Source
+
+Tags
+
+Internal Notes
+
+============================================================
+CUSTOMER SEGMENTS
+============================================================
+
+Create dynamic segments:
+
+New Customers
+
+Repeat Customers
+
+VIP
+
+High Value
+
+Inactive
+
+At Risk
+
+Food Customers
+
+Shop Customers
+
+Service Customers
+
+Cross-Vertical Customers
+
+Cart Abandoners
+
+Booking Abandoners
+
+High Refund Customers
+
+Area-based Segments
+
+Custom Segments
+
+============================================================
+LEAD MANAGEMENT
+============================================================
+
+Capture leads from:
+
+Website
+
+Facebook
+
+Messenger
+
+WhatsApp
+
+Google
+
+Contact Form
+
+Quote Request
+
+Phone
+
+Manual Entry
+
+Partner Application
+
+Provider Application
+
+Track:
+
+Source
+
+Campaign
+
+Interest
+
+Status
+
+Assigned Staff
+
+Follow-up Date
+
+Notes
+
+Lead Score
+
+============================================================
+AI AUTOMATION CORE
+============================================================
+
+AI automation is NOT optional.
+
+Build AI automation into the platform from the beginning.
+
+Create an AI Automation Center in Admin.
+
+Use a provider-agnostic architecture.
+
+Allow integration with modern LLM providers through environment variables.
+
+Do not lock the entire platform to one AI provider.
+
+============================================================
+AI ORCHESTRATION
+============================================================
+
+Create:
+
+AI Gateway
+
+Prompt Management
+
+Model Routing
+
+Usage Logging
+
+Cost Tracking
+
+Rate Limits
+
+Fallback Models
+
+Human Approval
+
+AI Audit Logs
+
+AI Permissions
+
+Automation Rules
+
+Knowledge Base
+
+Vector Search
+
+RAG Architecture
+
+============================================================
+AI KNOWLEDGE BASE
+============================================================
+
+AI should be able to use authorized data from:
+
+U Service Policies
+
+Service Information
+
+Product Information
+
+Restaurant Information
+
+FAQs
+
+Delivery Rules
+
+Support Documentation
+
+Company Procedures
+
+Offers
+
+Public Website Content
+
+Admin-approved Knowledge Documents
+
+Use:
+
+Embeddings
+
+pgvector or equivalent
+
+Retrieval Augmented Generation
+
+Do NOT allow AI to access data outside the user's authorization level.
+
+============================================================
+AI CUSTOMER ASSISTANT
+============================================================
+
+Create a Bangla + English AI assistant.
+
+AI can help customers:
+
+Find services
+
+Find products
+
+Find restaurants
+
+Compare services
+
+Explain pricing
+
+Explain delivery
+
+Explain policies
+
+Guide booking
+
+Guide checkout
+
+Answer FAQs
+
+Help locate existing order tracking
+
+Recommend products/services
+
+Suggest restaurants
+
+Explain offers
+
+AI must understand Bangla naturally.
+
+============================================================
+AI CUSTOMER SECURITY RULES
+============================================================
+
+AI must NEVER:
+
+Invent order status
+
+Invent payment success
+
+Invent refund approval
+
+Reveal another customer's information
+
+Expose internal admin information
+
+Change payment amounts
+
+Approve prescription products
+
+Provide medical diagnosis
+
+Make unauthorized account changes
+
+============================================================
+AI SUPPORT AUTOMATION
+============================================================
+
+AI can:
+
+Classify support tickets
+
+Detect topic
+
+Detect urgency
+
+Summarize customer issue
+
+Suggest response
+
+Translate Bangla ↔ English
+
+Route ticket
+
+Generate internal summary
+
+Find relevant help article
+
+Identify duplicate tickets
+
+Human approval must be available for important responses.
+
+============================================================
+AI SALES ASSISTANT
+============================================================
+
+AI can:
+
+Recommend products
+
+Recommend services
+
+Recommend restaurants
+
+Suggest bundles
+
+Suggest upsells
+
+Suggest cross-sells
+
+Identify customer preferences
+
+Suggest alternative products
+
+Suggest compatible services
+
+Recommendations must not use prohibited discriminatory profiling.
+
+============================================================
+AI MARKETING AUTOMATION
+============================================================
+
+AI can generate:
+
+Facebook post drafts
+
+Ad copy drafts
+
+Product descriptions
+
+Service descriptions
+
+Restaurant promotional text
+
+Email campaigns
+
+SMS drafts
+
+WhatsApp campaign drafts
+
+Push notifications
+
+SEO titles
+
+Meta descriptions
+
+Blog drafts
+
+Offer ideas
+
+Campaign variations
+
+Bangla and English versions
+
+Human approval required before public publishing unless admin explicitly
+configures trusted automation.
+
+============================================================
+AI CRM AUTOMATION
+============================================================
+
+AI can:
+
+Summarize customer history
+
+Generate customer insights
+
+Detect inactive customers
+
+Suggest follow-up
+
+Score leads
+
+Prioritize leads
+
+Suggest next action
+
+Detect possible churn
+
+Identify cross-sell opportunities
+
+Create daily CRM summaries
+
+============================================================
+AI ABANDONED CART AUTOMATION
+============================================================
+
+Detect:
+
+Abandoned Shop Cart
+
+Abandoned Food Cart
+
+Abandoned Booking
+
+Abandoned Checkout
+
+AI automation may:
+
+Create reminder
+
+Choose approved template
+
+Personalize message
+
+Offer valid coupon based on configured business rules
+
+Schedule follow-up
+
+Respect marketing consent.
+
+============================================================
+AI OPERATIONS AUTOMATION
+============================================================
+
+AI can help:
+
+Summarize daily operations
+
+Identify unusual order spikes
+
+Detect delayed orders
+
+Detect delayed bookings
+
+Identify high cancellation areas
+
+Identify provider performance issues
+
+Identify restaurant performance issues
+
+Detect inventory risk
+
+Identify support bottlenecks
+
+Generate operational recommendations
+
+============================================================
+AI PROVIDER ASSIGNMENT
+============================================================
+
+AI may recommend service provider assignment based on:
+
+Skill
+
+Service Type
+
+Area
+
+Availability
+
+Workload
+
+Rating
+
+Distance where available
+
+Previous performance
+
+AI should recommend.
+
+Business rules must remain authoritative.
+
+============================================================
+AI RIDER / DELIVERY OPTIMIZATION
+============================================================
+
+AI may assist with:
+
+Rider assignment
+
+Delivery batching
+
+Route recommendations
+
+Workload balancing
+
+ETA estimation
+
+Delivery delay prediction
+
+Use mapping/routing providers where required.
+
+============================================================
+AI INVENTORY AUTOMATION
+============================================================
+
+AI can:
+
+Predict low stock
+
+Estimate demand
+
+Suggest reorder quantities
+
+Identify slow-moving products
+
+Identify fast-moving products
+
+Detect unusual stock changes
+
+Generate purchase recommendations
+
+Do not automatically purchase inventory without explicit authorization.
+
+============================================================
+AI FRAUD / RISK ENGINE
+============================================================
+
+Create risk scoring architecture.
+
+Signals may include:
+
+Repeated fake COD orders
+
+Repeated cancellations
+
+Repeated failed deliveries
+
+Suspicious coupon use
+
+Unusual order velocity
+
+Payment failures
+
+Suspicious account activity
+
+High refund behavior
+
+Abnormal provider activity
+
+AI can assign risk scores.
+
+Never automatically permanently punish customers solely because of an
+opaque AI score.
+
+Require configurable business rules and manual review.
+
+============================================================
+AI REVIEW ANALYSIS
+============================================================
+
+AI can:
+
+Analyze sentiment
+
+Detect recurring complaints
+
+Summarize reviews
+
+Identify service quality problems
+
+Identify restaurant issues
+
+Identify provider issues
+
+Identify product problems
+
+Generate weekly review insights
+
+============================================================
+AI EXECUTIVE DASHBOARD
+============================================================
+
+Admin homepage should include optional AI summary:
+
+Today's Revenue
+
+Major Changes
+
+Problems
+
+Opportunities
+
+High-risk Issues
+
+Customer Complaints
+
+Marketing Performance
+
+Low Stock
+
+Provider Problems
+
+Delivery Problems
+
+Suggested Actions
+
+Example:
+
+"Food orders increased 18% compared with last Monday."
+
+Only generate such statements from real platform data.
+
+Never fabricate metrics.
+
+============================================================
+AI ANALYTICS ASSISTANT
+============================================================
+
+Admin should be able to ask:
+
+"What were our top services this month?"
+
+"Why did food sales drop?"
+
+"Which area has the most cancellations?"
+
+"Which campaigns generated customers?"
+
+"Which products may run out of stock?"
+
+"Which providers have the best ratings?"
+
+AI must query authorized analytics/business data and provide grounded
+answers.
+
+============================================================
+AUTOMATION ENGINE
+============================================================
+
+Create a no-code / low-code automation rule engine.
+
+Structure:
+
+TRIGGER
++
+CONDITION
++
+ACTION
+
+Example:
+
+TRIGGER:
+Order Created
+
+CONDITION:
+Payment = COD
+
+ACTION:
+Send Customer Confirmation
+Notify Restaurant
+Create CRM Activity
+Send Meta CAPI Event
+
+============================================================
+AUTOMATION TRIGGERS
+============================================================
+
+Support events including:
+
+Customer Registered
+
+Lead Created
+
+Order Created
+
+Order Paid
+
+Order Cancelled
+
+Booking Created
+
+Booking Confirmed
+
+Provider Assigned
+
+Provider Arrived
+
+Booking Completed
+
+Food Order Accepted
+
+Restaurant Preparing
+
+Rider Assigned
+
+Rider Picked Up
+
+Delivered
+
+Payment Failed
+
+Refund Issued
+
+Cart Abandoned
+
+Booking Abandoned
+
+Customer Inactive
+
+Review Submitted
+
+Support Ticket Created
+
+Low Stock
+
+High-risk Activity
+
+============================================================
+AUTOMATION ACTIONS
+============================================================
+
+Actions:
+
+Send Email
+
+Send SMS
+
+Send WhatsApp
+
+Send Push Notification
+
+Create CRM Task
+
+Assign Staff
+
+Create Support Ticket
+
+Add Customer Tag
+
+Change Lead Stage
+
+Create Coupon
+
+Send Webhook
+
+Send Meta Event
+
+Create AI Summary
+
+Generate AI Response Draft
+
+Notify Admin
+
+Trigger Background Job
+
+============================================================
+WHATSAPP AUTOMATION
+============================================================
+
+Prepare official WhatsApp Business API integration.
+
+Possible notifications:
+
+Order Received
+
+Order Confirmed
+
+Booking Confirmed
+
+Provider Assigned
+
+Provider On Way
+
+Food Order Update
+
+Rider Assigned
+
+Delivery Update
+
+Payment Received
+
+Refund
+
+Invoice
+
+Support Reply
+
+Approved marketing campaigns
+
+Respect customer consent.
+
+============================================================
+SMS SYSTEM
+============================================================
+
+Provider-independent SMS architecture.
+
+Use cases:
+
+OTP
+
+Order Confirmation
+
+Booking Update
+
+Delivery Update
+
+Emergency Notification
+
+Password / Security Alert
+
+============================================================
+EMAIL SYSTEM
+============================================================
+
+Transactional templates:
+
+Welcome
+
+Verify Email
+
+Reset Password
+
+Order Confirmation
+
+Booking Confirmation
+
+Food Order
+
+Payment
+
+Invoice
+
+Provider Assignment
+
+Rider Update
+
+Delivery
+
+Refund
+
+Return
+
+Support
+
+Review Request
+
+============================================================
+PUSH NOTIFICATIONS
+============================================================
+
+Prepare Web Push / App Push architecture.
+
+Notifications:
+
+Orders
+
+Bookings
+
+Offers
+
+Messages
+
+Delivery
+
+Provider Updates
+
+Security
+
+============================================================
+META / FACEBOOK
+============================================================
+
+U Service BD uses Facebook as an important channel.
+
+Implement proper architecture for:
+
+Meta Pixel
+
+Meta Conversions API
+
+Facebook Ads attribution
+
+Instagram Ads attribution
+
+Event deduplication
+
+Catalog feeds where relevant
+
+============================================================
+META EVENTS
+============================================================
+
+Track appropriately:
+
+PageView
+
+ViewContent
+
+Search
+
+Lead
+
+Contact
+
+AddToCart
+
+AddToWishlist
+
+InitiateCheckout
+
+AddPaymentInfo
+
+Purchase
+
+BookingCreated
+
+ServiceCompleted
+
+FoodOrder
+
+Other approved custom events
+
+Use shared event_id between browser and server events for deduplication.
+
+Never fire duplicate Purchase events.
+
+============================================================
+MARKETING ATTRIBUTION
+============================================================
+
+Capture:
+
+UTM Source
+
+UTM Medium
+
+UTM Campaign
+
+UTM Content
+
+UTM Term
+
+Referrer
+
+Landing Page
+
+Campaign ID
+
+Ad ID where available
+
+Order Source
+
+Booking Source
+
+Lead Source
+
+============================================================
+GOOGLE INTEGRATION
+============================================================
+
+Prepare:
+
+Google Analytics 4
+
+Google Tag Manager
+
+Google Search Console
+
+Google Ads Conversion
+
+Merchant Center for eligible commerce verticals
+
+Structured Data
+
+============================================================
+SEO
+============================================================
+
+Implement:
+
+Dynamic Titles
+
+Meta Descriptions
+
+Canonical URLs
+
+Open Graph
+
+Twitter Cards
+
+Organization Schema
+
+LocalBusiness Schema where applicable
+
+Product Schema
+
+Restaurant Schema
+
+Service Schema
+
+FAQ Schema
+
+Breadcrumb Schema
+
+Sitemap
+
+robots.txt
+
+SEO-friendly URLs
+
+Internal Links
+
+Alt Text
+
+Proper Headings
+
+Server-rendered/indexable content
+
+============================================================
+LOCATION SYSTEM
+============================================================
+
+Create a Bangladesh-friendly hierarchy.
+
+Support:
+
+Division
+
+District
+
+City
+
+Upazila / Thana
+
+Area
+
+Zone
+
+Postal Code
+
+Latitude
+
+Longitude where required
+
+Each vertical may define serviceability.
+
+============================================================
+DYNAMIC PRICING ARCHITECTURE
+============================================================
+
+Support configurable pricing rules based on:
+
+Area
+
+Distance
+
+Time
+
+Service
+
+Provider Type
+
+Order Value
+
+Weight
+
+Restaurant
+
+Delivery Zone
+
+Urgency
+
+Campaign
+
+Never allow frontend to decide final authoritative price.
+
+============================================================
+REALTIME TRACKING
+============================================================
+
+Prepare realtime infrastructure for:
+
+Order status
+
+Booking status
+
+Restaurant status
+
+Provider status
+
+Rider status
+
+Delivery progress
+
+Use:
+
+WebSockets
+
+Redis
+
+Django Channels
+
+External mapping APIs where required.
+
+============================================================
+MAP ARCHITECTURE
+============================================================
+
+Prepare provider-independent map architecture.
+
+Capabilities:
+
+Geocoding
+
+Reverse geocoding
+
+Distance
+
+Routes
+
+ETA
+
+Service Radius
+
+Restaurant Distance
+
+Provider Distance
+
+Delivery Distance
+
+============================================================
+REPORTING
+============================================================
+
+Reports:
+
+Group Revenue
+
+Revenue by Division
+
+Sales
+
+Bookings
+
+Food Orders
+
+Shop Orders
+
+Pharmacy Orders
+
+Service Revenue
+
+Delivery Revenue
+
+Refunds
+
+Commissions
+
+Settlements
+
+COD
+
+Payment Methods
+
+Customers
+
+Retention
+
+Repeat Customers
+
+LTV
+
+Providers
+
+Riders
+
+Restaurants
+
+Partners
+
+Products
+
+Services
+
+Areas
+
+Campaigns
+
+Leads
+
+Conversion
+
+Coupons
+
+Inventory
+
+Support
+
+AI Automation Performance
+
+============================================================
+FINANCIAL ANALYTICS
+============================================================
+
+Where business data exists calculate:
+
+Gross Revenue
+
+Net Revenue
+
+Product Cost
+
+Restaurant Commission
+
+Provider Commission
+
+Delivery Cost
+
+Payment Fees
+
+Discounts
+
+Refunds
+
+Gross Profit
+
+Estimated Margin
+
+Do not invent financial data.
+
+============================================================
+PARTNER COMMISSION
+============================================================
+
+Support flexible commission models:
+
+Percentage
+
+Fixed
+
+Per Order
+
+Per Booking
+
+Category based
+
+Custom Contract
+
+Partner settlement records.
+
+============================================================
+SETTLEMENT SYSTEM
+============================================================
+
+Support:
+
+Restaurant Settlements
+
+Seller Settlements
+
+Provider Settlements
+
+Rider Earnings
+
+COD Reconciliation
+
+Pending Balance
+
+Paid Balance
+
+Settlement History
+
+============================================================
+INVENTORY MANAGEMENT
+============================================================
+
+Support:
+
+Stock
+
+Variant Stock
+
+Warehouse
+
+Stock In
+
+Stock Out
+
+Stock Adjustment
+
+Damaged Stock
+
+Returned Stock
+
+Reserved Stock
+
+Low Stock
+
+Out of Stock
+
+Inventory History
+
+Prevent negative stock.
+
+Use database transactions for critical inventory operations.
+
+============================================================
+ORDER CONCURRENCY
+============================================================
+
+Protect against:
+
+Overselling
+
+Duplicate checkout
+
+Duplicate webhook
+
+Double refund
+
+Duplicate coupon redemption
+
+Use:
+
+Transactions
+
+Locks
+
+Unique constraints
+
+Idempotency keys
+
+============================================================
+SEARCH
+============================================================
+
+Unified search should support:
+
+Products
+
+Services
+
+Restaurants
+
+Food Items
+
+Pharmacy Products
+
+Categories
+
+Brands
+
+Areas
+
+Use intelligent suggestions.
+
+Future architecture may support semantic AI search.
+
+============================================================
+AI SEMANTIC SEARCH
+============================================================
+
+Allow customers to search naturally in Bangla or English.
+
+Examples:
+
+"আমার বাসার ফ্যান ঠিক করার লোক চাই"
+
+"ধানমন্ডিতে ভালো বিরিয়ানি"
+
+"৫০০ টাকার মধ্যে হেডফোন"
+
+AI should map natural language to appropriate catalog/service results.
+
+============================================================
+CMS
+============================================================
+
+Admin must control website content without code.
+
+Manage:
+
+Corporate Homepage
+
+Division Pages
+
+Hero Banners
+
+Menus
+
+Navigation
+
+Footer
+
+FAQ
+
+Policies
+
+Offers
+
+Pages
+
+Blogs
+
+Images
+
+Videos
+
+SEO
+
+Contact Details
+
+Social Media
+
+============================================================
+BLOG / CONTENT
+============================================================
+
+Support:
+
+Posts
+
+Categories
+
+Authors
+
+Tags
+
+Bangla
+
+English
+
+Featured Image
+
+SEO
+
+Draft
+
+Schedule
+
+Publish
+
+Related Products
+
+Related Services
+
+============================================================
+BILINGUAL ARCHITECTURE
+============================================================
+
+Support Bangla + English across:
+
+Navigation
+
+Pages
+
+Services
+
+Products
+
+Notifications
+
+Emails
+
+SEO
+
+AI Assistant
+
+Admin content fields where necessary
+
+Default public language:
+Bangla
+
+============================================================
+SECURITY
+============================================================
+
+Security is mandatory.
+
+Protect against:
+
+SQL Injection
+
+XSS
+
+CSRF
+
+Broken Authentication
+
+IDOR
+
+Privilege Escalation
+
+Mass Assignment
+
+Brute Force
+
+Credential Stuffing
+
+API Abuse
+
+Rate Abuse
+
+Payment Manipulation
+
+Price Manipulation
+
+Coupon Abuse
+
+Webhook Replay
+
+Malicious Files
+
+Session Theft
+
+Sensitive Data Exposure
+
+============================================================
+SECURITY IMPLEMENTATION
+============================================================
+
+Implement:
+
+Secure password hashing
+
+Secure sessions
+
+HttpOnly cookies
+
+Secure cookies
+
+SameSite policy
+
+CSRF protection
+
+Input validation
+
+Output encoding
+
+Backend permissions
+
+Rate limiting
+
+File validation
+
+MIME validation
+
+File size limits
+
+Virus scanning architecture where needed
+
+Security headers
+
+CSP
+
+Secret management
+
+Audit logs
+
+Webhook signatures
+
+2FA architecture
+
+Admin MFA recommended
+
+============================================================
+ADMIN SECURITY
+============================================================
+
+Admin portal must have stronger protection.
+
+Support:
+
+2FA / MFA
+
+Login Alerts
+
+Session Management
+
+Device / Session List
+
+Suspicious Login Detection
+
+IP-based alerts where appropriate
+
+Role-based access
+
+Audit History
+
+============================================================
+AUDIT LOGS
+============================================================
+
+Record important actions:
+
+Login
+
+Logout
+
+Role Change
+
+Permission Change
+
+Price Change
+
+Product Change
+
+Service Change
+
+Stock Change
+
+Order Change
+
+Booking Change
+
+Refund
+
+Payment
+
+Settlement
+
+Coupon
+
+Settings
+
+Partner Changes
+
+Customer Account Action
+
+AI Automation Action
+
+Record:
+
+Actor
+
+Action
+
+Entity
+
+Timestamp
+
+Relevant Before/After
+
+IP / request metadata where appropriate
+
+Never store passwords or payment secrets.
+
+============================================================
+PRIVACY
+============================================================
+
+Build:
+
+Privacy Preferences
+
+Marketing Consent
+
+Cookie Consent
+
+Data Export Architecture
+
+Account Deletion Request
+
+Data Retention Settings
+
+Consent Logs
+
+Do not claim automatic legal compliance.
+
+Allow policies to be configured based on applicable law.
+
+============================================================
+PHARMACY SAFETY
+============================================================
+
+Pharmacy module must support applicable local regulatory requirements.
+
+Do not allow AI or automation to:
+
+Prescribe medicine
+
+Diagnose illness
+
+Approve restricted medicine without authorized workflow
+
+Bypass prescription requirements
+
+============================================================
+PERFORMANCE
+============================================================
+
+Optimize:
+
+LCP
+
+CLS
+
+INP
+
+Images
+
+Fonts
+
+JavaScript
+
+Caching
+
+Database indexes
+
+Pagination
+
+API queries
+
+Background processing
+
+Compression
+
+CDN
+
+Lazy loading
+
+Connection pooling
+
+============================================================
+DATABASE DESIGN
+============================================================
+
+Use proper relational design.
+
+Potential models include:
+
+Users
+
+UserSessions
+
+Roles
+
+Permissions
+
+UserRoles
+
+CustomerProfiles
+
+Addresses
+
+Organizations
+
+BusinessDivisions
+
+Restaurants
+
+RestaurantBranches
+
+MenuCategories
+
+MenuItems
+
+MenuItemOptions
+
+FoodOrders
+
+Pharmacies
+
+PharmacyProducts
+
+Prescriptions
+
+Products
+
+ProductVariants
+
+ProductImages
+
+Categories
+
+Brands
+
+Warehouses
+
+Inventory
+
+InventoryTransactions
+
+Services
+
+ServiceCategories
+
+Bookings
+
+BookingStatusHistory
+
+Providers
+
+ProviderSkills
+
+ProviderAvailability
+
+Partners
+
+Riders
+
+DeliveryOrders
+
+DeliveryEvents
+
+Assignments
+
+Carts
+
+CartItems
+
+Wishlists
+
+WishlistItems
+
+Orders
+
+OrderItems
+
+Payments
+
+PaymentTransactions
+
+Refunds
+
+Invoices
+
+Coupons
+
+CouponRules
+
+CouponUsage
+
+Promotions
+
+LoyaltyAccounts
+
+LoyaltyTransactions
+
+Referrals
+
+Reviews
+
+Returns
+
+SupportTickets
+
+SupportMessages
+
+Notifications
+
+NotificationTemplates
+
+Leads
+
+LeadActivities
+
+CustomerSegments
+
+CRMActivities
+
+MarketingConsents
+
+Campaigns
+
+AutomationRules
+
+AutomationRuns
+
+AIConversations
+
+AIUsageLogs
+
+AIKnowledgeDocuments
+
+AIEmbeddings
+
+AnalyticsEvents
+
+Pages
+
+Blogs
+
+Banners
+
+Settings
+
+Integrations
+
+Webhooks
+
+AuditLogs
+
+============================================================
+DATABASE QUALITY
+============================================================
+
+Use:
+
+Foreign Keys
+
+Indexes
+
+Unique Constraints
+
+Check Constraints
+
+Transactions
+
+Correct Decimal Types
+
+Timestamps
+
+Soft Delete only when appropriate
+
+Data migrations
+
+Safe migrations
+
+============================================================
+API ARCHITECTURE
+============================================================
+
+Version APIs.
+
+Example:
+
+/api/v1/
+
+Use consistent:
+
+Authentication
+
+Pagination
+
+Errors
+
+Validation
+
+Permissions
+
+Rate Limiting
+
+Tracing
+
+============================================================
+BACKGROUND TASKS
+============================================================
+
+Use Celery for:
+
+Emails
+
+SMS
+
+WhatsApp
+
+Meta CAPI
+
+Invoices
+
+Reports
+
+AI jobs
+
+Campaigns
+
+Notifications
+
+Webhook retries
+
+Settlement jobs
+
+Analytics aggregation
+
+Image processing
+
+Search indexing
+
+============================================================
+SCHEDULED TASKS
+============================================================
+
+Use Celery Beat or equivalent for:
+
+Daily Reports
+
+Weekly Reports
+
+AI Executive Summaries
+
+Abandoned Cart
+
+Abandoned Booking
+
+Customer Win-back
+
+Coupon Expiration
+
+Loyalty Expiration
+
+Settlement Jobs
+
+Inventory Alerts
+
+Data cleanup
+
+============================================================
+OBSERVABILITY
+============================================================
+
+Implement:
+
+Application Logs
+
+Structured Logs
+
+Error Tracking
+
+Performance Monitoring
+
+Request IDs
+
+Webhook Logs
+
+Background Job Logs
+
+AI Logs
+
+Payment Logs
+
+Health Checks
+
+Metrics
+
+============================================================
+SYSTEM HEALTH
+============================================================
+
+Admin should be able to see:
+
+API Health
+
+Database Health
+
+Redis Health
+
+Queue Health
+
+Failed Jobs
+
+Payment Webhook Failures
+
+Email Failures
+
+SMS Failures
+
+AI Provider Status
+
+Storage Health
+
+============================================================
+BACKUP
+============================================================
+
+Document and prepare:
+
+Automatic Database Backup
+
+Point-in-time Recovery architecture
+
+Media Backup
+
+Configuration Backup
+
+Recovery Testing
+
+Disaster Recovery Procedure
+
+============================================================
+CI/CD
+============================================================
+
+Pipeline:
+
+Install
+
+Lint
+
+Format Check
+
+Type Check
+
+Security Scan
+
+Unit Tests
+
+Integration Tests
+
+Build
+
+Migration Validation
+
+Deployment
+
+Smoke Tests
+
+Rollback Strategy
+
+============================================================
+TESTING
+============================================================
+
+Write:
+
+Unit Tests
+
+Integration Tests
+
+API Tests
+
+Authentication Tests
+
+Authorization Tests
+
+Payment Tests
+
+Webhook Tests
+
+Order Tests
+
+Inventory Tests
+
+Booking Tests
+
+Food Tests
+
+Pharmacy Workflow Tests
+
+Rider Tests
+
+Provider Tests
+
+AI Automation Tests
+
+E2E Tests
+
+============================================================
+CRITICAL E2E FLOWS
+============================================================
+
+Test:
+
+Customer Registration
+
+Login
+
+Unified Account
+
+Food Order
+
+Restaurant Acceptance
+
+Rider Assignment
+
+Food Delivery
+
+Shop Purchase
+
+Inventory Reduction
+
+Pharmacy Order
+
+Prescription Workflow
+
+Electrician Booking
+
+Mechanic Booking
+
+Provider Assignment
+
+Service Completion
+
+Delivery Request
+
+COD
+
+Online Payment
+
+Refund
+
+Coupon
+
+Loyalty
+
+Support Ticket
+
+Review
+
+Partner Login
+
+Rider Login
+
+Provider Login
+
+Admin Login
+
+Permissions
+
+AI Customer Assistant
+
+AI CRM
+
+AI Support
+
+AI Automation
+
+Meta Events
+
+============================================================
+SEED DATA
+============================================================
+
+Create realistic demo/seed data.
+
+Do NOT use:
+
+Product 1
+
+Service 1
+
+Test Restaurant
+
+Lorem Ipsum
+
+Use realistic Bangladeshi-style data clearly marked as demo data.
+
+============================================================
+PWA / MOBILE APP READINESS
+============================================================
+
+Build web systems so future apps can reuse backend APIs.
+
+Future apps:
+
+U Service Customer App
+
+Restaurant App
+
+Merchant App
+
+Provider App
+
+Rider App
+
+Admin App
+
+Support app development later without backend redesign.
+
+============================================================
+NO-FAKE-FEATURE POLICY
+============================================================
+
+Never create a button that does nothing.
+
+Do not leave major functions as:
+
+TODO
+
+Coming Soon
+
+Placeholder
+
+Fake API
+
+Mock Checkout
+
+Fake Payment
+
+Fake Tracking
+
+Fake AI
+
+Fake Analytics
+
+Hard-coded Customer
+
+Hard-coded Order
+
+If external credentials are needed:
+
+Build the integration properly.
+
+Use environment variables.
+
+Clearly explain required credential.
+
+============================================================
+ENVIRONMENT VARIABLES
+============================================================
+
+Create .env.example.
+
+Include architecture for:
+
+DATABASE_URL=
+
+REDIS_URL=
+
+DJANGO_SECRET_KEY=
+
+APP_URL=
+
+FRONTEND_URL=
+
+S3 credentials
+
+Email provider
+
+SMS provider
+
+WhatsApp Business
+
+Payment gateways
+
+Meta Pixel
+
+Meta CAPI
+
+GA4
+
+GTM
+
+Google Maps / Maps Provider
+
+AI Providers
+
+Vector Search
+
+Monitoring
+
+Never put real secrets in source code.
+
+============================================================
+AI SECRET MANAGEMENT
+============================================================
+
+All AI keys must remain server-side.
+
+Never expose provider API keys in frontend JavaScript.
+
+============================================================
+AI COST CONTROL
+============================================================
+
+Implement:
+
+Token usage tracking
+
+Model usage tracking
+
+Cost estimates
+
+Daily limits
+
+User limits
+
+Admin limits
+
+Fallback models
+
+Caching where safe
+
+============================================================
+AI HUMAN APPROVAL
+============================================================
+
+Require human approval for high-impact actions such as:
+
+Large refunds
+
+Customer bans
+
+Partner suspension
+
+Major price changes
+
+Mass marketing
+
+Public publishing
+
+Financial transactions
+
+Prescription workflow
+
+Sensitive CRM actions
+
+============================================================
+DEPLOYMENT
+============================================================
+
+Prepare production deployment.
+
+Include:
+
+Docker
+
+Production Config
+
+HTTPS
+
+DNS
+
+Subdomains
+
+Database
+
+Redis
+
+Celery Workers
+
+Celery Beat
+
+Storage
+
+CDN
+
+Email
+
+SMS
+
+WhatsApp
+
+Payments
+
+Webhooks
+
+AI Providers
+
+Monitoring
+
+Backups
+
+Secrets
+
+============================================================
+SUBDOMAIN SECURITY
+============================================================
+
+Configure appropriate:
+
+CORS
+
+CSRF
+
+Cookie domain
+
+Authentication sessions
+
+OAuth redirects
+
+API permissions
+
+Do not accidentally expose privileged authentication between unrelated
+contexts.
+
+============================================================
+DOCUMENTATION
+============================================================
+
+Create:
+
+README
+
+Architecture Documentation
+
+Database Diagram
+
+API Documentation
+
+Admin Guide
+
+Restaurant Guide
+
+Partner Guide
+
+Rider Guide
+
+Provider Guide
+
+Customer Guide
+
+Payment Setup
+
+AI Setup
+
+Automation Guide
+
+Meta CAPI Guide
+
+WhatsApp Guide
+
+SMS Guide
+
+Deployment Guide
+
+Backup Guide
+
+Security Guide
+
+Troubleshooting Guide
+
+============================================================
+AUTONOMOUS EXECUTION MODE
+============================================================
+
+If your environment supports terminal and file access:
+
+DO NOT merely explain how the project could be built.
+
+Actually:
+
+Create repository
+
+Create project structure
+
+Create frontend
+
+Create backend
+
+Create database models
+
+Create migrations
+
+Install dependencies
+
+Configure Docker
+
+Implement APIs
+
+Implement UI
+
+Connect frontend and backend
+
+Implement authentication
+
+Implement modules
+
+Create tests
+
+Run migrations
+
+Run tests
+
+Run lint
+
+Run type checks
+
+Run production build
+
+Inspect failures
+
+Fix failures
+
+Repeat
+
+Do not stop at the first error.
+
+============================================================
+DO NOT ASK UNNECESSARY QUESTIONS
+============================================================
+
+When a technical choice is reversible:
+
+Choose the strongest sensible production default.
+
+Document your decision.
+
+Continue.
+
+Only stop for information that genuinely cannot be inferred, such as:
+
+Real payment credentials
+
+Real WhatsApp credentials
+
+Real SMS credentials
+
+Meta credentials
+
+Domain/DNS ownership changes
+
+Legal/regulatory decisions
+
+Irreversible financial rules
+
+============================================================
+BUILD PHASES
+============================================================
+
+PHASE 1
+Architecture
+Repository
+Docker
+Database
+Core Infrastructure
+
+PHASE 2
+Unified Authentication
+RBAC
+Customer Profiles
+
+PHASE 3
+Corporate Website
+CMS
+
+PHASE 4
+Shop E-Commerce
+
+PHASE 5
+Food / Restaurant Marketplace
+
+PHASE 6
+Service Booking
+Electrician
+Mechanic
+
+PHASE 7
+Pharmacy
+
+PHASE 8
+Delivery / Rider
+
+PHASE 9
+Partner / Provider Platforms
+
+PHASE 10
+Payments
+Invoices
+Settlement
+
+PHASE 11
+CRM
+Leads
+Customer Segmentation
+
+PHASE 12
+Notifications
+WhatsApp
+SMS
+Email
+
+PHASE 13
+AI Automation
+
+PHASE 14
+Marketing
+Meta
+Google
+
+PHASE 15
+Analytics
+Reports
+
+PHASE 16
+SEO
+Performance
+Accessibility
+
+PHASE 17
+Security
+Audit
+Monitoring
+
+PHASE 18
+Testing
+Bug Fixing
+
+PHASE 19
+Deployment
+Documentation
+
+============================================================
+FINAL SELF-AUDIT
+============================================================
+
+Before claiming completion, verify:
+
+Does www.uservicebd.com work?
+
+Do all required subdomains work?
+
+Does unified login work?
+
+Is customer authorization secure?
+
+Does admin RBAC work?
+
+Can new divisions be added?
+
+Can restaurants onboard?
+
+Can restaurants manage menus?
+
+Can food orders complete end-to-end?
+
+Can riders receive assignments?
+
+Can shop orders work?
+
+Does stock reduce correctly?
+
+Does pharmacy workflow work?
+
+Does prescription review architecture work?
+
+Can users book electricians?
+
+Can users book mechanics?
+
+Can providers receive assignments?
+
+Can users request deliveries?
+
+Can COD be reconciled?
+
+Do online payments verify server-side?
+
+Do refunds work?
+
+Do invoices work?
+
+Do partner settlements work?
+
+Does CRM work?
+
+Do leads work?
+
+Do automations trigger?
+
+Does AI assistant use real knowledge?
+
+Does AI avoid inventing business data?
+
+Do AI permissions work?
+
+Do Meta events deduplicate?
+
+Does Purchase contain real order value?
+
+Does WhatsApp architecture work?
+
+Are secrets protected?
+
+Are APIs rate-limited?
+
+Are admin routes protected?
+
+Are audit logs generated?
+
+Does SEO work?
+
+Does sitemap work?
+
+Is Bangla rendered correctly?
+
+Is mobile UX good?
+
+Does production build succeed?
+
+Do critical tests pass?
+
+Fix critical issues before declaring success.
+
+============================================================
+FINAL DELIVERABLES
+============================================================
+
+Deliver:
+
+Complete Source Code
+
+Next.js Frontends
+
+Python Django Backend
+
+FastAPI Services where needed
+
+PostgreSQL Schema
+
+Redis
+
+Celery
+
+Docker
+
+Corporate Website
+
+Unified Account
+
+Food Platform
+
+Restaurant Portal
+
+Shop
+
+Pharmacy
+
+Electrician
+
+Mechanic
+
+Services Platform
+
+Delivery Platform
+
+Rider Portal
+
+Provider Portal
+
+Partner Portal
+
+Central Admin
+
+CRM
+
+Leads
+
+Payments
+
+Invoices
+
+Settlements
+
+Coupons
+
+Promotions
+
+Loyalty
+
+Reviews
+
+Returns
+
+Refunds
+
+Notifications
+
+WhatsApp Architecture
+
+SMS Architecture
+
+Email Architecture
+
+Meta Pixel
+
+Meta CAPI
+
+Analytics
+
+SEO
+
+AI Assistant
+
+AI Automation Center
+
+AI CRM Automation
+
+AI Support Automation
+
+AI Marketing Automation
+
+AI Analytics
+
+AI Knowledge Base
+
+Security
+
+Audit Logging
+
+Monitoring
+
+Backups
+
+Tests
+
+Seed Data
+
+.env.example
+
+API Docs
+
+README
+
+Deployment Guide
+
+Production Launch Checklist
+
+============================================================
+FINAL COMMAND
+============================================================
+
+This is NOT a simple website project.
+
+Build U Service BD as a complete, scalable, AI-powered digital group
+company ecosystem.
+
+The architecture must be capable of supporting millions of future
+transactions and additional business verticals without requiring a
+complete rebuild.
+
+Prioritize:
+
+SECURITY
++
+CORRECT BUSINESS LOGIC
++
+SCALABILITY
++
+CUSTOMER EXPERIENCE
++
+PYTHON BACKEND QUALITY
++
+AI AUTOMATION
++
+MOBILE EXPERIENCE
++
+ADMIN CONTROL
++
+ANALYTICS
++
+MAINTAINABILITY
+
+Do not sacrifice backend quality for UI.
+
+Do not sacrifice security for speed.
+
+Do not use AI as fake decoration.
+
+AI must perform real useful automation connected to authorized business
+data.
+
+Do not stop after generating code snippets.
+
+If your environment supports execution, BUILD THE REAL PROJECT.
+
+Run it.
+
+Test it.
+
+Debug it.
+
+Improve it.
+
+Continue until the strongest production-ready implementation possible
+within the available environment has been completed.
+
+START NOW.
