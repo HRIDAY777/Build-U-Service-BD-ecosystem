@@ -1,20 +1,54 @@
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { serverGet, PageResult, Division, Offering } from "@/lib/api";
 import { OfferingCard } from "@/components/offering-card";
 import { Text } from "@/components/provider";
+type Category = {
+  id: number;
+  division_slug: string;
+  name: string;
+  name_bn: string;
+};
 export default async function Catalog({
   searchParams,
 }: {
-  searchParams: Promise<{ division?: string; q?: string; page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = await searchParams;
+  const rawParams = await searchParams;
+  const params = Object.fromEntries(
+    Object.entries(rawParams).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
   const query = new URLSearchParams();
   if (params.division) query.set("division", params.division);
   if (params.q) query.set("q", params.q);
   if (params.page) query.set("page", params.page);
-  const [divisions, items] = await Promise.all([
+  for (const key of [
+    "min_price",
+    "max_price",
+    "sort",
+    "in_stock",
+    "category",
+    "organization",
+  ]) {
+    if (params[key]) query.set(key, params[key]);
+  }
+  function divisionUrl(division: string) {
+    const next = new URLSearchParams(query);
+    next.delete("page");
+    next.delete("category");
+    next.delete("organization");
+    if (division) next.set("division", division);
+    else next.delete("division");
+    return `/catalog?${next}`;
+  }
+  const [divisions, items, categories] = await Promise.all([
     serverGet<PageResult<Division>>("divisions/"),
     serverGet<PageResult<Offering>>(`offerings/?${query}`),
+    serverGet<Category[]>(
+      `categories/?${new URLSearchParams(params.division ? { division: params.division } : {})}`,
+    ),
   ]);
   return (
     <div className="page-wrap">
@@ -28,24 +62,122 @@ export default async function Catalog({
           en="Discover meals, everyday essentials and professional services."
         />
       </p>
-      <form className="search-row">
-        <input
-          name="q"
-          defaultValue={params.q}
-          placeholder="খুঁজুন / Search"
-          aria-label="Search catalog"
-        />
+      <Link
+        className="text-link"
+        href={
+          params.division
+            ? `/stores?division=${encodeURIComponent(params.division)}`
+            : "/stores"
+        }
+      >
+        <Text bn="দোকান ও সেবাদাতা বেছে নিন" en="Browse stores and providers" />
+      </Link>
+      {params.organization && (
+        <p>
+          <Text
+            bn="নির্বাচিত প্রতিষ্ঠানের পণ্য ও সেবা দেখানো হচ্ছে।"
+            en="Showing products and services from the selected business."
+          />{" "}
+          <Link className="text-link" href={divisionUrl(params.division || "")}>
+            <Text bn="সব প্রতিষ্ঠান দেখুন" en="Show all businesses" />
+          </Link>
+        </p>
+      )}
+      <form className="form-panel" action="/catalog">
+        <label className="field">
+          <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
+          <input
+            name="q"
+            defaultValue={params.q}
+            placeholder="খুঁজুন / Search"
+            aria-label="Search catalog"
+          />
+        </label>
+        <label className="field">
+          <Text bn="ক্যাটাগরি" en="Category" />
+          <select name="category" defaultValue={params.category || ""}>
+            <option value="">All categories / সব ক্যাটাগরি</option>
+            {categories?.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name_bn || category.name} / {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          <Text bn="সর্বনিম্ন দাম (৳)" en="Minimum price (৳)" />
+          <input
+            type="number"
+            name="min_price"
+            min="0"
+            max="9999999999.99"
+            step="0.01"
+            defaultValue={params.min_price}
+          />
+        </label>
+        <label className="field">
+          <Text bn="সর্বোচ্চ দাম (৳)" en="Maximum price (৳)" />
+          <input
+            type="number"
+            name="max_price"
+            min="0"
+            max="9999999999.99"
+            step="0.01"
+            defaultValue={params.max_price}
+          />
+        </label>
+        <label className="field">
+          <Text bn="সাজান" en="Sort by" />
+          <select name="sort" defaultValue={params.sort || "default"}>
+            <option value="default">Default / স্বাভাবিক</option>
+            <option value="price_asc">Price: low to high / কম থেকে বেশি</option>
+            <option value="price_desc">
+              Price: high to low / বেশি থেকে কম
+            </option>
+            <option value="name">Name / নাম</option>
+            <option value="updated">Recently updated / সম্প্রতি আপডেট</option>
+          </select>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="in_stock"
+            value="true"
+            defaultChecked={params.in_stock === "true"}
+          />{" "}
+          <Text
+            bn="শুধু মজুত পণ্য ও সেবা"
+            en="In-stock products and services"
+          />
+        </label>
         {params.division && (
           <input type="hidden" name="division" value={params.division} />
+        )}
+        {params.organization && (
+          <input
+            type="hidden"
+            name="organization"
+            value={params.organization}
+          />
         )}
         <button className="button">
           <Text bn="খুঁজুন" en="Search" />
         </button>
+        <Link
+          className="text-link"
+          href={
+            params.division
+              ? `/catalog?division=${encodeURIComponent(params.division)}`
+              : "/catalog"
+          }
+        >
+          <Text bn="ফিল্টার মুছুন" en="Clear filters" />
+        </Link>
       </form>
       <div className="filters">
         <Link
           className={`filter ${!params.division ? "active" : ""}`}
-          href="/catalog"
+          href={divisionUrl("")}
         >
           <Text bn="সব" en="All" />
         </Link>
@@ -55,7 +187,7 @@ export default async function Catalog({
             <Link
               key={d.id}
               className={`filter ${params.division === d.slug ? "active" : ""}`}
-              href={`/catalog?division=${d.slug}`}
+              href={divisionUrl(d.slug)}
             >
               <Text bn={d.name_bn} en={d.name} />
             </Link>
@@ -70,10 +202,10 @@ export default async function Catalog({
             <p>
               {items
                 ? "কোনো ফলাফল পাওয়া যায়নি। / No matching results."
-                : "Catalog is unavailable. Please try again shortly."}
+                : "দামের সীমা ও ফিল্টার পরীক্ষা করুন, অথবা কিছুক্ষণ পর চেষ্টা করুন। / Check the price range and filters, or try again shortly."}
             </p>
             <Link className="button secondary" href="/catalog">
-              View all
+              <UiText text={"View all"} />
             </Link>
           </div>
         )}
@@ -85,7 +217,7 @@ export default async function Catalog({
               className="button secondary"
               href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page) - 1) })}`}
             >
-              Previous
+              <UiText text={"Previous"} />
             </Link>
           )}
           {items.next && (
@@ -93,13 +225,17 @@ export default async function Catalog({
               className="button"
               href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page || 1) + 1) })}`}
             >
-              Next
+              <UiText text={"Next"} />
             </Link>
           )}
         </div>
       )}
       <p className="demo-note">
-        Demo catalog · Prices and availability are validated again at checkout.
+        <UiText
+          text={
+            "Demo catalog · Prices and availability are validated again at checkout."
+          }
+        />
       </p>
     </div>
   );

@@ -6,9 +6,9 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from apps.catalog.models import Offering, ServiceArea
+from apps.catalog.models import Offering, ProductVariant, ServiceArea
 from apps.automation.models import OutboxEvent
-from apps.engagement.models import LoyaltyEntry
+from apps.engagement.models import LoyaltyEntry, Notification
 from .models import (
     Order,
     OrderItem,
@@ -19,6 +19,7 @@ from .models import (
     Booking,
     Prescription,
     Payment,
+    DeliveryRequest,
 )
 
 
@@ -63,6 +64,41 @@ def checkout(user, data, key, preview=False):
     )
     if not products or len(products) != len(quantities):
         raise ValidationError("One or more items are unavailable.")
+    products_by_id = {product.pk: product for product in products}
+    variant_ids = {item["variant"] for item in data["items"] if item.get("variant") is not None}
+    variants = list(
+        ProductVariant.objects.select_for_update()
+        .filter(pk__in=variant_ids, active=True)
+        .order_by("id")
+    )
+    if len(variants) != len(variant_ids):
+        raise ValidationError("One or more variants are unavailable.")
+    variants_by_id = {variant.pk: variant for variant in variants}
+    offering_variant_ids = set(
+        ProductVariant.objects.filter(offering_id__in=quantities, active=True).values_list(
+            "offering_id", flat=True
+        )
+    )
+    resolved_lines = []
+    base_quantities = {}
+    variant_quantities = {}
+    for item in data["items"]:
+        product = products_by_id[item["offering"]]
+        variant_id = item.get("variant")
+        variant = variants_by_id.get(variant_id) if variant_id is not None else None
+        if variant_id is not None and (variant is None or variant.offering_id != product.pk):
+            raise ValidationError("One or more variants are unavailable.")
+        if variant is None and product.pk in offering_variant_ids:
+            raise ValidationError(f"Choose an option for {product.name}.")
+        if variant:
+            variant_quantities[variant.pk] = variant_quantities.get(variant.pk, 0) + item["quantity"]
+            price = variant.current_price
+        else:
+            base_quantities[product.pk] = base_quantities.get(product.pk, 0) + item["quantity"]
+            price = product.current_price
+        resolved_lines.append(
+            {"product": product, "variant": variant, "quantity": item["quantity"], "price": price}
+        )
     division = products[0].division
     organization_id = products[0].organization_id
     if division.kind != "goods" or not division.active:
@@ -72,10 +108,13 @@ def checkout(user, data, key, preview=False):
             raise ValidationError("Each checkout must contain items from one division and one merchant.")
         if product.organization and not product.organization.approved:
             raise ValidationError("This merchant is not approved.")
-        if product.stock < quantities[product.id]:
+        if product.pk in base_quantities and product.stock < base_quantities[product.pk]:
             raise ValidationError(f"Insufficient stock for {product.name}.")
+    for variant in variants:
+        if variant.stock < variant_quantities.get(variant.pk, 0):
+            raise ValidationError(f"Insufficient stock for {variant.offering.name} ({variant.label}).")
     area = validate_area(data["address"], division)
-    subtotal = sum((p.price * quantities[p.id] for p in products), Decimal("0"))
+    subtotal = sum((line["price"] * line["quantity"] for line in resolved_lines), Decimal("0"))
     discount = Decimal("0")
     coupon = None
     if data.get("coupon"):
@@ -120,18 +159,30 @@ def checkout(user, data, key, preview=False):
         payment_method=data.get("payment_method", "cod"),
         status="prescription_pending" if prescription_needed else "placed",
     )
-    for product in products:
-        quantity = quantities[product.id]
-        changed = Offering.objects.filter(pk=product.pk, stock__gte=quantity).update(
-            stock=F("stock") - quantity
-        )
+    for line in resolved_lines:
+        product = line["product"]
+        variant = line["variant"]
+        quantity = line["quantity"]
+        if variant:
+            changed = ProductVariant.objects.filter(pk=variant.pk, active=True, stock__gte=quantity).update(
+                stock=F("stock") - quantity
+            )
+        else:
+            changed = Offering.objects.filter(pk=product.pk, stock__gte=quantity).update(
+                stock=F("stock") - quantity
+            )
         if not changed:
             raise ValidationError("Stock changed. Please try again.")
         OrderItem.objects.create(
-            order=order, offering=product, name=product.name, quantity=quantity, unit_price=product.price
+            order=order,
+            offering=product,
+            variant=variant,
+            name=f"{product.name} ({variant.label})"[:180] if variant else product.name,
+            quantity=quantity,
+            unit_price=line["price"],
         )
         InventoryMovement.objects.create(
-            offering=product, order=order, delta=-quantity, reason="order_reserved"
+            offering=product, variant=variant, order=order, delta=-quantity, reason="order_reserved"
         )
     StatusEvent.objects.create(
         entity_type="order", entity_id=str(order.pk), actor=user, before="", after=order.status
@@ -169,15 +220,17 @@ BOOKING_TRANSITIONS = {
 DELIVERY_TRANSITIONS = {
     "requested": {"confirmed", "cancelled"},
     "confirmed": {"assigned", "cancelled"},
-    "assigned": {"picked_up", "cancelled"},
+    "assigned": {"pickup_pending", "cancelled"},
+    "pickup_pending": {"picked_up", "cancelled"},
     "picked_up": {"in_transit", "failed"},
-    "in_transit": {"delivered", "failed"},
+    "in_transit": {"out_for_delivery", "failed"},
+    "out_for_delivery": {"delivered", "failed"},
     "failed": {"returned"},
 }
 
 
 @transaction.atomic
-def transition(user, model, pk, new_status):
+def transition(user, model, pk, new_status, details=None):
     obj = model.objects.select_for_update().get(pk=pk)
     kind = "order" if model == Order else "booking" if model == Booking else "delivery"
     transitions = {
@@ -204,6 +257,8 @@ def transition(user, model, pk, new_status):
     )
     partner_allowed = partner and new_status in {"accepted", "preparing", "ready", "rejected"}
     worker_allowed = assigned and new_status in {
+        "pickup_pending",
+        "out_for_delivery",
         "picked_up",
         "in_transit",
         "delivered",
@@ -217,6 +272,30 @@ def transition(user, model, pk, new_status):
     }
     if not (manager or customer_cancel or partner_allowed or worker_allowed):
         raise PermissionDenied("You cannot perform this transition.")
+    if kind == "delivery":
+        details = details or {}
+        from rest_framework import serializers
+
+        if new_status == "delivered":
+            obj.received_by = serializers.CharField(max_length=120).run_validation(
+                details.get("received_by", "")
+            )
+            obj.delivery_note = serializers.CharField(max_length=1000, allow_blank=True).run_validation(
+                details.get("delivery_note", "")
+            )
+            obj.completed_at = timezone.now()
+            amount = serializers.DecimalField(
+                max_digits=10, decimal_places=2, min_value=Decimal("0")
+            ).run_validation(details.get("cod_collected", "0"))
+            if amount != obj.cod_amount:
+                raise ValidationError("Confirm the exact parcel COD amount collected before handover.")
+            obj.cod_collected = amount
+        if new_status == "failed":
+            obj.failure_reason = serializers.CharField(max_length=1000).run_validation(
+                details.get("failure_reason", "")
+            )
+        if new_status == "picked_up" and not obj.rider_id:
+            raise ValidationError("Assign a rider before pickup.")
     if kind == "order" and new_status == "picked_up" and not obj.rider_id:
         raise ValidationError("Assign a rider before pickup.")
     if (
@@ -227,7 +306,18 @@ def transition(user, model, pk, new_status):
         raise ValidationError("Assign an eligible worker first.")
     before = obj.status
     obj.status = new_status
-    obj.save(update_fields=["status"])
+    obj.save(
+        update_fields=[
+            "status",
+            "received_by",
+            "delivery_note",
+            "completed_at",
+            "failure_reason",
+            "cod_collected",
+        ]
+        if kind == "delivery"
+        else ["status"]
+    )
     if kind == "order" and new_status in {"cancelled", "rejected", "returned"}:
         for item in obj.items.all():
             Offering.objects.filter(pk=item.offering_id).update(stock=F("stock") + item.quantity)
@@ -243,6 +333,58 @@ def transition(user, model, pk, new_status):
     )
     audit(user, f"{kind}.status", obj.pk, before=before, after=new_status)
     emit(obj.customer, f"{kind}.{new_status}", reference=str(obj.pk))
+    if kind in {"delivery", "booking"}:
+        Notification.objects.create(
+            user=obj.customer,
+            title="Delivery status updated" if kind == "delivery" else "Service booking updated",
+            body=f"{kind.title()} {obj.pk}: {new_status.replace('_', ' ')}.",
+        )
+    return obj
+
+
+def delivery_quote(data):
+    from apps.catalog.models import Division
+
+    division = Division.objects.filter(slug="delivery", active=True).first()
+    if not division:
+        raise ValidationError("Delivery service is currently unavailable.")
+    pickup = validate_area(data["pickup"], division)
+    dropoff = validate_area(data["dropoff"], division)
+    base = max(pickup.delivery_fee, dropoff.delivery_fee)
+    extra = (max(Decimal("0"), data["weight_kg"] - 1) * 20).quantize(Decimal("0.01"))
+    return {
+        "base_fee": str(base),
+        "weight_fee": str(extra),
+        "fee": str((base + extra).quantize(Decimal("0.01"))),
+        "currency": "BDT",
+    }
+
+
+@transaction.atomic
+def request_delivery(user, data, key):
+    get_user_model().objects.select_for_update().get(pk=user.pk)
+    data = dict(data)
+    expected = data.pop("expected_fee", None)
+    digest = fingerprint(data)
+    previous = DeliveryRequest.objects.filter(customer=user, idempotency_key=key).first()
+    if previous:
+        if previous.request_hash != digest:
+            raise ValidationError("This request key was already used with different details.")
+        return previous
+    quote = delivery_quote(data)
+    if expected is not None and expected != Decimal(quote["fee"]):
+        raise ValidationError("The delivery fee changed. Review the price again.")
+    obj = DeliveryRequest.objects.create(
+        customer=user, fee=quote["fee"], idempotency_key=key, request_hash=digest, **data
+    )
+    StatusEvent.objects.create(
+        entity_type="delivery", entity_id=str(obj.pk), actor=user, before="", after="requested"
+    )
+    audit(user, "delivery.created", obj.pk)
+    emit(user, "delivery.created", reference=str(obj.pk))
+    Notification.objects.create(
+        user=user, title="Delivery request received", body=f"Your parcel reference is {obj.pk}."
+    )
     return obj
 
 

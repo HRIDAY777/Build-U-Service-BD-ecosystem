@@ -1,13 +1,24 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Sum, Count
-from rest_framework import serializers, viewsets
+from rest_framework import mixins, serializers, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.operations.models import Order, Booking, DeliveryRequest
-from apps.operations.services import emit
-from .models import Lead, SupportTicket, Review, Notification, LoyaltyEntry
+from apps.operations.services import audit, emit
+from .models import (
+    Lead,
+    SupportTicket,
+    SupportMessage,
+    Review,
+    Notification,
+    LoyaltyEntry,
+    LoyaltyReward,
+    LoyaltyRedemption,
+)
 
 
 class LeadSerializer(serializers.ModelSerializer):
@@ -29,10 +40,28 @@ class LeadViewSet(viewsets.GenericViewSet):
 
 
 class TicketSerializer(serializers.ModelSerializer):
+    message = serializers.CharField(max_length=5000)
+    is_owner = serializers.SerializerMethodField()
+    can_respond = serializers.SerializerMethodField()
+
+    def get_is_owner(self, obj):
+        return obj.customer_id == self.context["request"].user.pk
+
+    def get_can_respond(self, obj):
+        user = self.context["request"].user
+        return user.is_staff and user.has_perm("engagement.change_supportticket")
+
     class Meta:
         model = SupportTicket
-        fields = ["id", "subject", "message", "status", "response", "created_at"]
+        fields = ["id", "subject", "message", "status", "response", "created_at", "is_owner", "can_respond"]
         read_only_fields = ["id", "status", "response", "created_at"]
+
+
+class SupportMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportMessage
+        fields = ["id", "sender_role", "body", "created_at"]
+        read_only_fields = fields
 
 
 class TicketViewSet(viewsets.ModelViewSet):
@@ -40,14 +69,75 @@ class TicketViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "head", "options"]
 
     def get_queryset(self):
-        return SupportTicket.objects.filter(customer=self.request.user).order_by("-created_at")
+        tickets = SupportTicket.objects.order_by("-created_at", "-pk")
+        if self.request.user.is_staff and self.request.user.has_perm("engagement.view_supportticket"):
+            return tickets
+        return tickets.filter(customer=self.request.user)
 
+    @transaction.atomic
     def perform_create(self, serializer):
         ticket = serializer.save(customer=self.request.user)
         emit(self.request.user, "support.created", reference=str(ticket.pk))
 
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def respond(self, request, pk=None):
+        if not request.user.is_staff or not request.user.has_perm("engagement.change_supportticket"):
+            raise PermissionDenied()
+        ticket = self.get_object()
+        ticket = SupportTicket.objects.select_for_update().get(pk=ticket.pk)
+        status = serializers.ChoiceField(choices=["in_progress", "resolved"]).run_validation(request.data.get("status"))
+        response = serializers.CharField(max_length=5000).run_validation(request.data.get("response"))
+        if ticket.status == "resolved":
+            raise ValidationError("The customer must reopen this ticket before another response.")
+        before = ticket.status
+        ticket.status, ticket.response = status, response
+        ticket.save(update_fields=["status", "response"])
+        SupportMessage.objects.create(ticket=ticket, author=request.user, sender_role="team", body=response)
+        audit(request.user, "support.responded", ticket.pk, before=before, after=status)
+        Notification.objects.create(user=ticket.customer, title="Support reply received", body=f"Your ticket #{ticket.pk}: {ticket.subject} has a new reply.")
+        return Response(self.get_serializer(ticket).data)
+
+    @action(detail=True, methods=["get"])
+    def messages(self, request, pk=None):
+        ticket = self.get_object()
+        messages = ticket.messages.order_by("-created_at", "-pk")
+        page = self.paginate_queryset(messages)
+        return self.get_paginated_response(SupportMessageSerializer(page, many=True).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def follow_up(self, request, pk=None):
+        ticket = self.get_object()
+        ticket = SupportTicket.objects.select_for_update().get(pk=ticket.pk)
+        if ticket.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if ticket.status == "resolved":
+            raise ValidationError("Reopen your ticket before sending a follow-up.")
+        body = serializers.CharField(max_length=5000).run_validation(request.data.get("body"))
+        message = SupportMessage.objects.create(ticket=ticket, author=request.user, sender_role="customer", body=body)
+        audit(request.user, "support.follow_up", ticket.pk)
+        return Response(SupportMessageSerializer(message).data, status=201)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def reopen(self, request, pk=None):
+        ticket = self.get_object()
+        ticket = SupportTicket.objects.select_for_update().get(pk=ticket.pk)
+        if ticket.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if ticket.status != "resolved":
+            raise ValidationError("Only resolved tickets can be reopened.")
+        ticket.status = "open"
+        ticket.save(update_fields=["status"])
+        audit(request.user, "support.reopened", ticket.pk)
+        return Response(self.get_serializer(ticket).data)
+
 
 class ReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(max_length=2000)
+
     class Meta:
         model = Review
         fields = ["id", "order", "booking", "rating", "comment", "created_at"]
@@ -70,8 +160,33 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Review.objects.filter(customer=self.request.user).order_by("-created_at")
 
+    @transaction.atomic
     def perform_create(self, serializer):
+        field = "order" if serializer.validated_data.get("order") else "booking"
+        target = serializer.validated_data[field]
+        type(target).objects.select_for_update().get(pk=target.pk)
+        if Review.objects.filter(**{field: target}).exists():
+            raise ValidationError("This purchase already has a review.")
         serializer.save(customer=self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def eligible_purchases(self, request):
+        kind = request.query_params.get("kind", "order")
+        if kind not in {"order", "booking"}:
+            raise ValidationError("Choose order or booking.")
+        model = Order if kind == "order" else Booking
+        purchases = model.objects.filter(
+            customer=request.user, status="delivered" if kind == "order" else "completed",
+            review__isnull=True,
+        ).order_by("-created_at", "-pk")
+        if kind == "booking":
+            purchases = purchases.select_related("offering")
+        else:
+            purchases = purchases.select_related("division")
+        page = self.paginate_queryset(purchases)
+        data = [{"id": str(item.pk), "label": item.division.name if kind == "order" else item.offering.name,
+                 "created_at": item.created_at} for item in page]
+        return self.get_paginated_response(data)
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -81,12 +196,17 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "title", "body", "created_at"]
 
 
-class NotificationViewSet(viewsets.ModelViewSet):
+class NotificationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = NotificationSerializer
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch", "post", "head", "options"]
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by("-created_at")
+
+    @action(detail=False, methods=["post"])
+    def mark_all_read(self, request):
+        updated = self.get_queryset().filter(read=False).update(read=True)
+        return Response({"updated": updated})
 
 
 class DashboardView(APIView):
@@ -106,6 +226,94 @@ class DashboardView(APIView):
                 or 0,
             }
         )
+
+
+class LoyaltySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoyaltyEntry
+        fields = ["id", "points", "reference", "created_at"]
+        read_only_fields = fields
+
+
+class LoyaltyViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = LoyaltySerializer
+
+    def get_queryset(self):
+        return LoyaltyEntry.objects.filter(customer=self.request.user).order_by("-created_at", "-pk")
+
+    @action(detail=False, methods=["get"])
+    def balance(self, request):
+        return Response({"points": self.get_queryset().aggregate(total=Sum("points"))["total"] or 0})
+
+    @action(detail=False, methods=["get"])
+    def rewards(self, request):
+        rewards = LoyaltyReward.objects.filter(active=True).order_by("points_cost", "pk")
+        return Response(LoyaltyRewardSerializer(rewards, many=True).data)
+
+    @action(detail=False, methods=["get"])
+    def redemptions(self, request):
+        redemptions = LoyaltyRedemption.objects.filter(customer=request.user).select_related("reward").order_by(
+            "-created_at", "-pk"
+        )
+        return Response(LoyaltyRedemptionSerializer(redemptions, many=True).data)
+
+    @action(detail=False, methods=["post"])
+    def redeem(self, request):
+        serializer = LoyaltyRedemptionRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reward_id = serializer.validated_data["reward_id"]
+
+        with transaction.atomic():
+            customer = get_user_model().objects.select_for_update().get(pk=request.user.pk)
+            reward = LoyaltyReward.objects.select_for_update().filter(pk=reward_id, active=True).first()
+            if reward is None:
+                raise ValidationError({"reward_id": "This reward is not available."})
+
+            balance = LoyaltyEntry.objects.filter(customer=customer).aggregate(total=Sum("points"))["total"] or 0
+            if balance < reward.points_cost:
+                raise ValidationError({"points": "You do not have enough points for this reward."})
+
+            redemption = LoyaltyRedemption.objects.create(
+                customer=customer,
+                reward=reward,
+                points_spent=reward.points_cost,
+            )
+            LoyaltyEntry.objects.create(
+                customer=customer,
+                points=-reward.points_cost,
+                reference=f"loyalty-redemption-{redemption.pk}",
+            )
+            audit(request.user, "loyalty.redeemed", redemption.pk, reward=reward.name, points=reward.points_cost)
+
+        return Response(
+            {
+                "id": redemption.pk,
+                "reward": reward.name,
+                "points_spent": reward.points_cost,
+                "balance": balance - reward.points_cost,
+            },
+            status=201,
+        )
+
+
+class LoyaltyRewardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoyaltyReward
+        fields = ["id", "name", "description", "points_cost"]
+        read_only_fields = fields
+
+
+class LoyaltyRedemptionSerializer(serializers.ModelSerializer):
+    reward = serializers.CharField(source="reward.name", read_only=True)
+
+    class Meta:
+        model = LoyaltyRedemption
+        fields = ["id", "reward", "points_spent", "created_at", "fulfilled_at"]
+        read_only_fields = fields
+
+
+class LoyaltyRedemptionRequestSerializer(serializers.Serializer):
+    reward_id = serializers.IntegerField(min_value=1)
 
 
 class AnalyticsView(APIView):

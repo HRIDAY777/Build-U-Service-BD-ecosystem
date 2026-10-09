@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.conf import settings
 from django.db import transaction
-from apps.catalog.models import Division, Organization, Offering, ServiceArea
+from apps.catalog.models import Category, Division, Organization, Offering, ServiceArea
 from apps.content.models import Page, FAQ
 from apps.automation.models import AutomationRule, KnowledgeDocument
 
@@ -92,6 +92,9 @@ class Command(BaseCommand):
             ("food", "Dhanmondi Kitchen · Demo"),
             ("shop", "Everyday Dhaka · Demo"),
             ("pharmacy", "Care Corner · Demo"),
+            ("electrician", "Bright Home Electric · Demo"),
+            ("mechanic", "Dhaka Bike Care · Demo"),
+            ("services", "Shundor Home Care · Demo"),
         ]:
             merchants[slug], _ = Organization.objects.get_or_create(
                 name=name,
@@ -100,6 +103,7 @@ class Command(BaseCommand):
                     "owner": owner,
                     "approved": True,
                     "area": "Dhanmondi",
+                    "address": "ডেমো ঠিকানা: বাড়ি ১২, রোড ৭, ধানমন্ডি, ঢাকা (বাস্তব ব্যবসার ঠিকানা নয়)",
                     "opening_hours": "Demo catalog — not a live merchant",
                     "description": "Fictional business for local testing only.",
                 },
@@ -226,11 +230,21 @@ class Command(BaseCommand):
                 False,
             ),
         ]
+        category_names = {
+            "food": ("Meals", "খাবার"), "shop": ("Everyday essentials", "নিত্যপ্রয়োজনীয়"),
+            "pharmacy": ("Health essentials", "স্বাস্থ্যসামগ্রী"),
+            "electrician": ("Electrical repairs", "বৈদ্যুতিক মেরামত"),
+            "mechanic": ("Vehicle care", "যানবাহনের যত্ন"),
+            "services": ("Home care", "ঘরের যত্ন"),
+        }
         for slug, key, name, bn, price, desc, desc_bn, rx in products:
-            Offering.objects.get_or_create(
+            category_name, category_bn = category_names[slug]
+            category, _ = Category.objects.get_or_create(division=records[slug], name=category_name, defaults={"name_bn": category_bn})
+            offering, _ = Offering.objects.get_or_create(
                 slug=key,
                 defaults={
                     "division": records[slug],
+                    "category": category,
                     "organization": merchants.get(slug),
                     "name": name,
                     "name_bn": bn,
@@ -243,6 +257,7 @@ class Command(BaseCommand):
                     "duration_minutes": 120 if key == "home-cleaning" else 60,
                 },
             )
+            Offering.objects.filter(pk=offering.pk, category__isnull=True, sku=f"DEMO-{key.upper()}").update(category=category)
         for name, bn, fee in [
             ("Dhanmondi", "ধানমন্ডি", 60),
             ("Mohammadpur", "মোহাম্মদপুর", 70),
@@ -360,7 +375,7 @@ class Command(BaseCommand):
                 "view_deliveryrequest",
                 "change_deliveryrequest",
             ],
-            "Finance": ["view_order", "view_payment", "add_payment", "view_refund"],
+            "Finance": ["view_order", "view_payment", "add_payment", "view_refund", "view_deliveryrequest"],
             "Pharmacist": ["view_order", "view_prescription", "change_prescription"],
             "Customer Support": ["view_supportticket", "change_supportticket", "view_lead", "change_lead"],
             "Content Manager": ["view_page", "add_page", "change_page", "view_faq", "add_faq", "change_faq"],

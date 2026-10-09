@@ -635,6 +635,18 @@ p {
 .offering-body {
   padding: 18px;
 }
+.offering-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wishlist-button {
+  display: inline-flex;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  color: var(--purple);
+}
 .offering-body > small {
   font-size: 9px;
   color: #9b929d;
@@ -923,6 +935,20 @@ footer {
   color: white;
   border-color: var(--purple);
 }
+.tab-count {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e84b64;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+}
 .search-row {
   display: flex;
   gap: 10px;
@@ -936,6 +962,34 @@ footer {
   font-size: 12px;
   color: #625968;
   margin-bottom: 17px;
+}
+.field-group {
+  border: 1px solid var(--line);
+  padding: 16px;
+  margin: 8px 0 20px;
+}
+.field-group legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 650;
+}
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.check-row input {
+  width: auto;
+  min-height: 0;
+}
+.narrow {
+  max-width: 860px;
 }
 .field input,
 .field select,
@@ -1551,4 +1605,43 @@ footer {
     transition: none !important;
     animation: none !important;
   }
+}
+.location-select {
+  position: relative;
+  min-width: 0;
+}
+.location-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  color: #142b24;
+  border: 1px solid #b8c9c0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0002;
+}
+.location-options button {
+  display: block;
+  text-align: left;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 12px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+.location-options button:hover,
+.location-options button.active {
+  background: #e7f1eb;
+}
+.location-options p {
+  padding: 12px;
+}
+.location-picker {
+  min-width: 0;
 }

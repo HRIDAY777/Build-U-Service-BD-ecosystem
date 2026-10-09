@@ -1,0 +1,81 @@
+"use client";
+import { useEffect, useState } from "react";
+import { districtImages, DistrictImages } from "@/components/district-photo";
+import { stockPhotos } from "@/lib/photo-credits";
+
+export default function PhotoCredits() {
+  const [districts, setDistricts] = useState<DistrictImages>({});
+  useEffect(() => {
+    districtImages()
+      .then(setDistricts)
+      .catch(() => {});
+  }, []);
+  return (
+    <div className="page-wrap">
+      <h1>ছবির উৎস / Photo credits</h1>
+      <p>
+        পণ্য, সেবা ও অনুষ্ঠানের ছবিগুলো দৃষ্টান্তমূলক stock photography। ছবির
+        মানুষ বা প্রতিষ্ঠানকে U Service BD-এর কর্মী, অংশীদার বা গ্রাহক হিসেবে
+        দাবি করা হচ্ছে না। ডেমো প্রতিষ্ঠানের নাম ও ঠিকানা উদাহরণমাত্র।
+      </p>
+      <h2>Stock photography</h2>
+      <p>
+        ডেলিভারি জার্সির ব্র্যান্ডেড ছবিটি সরবরাহ করা ছবি ও U Service লোগো
+        ব্যবহার করে AI দিয়ে সম্পাদিত ডিজাইন নমুনা। এটি প্রকৃত কর্মীর ইউনিফর্মের
+        প্রমাণ নয়। মূল ডেলিভারি ছবির উৎস নিচে দেওয়া আছে।
+      </p>
+      <p>
+        Used under the{" "}
+        <a className="text-link" href="https://www.pexels.com/license/">
+          Pexels licence
+        </a>
+        . Display cropping may differ from the original photograph.
+      </p>
+      <ul>
+        {stockPhotos.map(([id, title, source]) => (
+          <li key={id}>
+            <a
+              className="text-link"
+              href={source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {title} — photographer and original source
+            </a>
+          </li>
+        ))}
+      </ul>
+      <h2>জেলার ছবি / District photographs</h2>
+      <p>
+        জেলার Wikipedia নিবন্ধে ব্যবহৃত ছবি Wikimedia Commons থেকে নেওয়া হয়েছে।
+        প্রতিটি ছবির নিজস্ব লাইসেন্স প্রযোজ্য। ছবিগুলো সেবার আওতার প্রমাণ নয়।
+      </p>
+      {Object.values(districts).map((photo) => (
+        <article className="record" key={photo.src}>
+          <h3>
+            {photo.name_bn} / {photo.name}
+          </h3>
+          <p>{photo.artist}</p>
+          <a
+            className="text-link"
+            href={photo.source}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Original photograph
+          </a>
+          {" · "}
+          <a
+            className="text-link"
+            href={photo.license_url || photo.source}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {photo.license}
+          </a>
+          <p>Displayed as a cropped preview; source file retained.</p>
+        </article>
+      ))}
+    </div>
+  );
+}

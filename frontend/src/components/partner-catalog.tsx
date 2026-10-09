@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useEffect, useState, FormEvent } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
 export function PartnerCatalog() {
@@ -39,13 +41,22 @@ export function PartnerCatalog() {
   }
   return (
     <>
-      <h2>Your catalog & inventory</h2>
+      <h2>
+        <UiText text={"Your catalog & inventory"} />
+      </h2>
       <p className="subtle">
-        Approved organization owners can update their own items. Contact
-        administration to onboard a merchant or add a new catalog item.
+        <UiText
+          text={
+            "Approved organization owners can update their own items. Contact administration to onboard a merchant or add a new catalog item."
+          }
+        />
       </p>
       {error && <p className="error">{error}</p>}
-      {!items.length && <p>No catalog items are assigned to your business.</p>}
+      {!items.length && (
+        <p>
+          <UiText text={"No catalog items are assigned to your business."} />
+        </p>
+      )}
       {items.map((item) => (
         <div key={item.id} className="record">
           <h3>
@@ -53,7 +64,7 @@ export function PartnerCatalog() {
           </h3>
           <form className="form-grid" onSubmit={(e) => update(e, item.id)}>
             <label className="field">
-              English name
+              <UiText text={"English name"} />
               <input name="name" defaultValue={item.name} required />
             </label>
             <label className="field">
@@ -61,7 +72,7 @@ export function PartnerCatalog() {
               <input name="name_bn" defaultValue={item.name_bn} required />
             </label>
             <label className="field">
-              Price (BDT)
+              <UiText text={"Price (BDT)"} />
               <input
                 name="price"
                 type="number"
@@ -73,17 +84,20 @@ export function PartnerCatalog() {
             </label>
             <div>
               <button className="button" disabled={busy}>
-                Save details
+                <UiText text={"Save details"} />
               </button>
             </div>
           </form>
-          <p>Available stock: {item.stock}</p>
+          <p>
+            <UiText text={"Available stock:"} />
+            {item.stock}
+          </p>
           <form
             className="form-grid"
             onSubmit={(e) => update(e, item.id, true)}
           >
             <label className="field">
-              Stock adjustment (+ / −)
+              <UiText text={"Stock adjustment (+ / −)"} />
               <input
                 name="delta"
                 type="number"
@@ -93,11 +107,11 @@ export function PartnerCatalog() {
               />
             </label>
             <label className="field">
-              Reason
+              <UiText text={"Reason"} />
               <input name="reason" required maxLength={100} />
             </label>
             <button className="button secondary" disabled={busy}>
-              Record adjustment
+              <UiText text={"Record adjustment"} />
             </button>
           </form>
         </div>

@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -23,6 +25,10 @@ import { useRouter } from "next/navigation";
 import { Division, Offering } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { OfferingCard } from "./offering-card";
+import { Photo } from "./photo";
+import { divisionPhotos } from "@/lib/photos";
+import { DistrictGallery } from "./district-photo";
+import { BrandLogo } from "./brand-logo";
 export const divisionIcons: Record<string, typeof Truck> = {
   food: UtensilsCrossed,
   pharmacy: Pill,
@@ -37,6 +43,7 @@ export function Home({
   offerings,
   faqs,
   online,
+  businesses,
 }: {
   divisions: Division[];
   offerings: Offering[];
@@ -48,6 +55,13 @@ export function Home({
     answer_bn: string;
   }[];
   online: boolean;
+  businesses: {
+    id: number;
+    name: string;
+    address: string;
+    area: string;
+    division_slug: string;
+  }[];
 }) {
   const { lang } = useApp();
   const router = useRouter();
@@ -130,17 +144,28 @@ export function Home({
         </div>
         <div className="hero-art">
           <div className="art-caption">
-            <span className="status-dot" /> MADE FOR YOUR EVERYDAY
+            <span className="status-dot" />
+            <UiText text={"MADE FOR YOUR EVERYDAY"} />
           </div>
-          <div className="hero-photo">
-            <img
-              src="/images/everyday.svg"
-              alt={
-                lang === "bn"
-                  ? "খাবার, কেনাকাটা ও ঘরের সেবার রঙিন চিত্র"
-                  : "Illustration of food, shopping and home services"
-              }
+          <div className="hero-mosaic">
+            <Photo
+              src={divisionPhotos.food}
+              alt="বাংলাদেশের খাবার / Bangladeshi food"
+              eager
             />
+            <Photo
+              src={divisionPhotos.services}
+              alt="ঘরের যত্ন / Home cleaning"
+            />
+            <Photo
+              src={divisionPhotos.shop}
+              alt="কটন ব্যাগ / Cotton tote bag"
+            />
+            <span className="mosaic-stamp">
+              প্রতিদিনের গল্প
+              <br />
+              <strong>এক জায়গায়।</strong>
+            </span>
           </div>
           <div className="floating-card food-float">
             <span className="float-icon peach">
@@ -245,7 +270,14 @@ export function Home({
                   <ArrowUpRight size={23} />
                 </div>
                 <div className="division-illustration">
-                  <Icon strokeWidth={1.1} />
+                  {divisionPhotos[d.slug] ? (
+                    <Photo
+                      src={divisionPhotos[d.slug]}
+                      alt={lang === "bn" ? d.name_bn : d.name}
+                    />
+                  ) : (
+                    <Icon strokeWidth={1.1} />
+                  )}
                 </div>
                 <div>
                   <h3>{lang === "bn" ? d.name_bn : d.name}</h3>
@@ -256,8 +288,88 @@ export function Home({
           })}
         </div>
       </section>
+      <section className="occasion-feature section">
+        <div className="occasion-photo">
+          <Photo
+            src="/images/photos/wedding.jpg"
+            alt="বাংলাদেশের একটি বিয়ের অনুষ্ঠান / Wedding ceremony in Bangladesh"
+          />
+          <span className="photo-demo-label">
+            পরিকল্পনার অনুপ্রেরণা · স্টক ছবি
+          </span>
+        </div>
+        <div className="occasion-copy">
+          <span className="eyebrow">
+            <UiText text={"U EVENTS · YOUR SPECIAL DAYS"} />
+          </span>
+          <h2>
+            <Text
+              bn="আপনার গল্পের সবচেয়ে সুন্দর দিন।"
+              en="A day that feels entirely yours."
+            />
+          </h2>
+          <p>
+            <Text
+              bn="বিয়ে, গায়ে হলুদ কিংবা পরিবারের আনন্দ আয়োজন—ভেন্যু, সাজসজ্জা ও খাবারের পরিকল্পনা শুরু হোক আপনার ইচ্ছা থেকে।"
+              en="Weddings, celebrations and family gatherings. Plan the venue, decor and catering around your story."
+            />
+          </p>
+          <Link className="button" href="/events">
+            <Text bn="অনুষ্ঠানের পরিকল্পনা করুন" en="Plan your celebration" />
+            <ArrowUpRight size={18} />
+          </Link>
+        </div>
+      </section>
+      {businesses.length > 0 && (
+        <section className="section">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">
+                <UiText text={"LOCAL BUSINESSES. EVERYDAY CARE."} />
+              </span>
+              <h2>
+                <Text
+                  bn="আপনার কাজের জন্য, পরিচিত মুখ।"
+                  en="Find the right people for your day."
+                />
+              </h2>
+            </div>
+            <Link className="text-link" href="/stores">
+              <Text bn="সব প্রতিষ্ঠান দেখুন" en="Meet the businesses" />
+              <ArrowUpRight size={18} />
+            </Link>
+          </div>
+          <div className="provider-grid">
+            {businesses.slice(0, 3).map((business) => (
+              <Link
+                className="provider-preview"
+                href={`/catalog?organization=${business.id}`}
+                key={business.id}
+              >
+                <div className="provider-photo">
+                  <Photo
+                    src={divisionPhotos[business.division_slug] || ""}
+                    alt={`${business.name} — সেবার দৃষ্টান্তমূলক ছবি`}
+                  />
+                  <span className="photo-demo-label">
+                    স্টক ছবি · ডেমো প্রিভিউ
+                  </span>
+                </div>
+                <div>
+                  <h3>{business.name}</h3>
+                  <p>
+                    <MapPin size={14} /> {business.area}
+                  </p>
+                  <small>{business.address}</small>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      <DistrictGallery />
       <section className="story-band">
-        <span className="story-symbol">u.</span>
+        <BrandLogo className="story-company-logo" />
         <div>
           <span className="eyebrow">
             <Text bn="আমাদের প্রতিশ্রুতি" en="MORE THAN A SERVICE" />
@@ -384,7 +496,9 @@ export function Home({
         </div>
         <div className="partner-art">
           <House size={100} strokeWidth={1} />
-          <span>YOU + U</span>
+          <span className="partner-company-logo">
+            <BrandLogo />
+          </span>
           <HeartHandshake size={80} strokeWidth={1} />
         </div>
       </section>

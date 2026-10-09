@@ -61,11 +61,52 @@ test("customer can register, purchase, book and request delivery", async ({
   await page.goto("/delivery");
   await fillAddress(page, "pickup_");
   await fillAddress(page, "dropoff_");
+  const pickupLocation = page.locator(".location-picker").first();
+  await pickupLocation
+    .getByRole("combobox", { name: "বিভাগ / Division", exact: true })
+    .fill("Dhaka");
+  await pickupLocation
+    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
+    .click();
+  await pickupLocation
+    .getByRole("combobox", { name: "জেলা / District", exact: true })
+    .fill("Dhaka");
+  await pickupLocation
+    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
+    .click();
+  await pickupLocation
+    .getByRole("combobox", { name: /Upazila or thana/ })
+    .fill("Dhanmondi");
+  await pickupLocation.getByRole("option", { name: /Dhanmondi/ }).click();
+  await pickupLocation
+    .getByRole("textbox", { name: /গ্রাম|Village/ })
+    .fill("ডেমো মহল্লা");
+  await page.locator('[name="pickup_line"]').fill("বাড়ি ১২, ডেমো মহল্লা");
   await page
     .getByRole("textbox", { name: "পার্সেলের বিবরণ / Package description" })
     .fill("Demo books parcel");
-  await page.getByRole("button", { name: /Request delivery/ }).click();
-  await expect(page).toHaveURL(/\/account/);
+  const quoteRequest = page.waitForRequest(
+    (request) =>
+      request.url().endsWith("/deliveries/quote/") &&
+      request.method() === "POST",
+  );
+  await page.getByRole("button", { name: /Review delivery fee/ }).click();
+  const submittedAddress = (await quoteRequest).postDataJSON().pickup
+    .line as string;
+  expect(submittedAddress.split("ডেমো মহল্লা")).toHaveLength(2);
+  expect(submittedAddress).toContain("ধানমন্ডি");
+  await expect(
+    page.getByText("ডেলিভারি চার্জ / Delivery fee: ৳60.00"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Confirm delivery/ }).click();
+  await expect(page).toHaveURL(/\/delivery\/[0-9a-f-]{36}$/);
+  await expect(
+    page.getByRole("heading", { name: "Demo books parcel" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "স্ট্যাটাসের ইতিহাস / Status history" }),
+  ).toBeVisible();
+  await page.goto("/account");
   await page.getByRole("button", { name: "Deliveries", exact: true }).click();
   await expect(page.locator(".record").first()).toContainText(
     "Demo books parcel",

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Address, ConsentLog
+from .models import AccountDeletionRequest, User, Address, ConsentLog
 
 
 @admin.register(User)
@@ -11,6 +11,14 @@ class AccountAdmin(UserAdmin):
 
 
 admin.site.register(Address)
+
+
+@admin.register(AccountDeletionRequest)
+class DeletionRequestAdmin(admin.ModelAdmin):
+    list_display = ["user", "status", "created_at", "updated_at"]
+    list_filter = ["status"]
+    search_fields = ["user__username", "user__email"]
+    readonly_fields = ["user", "reason", "created_at", "updated_at"]
 
 
 @admin.register(ConsentLog)

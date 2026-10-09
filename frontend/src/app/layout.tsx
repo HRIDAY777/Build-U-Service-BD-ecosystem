@@ -1,7 +1,9 @@
+import { UiText } from "@/components/ui-text";
 import type { Metadata } from "next";
 import { Provider } from "@/components/provider";
 import { Header, Footer } from "@/components/shell";
 import "./globals.css";
+import "./photos.css";
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.uservicebd.com",
@@ -12,6 +14,10 @@ export const metadata: Metadata = {
   },
   description:
     "খাবার, কেনাকাটা, ঘরের সেবা ও ডেলিভারি — একসাথে U Service BD-তে।",
+  icons: {
+    icon: "/images/brand/u-service-logo.png",
+    apple: "/images/brand/u-service-logo.png",
+  },
   openGraph: { type: "website", locale: "bn_BD", siteName: "U Service BD" },
 };
 export default function RootLayout({
@@ -24,7 +30,7 @@ export default function RootLayout({
       <body>
         <Provider>
           <a href="#main" className="skip-link">
-            Skip to content
+            <UiText text={"Skip to content"} />
           </a>
           <Header />
           <main id="main">{children}</main>

@@ -53,6 +53,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     offering = models.ForeignKey("catalog.Offering", on_delete=models.PROTECT)
+    variant = models.ForeignKey("catalog.ProductVariant", null=True, blank=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=180)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -60,6 +61,7 @@ class OrderItem(models.Model):
 
 class InventoryMovement(models.Model):
     offering = models.ForeignKey("catalog.Offering", on_delete=models.PROTECT)
+    variant = models.ForeignKey("catalog.ProductVariant", null=True, blank=True, on_delete=models.PROTECT)
     order = models.ForeignKey(Order, on_delete=models.PROTECT, null=True)
     delta = models.IntegerField()
     reason = models.CharField(max_length=100)
@@ -97,6 +99,12 @@ class Booking(models.Model):
         ]
 
 
+class ProviderProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    available = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class DeliveryRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -109,7 +117,89 @@ class DeliveryRequest(models.Model):
     weight_kg = models.DecimalField(max_digits=5, decimal_places=2)
     fee = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=30, default="requested")
+    package_type = models.CharField(max_length=20, default="general")
+    quantity = models.PositiveIntegerField(default=1)
+    cod_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cod_collected = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cash_reconciled_at = models.DateTimeField(null=True, blank=True)
+    cash_reference = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    rider_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    fragile = models.BooleanField(default=False)
+    pickup_at = models.DateTimeField(null=True, blank=True)
+    instructions = models.CharField(max_length=1000, blank=True)
+    received_by = models.CharField(max_length=120, blank=True)
+    delivery_note = models.CharField(max_length=1000, blank=True)
+    failure_reason = models.CharField(max_length=1000, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    idempotency_key = models.CharField(max_length=80, null=True, blank=True)
+    request_hash = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["customer", "idempotency_key"], name="delivery_idempotency")
+        ]
+        indexes = [models.Index(fields=["customer", "-created_at"])]
+
+
+class RiderProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    available = models.BooleanField(default=True)
+    vehicle = models.CharField(max_length=80, blank=True)
+    earning_per_delivery = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(earning_per_delivery__gte=0), name="rider_earning_nonnegative")
+        ]
+
+
+class DeliveryFeedback(models.Model):
+    delivery = models.OneToOneField(DeliveryRequest, on_delete=models.PROTECT, related_name="feedback")
+    rating = models.PositiveSmallIntegerField()
+    comment = models.CharField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(rating__gte=1, rating__lte=5), name="delivery_rating_range")
+        ]
+
+
+class EventRequest(models.Model):
+    EVENT_TYPES = [
+        ("wedding", "Wedding"),
+        ("birthday", "Birthday"),
+        ("corporate", "Corporate"),
+        ("other", "Other"),
+    ]
+    STATUSES = [
+        ("requested", "Requested"),
+        ("reviewing", "Reviewing"),
+        ("quoted", "Quoted"),
+        ("confirmed", "Confirmed"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="event_requests"
+    )
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default="wedding")
+    title = models.CharField(max_length=160)
+    event_date = models.DateField()
+    guest_count = models.PositiveIntegerField()
+    venue = models.CharField(max_length=180)
+    area = models.CharField(max_length=100)
+    budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    quoted_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    services = models.JSONField(default=list)
+    notes = models.TextField(blank=True)
+    staff_notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUSES, default="requested", db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class StatusEvent(models.Model):
@@ -152,3 +242,12 @@ class AuditLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class ReturnRequest(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.PROTECT, related_name="return_request")
+    reason = models.CharField(max_length=2000)
+    status = models.CharField(max_length=20, default="requested", db_index=True)
+    review_note = models.CharField(max_length=2000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

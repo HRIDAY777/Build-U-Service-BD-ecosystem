@@ -11,6 +11,11 @@ from .models import (
     StatusEvent,
     InventoryMovement,
     Coupon,
+    EventRequest,
+    ReturnRequest,
+    RiderProfile,
+    DeliveryFeedback,
+    ProviderProfile,
 )
 
 
@@ -38,6 +43,13 @@ class BookingAdmin(ReadOnlyAdmin):
     list_filter = ["status", "offering__division"]
 
 
+@admin.register(EventRequest)
+class EventRequestAdmin(ReadOnlyAdmin):
+    list_display = ["title", "event_type", "customer", "event_date", "guest_count", "status", "quoted_budget"]
+    list_filter = ["event_type", "status", "area"]
+    search_fields = ["title", "venue", "customer__username", "customer__email"]
+
+
 @admin.register(AuditLog)
 class AuditAdmin(ReadOnlyAdmin):
     list_display = ["actor", "action", "entity", "created_at"]
@@ -45,7 +57,37 @@ class AuditAdmin(ReadOnlyAdmin):
     search_fields = ["entity", "actor__username"]
 
 
-for model in [OrderItem, DeliveryRequest, Prescription, Payment, Refund, StatusEvent, InventoryMovement]:
+@admin.register(DeliveryRequest)
+class DeliveryAdmin(ReadOnlyAdmin):
+    list_display = ["id", "customer", "rider", "status", "fee", "weight_kg", "pickup_at", "created_at"]
+    list_filter = ["status", "package_type", "fragile"]
+    search_fields = ["id", "description", "customer__username", "rider__username"]
+
+
+@admin.register(RiderProfile)
+class RiderAdmin(admin.ModelAdmin):
+    list_display = ["user", "available", "vehicle", "earning_per_delivery"]
+    list_filter = ["available"]
+    search_fields = ["user__username", "user__first_name"]
+
+
+@admin.register(ProviderProfile)
+class ProviderAdmin(admin.ModelAdmin):
+    list_display = ["user", "available", "updated_at"]
+    list_filter = ["available"]
+    search_fields = ["user__username", "user__first_name"]
+
+
+for model in [
+    OrderItem,
+    Prescription,
+    Payment,
+    Refund,
+    StatusEvent,
+    InventoryMovement,
+    ReturnRequest,
+    DeliveryFeedback,
+]:
     admin.site.register(model, ReadOnlyAdmin)
 
 

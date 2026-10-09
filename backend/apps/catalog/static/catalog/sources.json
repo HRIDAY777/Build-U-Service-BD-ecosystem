@@ -1,0 +1,35 @@
+{
+  "dataset": {
+    "name": "Bangladesh Locations Dataset",
+    "version": "1.5.0",
+    "updatedAt": "2026-08-09"
+  },
+  "sources": {
+    "administrativeHierarchy": "bd_geo_code database (phpMyAdmin export): divisions, districts, upazilas, unions with English/Bangla names and government website urls",
+    "postalCodes": "Bangladesh Post Office (bdpost.gov.bd) official lists, as compiled in the Bengali Wikipedia post-code tables; supplemented by area-level codes from the local post office station list",
+    "isoCodes": "ISO 3166-2:BD standard (divisions BD-A..BD-H, districts BD-01..BD-64)",
+    "coordinates": "Generated/curated coordinates for districts, upazilas and areas",
+    "aliases": "Wikidata alternate names (skos:altLabel) + curated spelling variants; every record also carries its Bangla name as a search alias",
+    "boundaries": "geoBoundaries (gbOpen BGD ADM1/ADM2/ADM3 simplified), joined by name; 19 post-2015 upazilas have no polygons yet",
+    "delivery": "City corporation list (Local Government Division); Dhaka metro = Dhaka district upazilas; sadar derived from names",
+    "bbsCodes": "Official BBS geo codes (DGHS BBScode, app.dghs.gov.bd): divisions 8/8, districts 64/64, upazilas 466/502, areas 3648/4540; missing codes are newer upazilas/areas absent from the BBS register",
+    "verification": "2026-08-09 verification pass: upazila postal codes cross-checked against official bdpost lists (8 fixed: Jibannagar 7230, Daulatpur-Kushtia 7050, Khoksa 7021, Koyra 9290, Kaliganj-Jhenaidah 7350, Sreepur-Gazipur 1740, Bandar 1410, Narayanganj Sadar 1400); coordinates verified against Wikidata P625 (92 upazilas corrected/filled)",
+    "cityThanas": "67 city thanas added (2026-08-09) for Dhaka (41), Chattogram (11), Khulna (4), Rajshahi (4), Sylhet (1), Barisal (1), Rangpur (1), Narayanganj (3), Gazipur (1); postal codes from bdpost lists/postcodebd/deshamar, coordinates from geoBoundaries ADM3, BBS codes from DGHS register",
+    "thanaModel": "Thanas are linked to their parent upazila via parentUpazilaId where applicable (Tongi→Gazipur Sadar, Fatullah/Siddhirganj/Baidder Bazar→Narayanganj Sadar, Ashulia→Savar, Zindabazar→Sylhet Sadar); city-corporation thanas (Gulshan, Mirpur, Kotwali...) have no upazila parent"
+  },
+  "codeScheme": {
+    "division": "ISO 3166-2:BD code, e.g. BD-A (Barishal)",
+    "district": "ISO 3166-2:BD code, e.g. BD-A-06 (Barishal district)",
+    "upazila": "fullCode = <district code>-<internal upazila id>, e.g. BD-A-06-137; stable internal id, official BBS codes not yet assigned",
+    "area": "fullCode = <upazila fullCode>-<internal area id>, e.g. BD-A-06-137-1185; stable internal id"
+  },
+  "knownLimitations": {
+    "upazilaAreaCodes": "Official BBS geo codes are not yet assigned to upazilas/areas; the internal numeric ids are stable and unique",
+    "newUpazilas": "8 newly created upazilas added with no union data yet (approved 2021-2026): Indurkani (Pirojpur), Bangra (Comilla), Chandraganj (Lakshmipur), Matamuhuri (Coxs Bazar), Mokamtola (Bogura), South Gafargaon (Mymensingh), Ruhia and Bhully (Thakurgaon); Bangra carries postal code 4543",
+    "duplicateUnionNames": "4 union names repeat within their upazila in the source data (Natai, Awajpur, Talimpur, Bhojoanpur)",
+    "bbsCoverage": "BBS codes absent for 36 upazilas (post-2015 creations) and 892 areas; codes follow the official 2+2+3+2 digit concatenation",
+    "coords": "Upazila coordinates sourced from Wikidata (official items); ~30 upazilas retain generated coordinates where Wikidata items were ambiguous",
+    "cityThanas": "City thanas have no union data (wards not yet mapped); a few postal codes are provider-sourced; Bangshal/Chak Bazar/Kamrangir Char use the old-Dhaka cluster codes",
+    "newThanas": "6 newer thanas added without postal codes (not yet in bdpost lists): Jorargonj (Mirsharai), Akbar Shah, EPZ (Chattogram city), Daulatpur (Khulna city, BBS code 4047021), Jalalabad (Sylhet city), Shahjahanpur (Dhaka city); coordinates approximate where sourced from parent upazila"
+  }
+}

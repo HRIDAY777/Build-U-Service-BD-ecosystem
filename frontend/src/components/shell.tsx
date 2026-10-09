@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useApp, Text } from "./provider";
+import { BrandLogo } from "./brand-logo";
 export function Header() {
   const { lang, setLang, user, cart } = useApp();
   const [open, setOpen] = useState(false);
@@ -30,13 +33,7 @@ export function Header() {
       </div>
       <header className="header">
         <Link href="/" className="brand">
-          <span className="brandmark">
-            u<span>•</span>
-          </span>
-          <span>
-            U SERVICE <b>BD</b>
-            <small>YOUR EVERYDAY PARTNER</small>
-          </span>
+          <BrandLogo eager />
         </Link>
         <nav
           className={open ? "nav open" : "nav"}
@@ -45,6 +42,12 @@ export function Header() {
         >
           <Link href="/catalog">
             <Text bn="আমাদের সেবা" en="Explore services" />
+          </Link>
+          <Link href="/events">
+            <Text bn="ইভেন্ট ম্যানেজমেন্ট" en="Events" />
+          </Link>
+          <Link href="/wishlist">
+            <Text bn="পছন্দের তালিকা" en="Wishlist" />
           </Link>
           <Link href="/pages/about">
             <Text bn="আমাদের গল্প" en="Our story" />
@@ -104,13 +107,7 @@ export function Footer() {
       <div className="footer-grid">
         <div>
           <Link href="/" className="brand">
-            <span className="brandmark">
-              u<span>•</span>
-            </span>
-            <span>
-              U SERVICE <b>BD</b>
-              <small>YOUR EVERYDAY PARTNER</small>
-            </span>
+            <BrandLogo />
           </Link>
           <p>
             <Text
@@ -126,28 +123,63 @@ export function Footer() {
           <h3>
             <Text bn="আমাদের বিভাগ" en="Our divisions" />
           </h3>
-          <Link href="/catalog?division=food">U Food</Link>
-          <Link href="/catalog?division=shop">U Shop</Link>
-          <Link href="/catalog?division=pharmacy">U Pharmacy</Link>
-          <Link href="/catalog?division=services">U Services</Link>
+          <Link href="/catalog?division=food">
+            <UiText text={"U Food"} />
+          </Link>
+          <Link href="/catalog?division=shop">
+            <UiText text={"U Shop"} />
+          </Link>
+          <Link href="/catalog?division=pharmacy">
+            <UiText text={"U Pharmacy"} />
+          </Link>
+          <Link href="/catalog?division=services">
+            <UiText text={"U Services"} />
+          </Link>
+          <Link href="/events">
+            <UiText text={"Wedding & events"} />
+          </Link>
         </div>
         <div>
           <h3>
             <Text bn="একসাথে এগিয়ে চলুন" en="Build with us" />
           </h3>
-          <Link href="/contact?interest=partner">Become a partner</Link>
-          <Link href="/contact?interest=provider">Become a provider</Link>
-          <Link href="/contact?interest=rider">Become a rider</Link>
-          <Link href="/portal">Operations portal</Link>
+          <Link href="/contact?interest=partner">
+            <UiText text={"Become a partner"} />
+          </Link>
+          <Link href="/contact?interest=provider">
+            <UiText text={"Become a provider"} />
+          </Link>
+          <Link href="/contact?interest=rider">
+            <UiText text={"Become a rider"} />
+          </Link>
+          <Link href="/portal">
+            <UiText text={"Operations portal"} />
+          </Link>
+          <Link href="/provider">প্রোভাইডার পোর্টাল</Link>
+          <Link href="/rider">রাইডার পোর্টাল</Link>
         </div>
         <div>
           <h3>
             <Text bn="আমরা আছি পাশে" en="Here to help" />
           </h3>
-          <Link href="/account">Your account</Link>
-          <Link href="/contact">Contact & support</Link>
-          <Link href="/pages/privacy">Privacy information</Link>
-          <Link href="/pages/terms">Terms of use</Link>
+          <Link href="/account">
+            <UiText text={"Your account"} />
+          </Link>
+          <Link href="/returns">Returns / পণ্য ফেরত</Link>
+          <Link href="/loyalty">Loyalty points / লয়্যালটি পয়েন্ট</Link>
+          <Link href="/reviews">Your reviews / আপনার রিভিউ</Link>
+          <Link href="/stores">Stores & providers / প্রতিষ্ঠানসমূহ</Link>
+          <Link href="/support">Support / সহায়তা</Link>
+          <Link href="/photo-credits">ছবির উৎস / Photo credits</Link>
+          <Link href="/contact">
+            <UiText text={"Contact & support"} />
+          </Link>
+          <Link href="/pages/privacy">
+            <UiText text={"Privacy information"} />
+          </Link>
+          <Link href="/pages/terms">
+            <UiText text={"Terms of use"} />
+          </Link>
         </div>
       </div>
       <div className="footer-bottom">

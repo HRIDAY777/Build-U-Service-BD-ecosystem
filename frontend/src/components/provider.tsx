@@ -6,16 +6,20 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { api, User, Offering } from "@/lib/api";
-type CartItem = { offering: Offering; quantity: number };
+import { api, User, Offering, ProductVariant } from "@/lib/api";
+type CartItem = {
+  offering: Offering;
+  variant?: ProductVariant | null;
+  quantity: number;
+};
 type Context = {
   lang: "bn" | "en";
   setLang: (v: "bn" | "en") => void;
   user: User | null;
   refresh: () => Promise<void>;
   cart: CartItem[];
-  add: (o: Offering) => void;
-  remove: (id: number) => void;
+  add: (o: Offering, variant?: ProductVariant | null) => void;
+  remove: (id: number, variantId?: number | null) => void;
   clear: () => void;
   toast: (message: string) => void;
 };
@@ -45,16 +49,23 @@ export function Provider({ children }: { children: ReactNode }) {
     if (loaded) localStorage.setItem("us-cart", JSON.stringify(cart));
   }, [cart, loaded]);
   useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+  useEffect(() => {
     if (!message) return;
     const timer = setTimeout(() => setMessage(""), 5000);
     return () => clearTimeout(timer);
   }, [message]);
   function setLang(value: "bn" | "en") {
     setLangState(value);
-    localStorage.setItem("us-lang", value);
+    try {
+      localStorage.setItem("us-lang", value);
+    } catch {
+      /* Language still changes when storage is blocked. */
+    }
     document.documentElement.lang = value;
   }
-  function add(offering: Offering) {
+  function add(offering: Offering, variant: ProductVariant | null = null) {
     if (
       cart.length &&
       (cart[0].offering.division_slug !== offering.division_slug ||
@@ -68,14 +79,26 @@ export function Provider({ children }: { children: ReactNode }) {
       return;
     }
     setCart((items) => {
-      const found = items.find((i) => i.offering.id === offering.id);
+      const found = items.find(
+        (i) =>
+          i.offering.id === offering.id &&
+          (i.variant?.id ?? null) === variant?.id,
+      );
       return found
         ? items.map((i) =>
-            i.offering.id === offering.id
-              ? { ...i, quantity: Math.min(i.quantity + 1, offering.stock, 99) }
+            i.offering.id === offering.id &&
+            (i.variant?.id ?? null) === variant?.id
+              ? {
+                  ...i,
+                  quantity: Math.min(
+                    i.quantity + 1,
+                    variant?.stock ?? offering.stock,
+                    99,
+                  ),
+                }
               : i,
           )
-        : [...items, { offering, quantity: 1 }];
+        : [...items, { offering, variant, quantity: 1 }];
     });
     setMessage(lang === "bn" ? "ব্যাগে যোগ হয়েছে" : "Added to your bag");
   }
@@ -88,8 +111,15 @@ export function Provider({ children }: { children: ReactNode }) {
         refresh,
         cart,
         add,
-        remove: (id) =>
-          setCart((items) => items.filter((i) => i.offering.id !== id)),
+        remove: (id, variantId) =>
+          setCart((items) =>
+            items.filter(
+              (i) =>
+                i.offering.id !== id ||
+                (variantId !== undefined &&
+                  (i.variant?.id ?? null) !== variantId),
+            ),
+          ),
         clear: () => setCart([]),
         toast: setMessage,
       }}

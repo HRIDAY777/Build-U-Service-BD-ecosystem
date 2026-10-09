@@ -1,9 +1,13 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { PartnerCatalog } from "./partner-catalog";
+import { ProviderPicker } from "./provider-dashboard";
+import { LocationPicker, LocalityInput, addressLine } from "./location-picker";
 type RecordItem = {
   id: string;
   status: string;
@@ -19,6 +23,22 @@ type RecordItem = {
   items?: { name: string; quantity: number }[];
   description?: string;
   scheduled_at?: string;
+  available_actions?: string[];
+};
+type EventItem = {
+  id: string;
+  event_type: string;
+  title: string;
+  event_date: string;
+  guest_count: number;
+  venue: string;
+  area: string;
+  budget: string | null;
+  quoted_budget: string | null;
+  services: string[];
+  notes: string;
+  staff_notes: string;
+  status: string;
 };
 const nextStates: Record<string, string[]> = {
   placed: ["accepted", "rejected"],
@@ -36,6 +56,12 @@ const nextStates: Record<string, string[]> = {
   in_progress: ["completed", "waiting_for_parts", "failed"],
   waiting_for_parts: ["in_progress"],
   requested: ["confirmed"],
+};
+const eventNextStates: Record<string, string[]> = {
+  requested: ["reviewing", "cancelled"],
+  reviewing: ["cancelled"],
+  quoted: ["cancelled"],
+  confirmed: ["completed"],
 };
 export function Account({ operations = false }: { operations?: boolean }) {
   const { user, refresh, toast } = useApp();
@@ -55,6 +81,20 @@ export function Account({ operations = false }: { operations?: boolean }) {
   const [notifications, setNotifications] = useState<
     { id: number; title: string; body: string; read: boolean }[]
   >([]);
+  const [addresses, setAddresses] = useState<
+    {
+      id: number;
+      label: string;
+      recipient: string;
+      phone: string;
+      district: string;
+      area: string;
+      line: string;
+      postal_code: string;
+    }[]
+  >([]);
+  const [editingAddress, setEditingAddress] = useState<number | null>(null);
+  const [events, setEvents] = useState<EventItem[]>([]);
   const load = useCallback(async () => {
     if (!user) return;
     setError("");
@@ -62,6 +102,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
     try {
       if (["orders", "bookings", "deliveries"].includes(tab))
         setRecords((await api<PageResult<RecordItem>>(`${tab}/`)).results);
+      if (tab === "events")
+        setEvents((await api<PageResult<EventItem>>("events/")).results);
       if (tab === "support")
         setTickets(
           (
@@ -75,7 +117,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
             >("tickets/")
           ).results,
         );
-      if (tab === "notifications")
+      if (tab === "notifications" || !operations)
         setNotifications(
           (
             await api<
@@ -87,6 +129,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
               }>
             >("notifications/")
           ).results,
+        );
+      if (tab === "preferences")
+        setAddresses(
+          (await api<PageResult<(typeof addresses)[number]>>("addresses/"))
+            .results,
         );
       if (!operations) setStats(await api("dashboard/"));
     } catch (e) {
@@ -149,7 +196,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
               en="Your everyday, all together"
             />
           </h1>
-          <p>Sign in to view your orders, bookings and requests.</p>
+          <p>
+            <UiText
+              text={"Sign in to view your orders, bookings and requests."}
+            />
+          </p>
           <Link href="/login" className="button">
             লগইন / Sign in
           </Link>
@@ -176,15 +227,18 @@ export function Account({ operations = false }: { operations?: boolean }) {
             await refresh();
           }}
         >
-          Sign out
+          <UiText text={"Sign out"} />
         </button>
       </div>
       {operations ? (
         <p className="page-intro">
-          Records are restricted to your permissions and assignments. Each
-          status change is validated and audited.{" "}
+          <UiText
+            text={
+              "Records are restricted to your permissions and assignments. Each status change is validated and audited."
+            }
+          />{" "}
           <a className="text-link" href="/admin/">
-            Central administration ↗
+            <UiText text={"Central administration ↗"} />
           </a>
         </p>
       ) : (
@@ -197,7 +251,9 @@ export function Account({ operations = false }: { operations?: boolean }) {
           ].map(([label, value]) => (
             <div className="stat" key={label}>
               <strong>{value ?? "—"}</strong>
-              <span>{label}</span>
+              <span>
+                <UiText text={String(label)} />
+              </span>
             </div>
           ))}
         </div>
@@ -208,7 +264,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
           "bookings",
           "deliveries",
           ...(operations
-            ? ["catalog"]
+            ? ["catalog", "events"]
             : ["support", "notifications", "assistant", "preferences"]),
         ].map((t) => (
           <button
@@ -219,11 +275,21 @@ export function Account({ operations = false }: { operations?: boolean }) {
               setHistory(null);
             }}
           >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            <UiText text={t.charAt(0).toUpperCase() + t.slice(1)} />
+            {t === "notifications" &&
+              notifications.filter((notification) => !notification.read)
+                .length > 0 && (
+                <span className="tab-count" aria-label="unread notifications">
+                  {
+                    notifications.filter((notification) => !notification.read)
+                      .length
+                  }
+                </span>
+              )}
           </button>
         ))}
         <button className="filter" onClick={() => load()} disabled={loading}>
-          Refresh
+          <UiText text={"Refresh"} />
         </button>
       </div>
       {error && (
@@ -231,20 +297,132 @@ export function Account({ operations = false }: { operations?: boolean }) {
           {error}
         </p>
       )}
+      {tab === "events" && (
+        <section>
+          <h2>
+            <UiText text={"Event requests"} />
+          </h2>
+          {!events.length && (
+            <p className="subtle">
+              <UiText text={"No event requests yet."} />
+            </p>
+          )}
+          {events.map((event) => (
+            <article className="record" key={event.id}>
+              <div className="record-head">
+                <div>
+                  <h3>{event.title}</h3>
+                  <p>
+                    {event.event_type} · {event.event_date} ·{" "}
+                    {event.guest_count}
+                    <UiText text={"guests"} />
+                    <br />
+                    {event.venue}, {event.area}
+                  </p>
+                </div>
+                <span className="status">
+                  {event.status.replaceAll("_", " ")}
+                </span>
+              </div>
+              <p>{event.services.join(" · ") || "Planning consultation"}</p>
+              {event.budget !== null && <p>Customer budget: ৳{event.budget}</p>}
+              {event.notes && (
+                <p>
+                  <UiText text={"Planning notes:"} />
+                  {event.notes}
+                </p>
+              )}
+              {event.quoted_budget && (
+                <p className="notice">
+                  Quoted budget: ৳{event.quoted_budget}
+                  {event.staff_notes && (
+                    <>
+                      <br />
+                      {event.staff_notes}
+                    </>
+                  )}
+                </p>
+              )}
+              {["reviewing", "quoted"].includes(event.status) && (
+                <form
+                  className="form-grid"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const data = Object.fromEntries(
+                      new FormData(e.currentTarget),
+                    );
+                    await act(`events/${event.id}/quote/`, data);
+                  }}
+                >
+                  <label className="field">
+                    <UiText text={"Quote (BDT)"} />
+                    <input
+                      name="quoted_budget"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <UiText text={"Note for customer"} />
+                    <input name="staff_notes" maxLength={2000} />
+                  </label>
+                  <button className="button" type="submit" disabled={busy}>
+                    <UiText text={"Send quote"} />
+                  </button>
+                </form>
+              )}
+              <label className="field">
+                <UiText text={"Update status"} />
+                <select
+                  defaultValue=""
+                  disabled={
+                    busy || !(eventNextStates[event.status] || []).length
+                  }
+                  onChange={async (e) => {
+                    const select = e.currentTarget;
+                    if (!select.value) return;
+                    const status = select.value;
+                    select.value = "";
+                    await act(`events/${event.id}/transition/`, {
+                      status,
+                    });
+                  }}
+                >
+                  <option value="">
+                    <UiText text={"Choose next status"} />
+                  </option>
+                  {(eventNextStates[event.status] || []).map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </article>
+          ))}
+        </section>
+      )}
       {tab === "catalog" && <PartnerCatalog />}
       {loading ? (
-        <p role="status">Loading your records…</p>
+        <p role="status">
+          <UiText text={"Loading your records…"} />
+        </p>
       ) : (
         ["orders", "bookings", "deliveries"].includes(tab) && (
           <>
             {!records.length && (
               <div className="empty">
-                <p>No {tab} yet.</p>
+                <p>
+                  <UiText text={"No"} />
+                  {tab} yet.
+                </p>
                 <Link
                   className="button"
                   href={tab === "deliveries" ? "/delivery" : "/catalog"}
                 >
-                  Explore services
+                  <UiText text={"Explore services"} />
                 </Link>
               </div>
             )}
@@ -261,8 +439,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         r.division_slug}
                     </h3>
                     <p>
-                      {new Date(r.created_at).toLocaleString()} ·{" "}
-                      {r.id.slice(0, 8).toUpperCase()}
+                      {new Date(r.created_at).toLocaleString()} · {r.id}
                     </p>
                   </div>
                   <span className="status">
@@ -275,10 +452,19 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </p>
                 {r.scheduled_at && (
                   <p>
-                    Appointment: {new Date(r.scheduled_at).toLocaleString()}
+                    <UiText text={"Appointment:"} />
+                    {new Date(r.scheduled_at).toLocaleString()}
                   </p>
                 )}
                 <div className="record-actions">
+                  {tab === "deliveries" && (
+                    <Link
+                      className="button secondary"
+                      href={`/delivery/${r.id}`}
+                    >
+                      বিস্তারিত ও পরিচালনা / Delivery details
+                    </Link>
+                  )}
                   {!operations &&
                     r.payment_method === "sslcommerz" &&
                     r.payment_status !== "paid" &&
@@ -305,7 +491,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                           }
                         }}
                       >
-                        Pay securely
+                        <UiText text={"Pay securely"} />
                       </button>
                     )}
                   <button
@@ -318,7 +504,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       }
                     }}
                   >
-                    Status history
+                    <UiText text={"Status history"} />
                   </button>
                   {tab === "orders" && (
                     <a
@@ -327,7 +513,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Invoice
+                      <UiText text={"Invoice"} />
                     </a>
                   )}
                   {!operations &&
@@ -346,15 +532,20 @@ export function Account({ operations = false }: { operations?: boolean }) {
                           })
                         }
                       >
-                        Cancel request
+                        <UiText text={"Cancel request"} />
                       </button>
                     )}
                   {operations &&
-                    nextStates[r.status]
+                    (tab === "deliveries"
+                      ? r.available_actions
+                      : nextStates[r.status]
+                    )
                       ?.filter((s) =>
-                        tab === "bookings"
-                          ? s !== "picked_up"
-                          : s !== "on_the_way",
+                        tab === "deliveries"
+                          ? !["delivered", "failed"].includes(s)
+                          : tab === "bookings"
+                            ? s !== "picked_up"
+                            : s !== "on_the_way",
                       )
                       .map((s) => (
                         <button
@@ -387,16 +578,20 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         );
                       }}
                     >
-                      <input
-                        name="worker"
-                        type="number"
-                        min="1"
-                        required
-                        placeholder="Worker user ID"
-                        aria-label="Worker user ID"
-                      />
+                      {tab === "bookings" ? (
+                        <ProviderPicker />
+                      ) : (
+                        <input
+                          name="worker"
+                          type="number"
+                          min="1"
+                          required
+                          placeholder="Worker user ID"
+                          aria-label="Worker user ID"
+                        />
+                      )}
                       <button className="button" disabled={busy}>
-                        Assign
+                        <UiText text={"Assign"} />
                       </button>
                     </form>
                   )}
@@ -412,7 +607,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       }}
                     >
                       <label className="field">
-                        Upload prescription (PDF, JPEG, PNG; up to 5 MB)
+                        <UiText
+                          text={
+                            "Upload prescription (PDF, JPEG, PNG; up to 5 MB)"
+                          }
+                        />
                         <input
                           type="file"
                           name="document"
@@ -421,7 +620,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         />
                       </label>
                       <button className="button" disabled={busy}>
-                        Submit for review
+                        <UiText text={"Submit for review"} />
                       </button>
                     </form>
                   )}
@@ -439,21 +638,25 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       className="text-link"
                       href={`/api/v1/orders/${r.id}/prescription-file/`}
                     >
-                      Download prescription
+                      <UiText text={"Download prescription"} />
                     </a>
                     <label className="field">
-                      Review note
+                      <UiText text={"Review note"} />
                       <input name="note" required />
                     </label>
                     <label className="field">
-                      Decision
+                      <UiText text={"Decision"} />
                       <select name="decision">
-                        <option value="approved">Approve</option>
-                        <option value="rejected">Reject</option>
+                        <option value="approved">
+                          <UiText text={"Approve"} />
+                        </option>
+                        <option value="rejected">
+                          <UiText text={"Reject"} />
+                        </option>
                       </select>
                     </label>
                     <button className="button" disabled={busy}>
-                      Save authorized review
+                      <UiText text={"Save authorized review"} />
                     </button>
                   </form>
                 )}
@@ -478,7 +681,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         aria-label="Cash deposit reference"
                       />
                       <button className="button" disabled={busy}>
-                        Reconcile COD
+                        <UiText text={"Reconcile COD"} />
                       </button>
                     </form>
                   )}
@@ -489,7 +692,9 @@ export function Account({ operations = false }: { operations?: boolean }) {
       )}
       {history && (
         <div className="record">
-          <h3>Status history</h3>
+          <h3>
+            <UiText text={"Status history"} />
+          </h3>
           {history.length ? (
             history.map((h, i) => (
               <p key={i}>
@@ -498,27 +703,31 @@ export function Account({ operations = false }: { operations?: boolean }) {
               </p>
             ))
           ) : (
-            <p>No status changes recorded yet.</p>
+            <p>
+              <UiText text={"No status changes recorded yet."} />
+            </p>
           )}
           <button className="button secondary" onClick={() => setHistory(null)}>
-            Close
+            <UiText text={"Close"} />
           </button>
         </div>
       )}
       {tab === "support" && (
         <>
           <form className="form-panel" onSubmit={support}>
-            <h2>How can we help?</h2>
+            <h2>
+              <UiText text={"How can we help?"} />
+            </h2>
             <label className="field">
-              Subject
+              <UiText text={"Subject"} />
               <input name="subject" required maxLength={180} />
             </label>
             <label className="field">
-              Message
+              <UiText text={"Message"} />
               <textarea name="message" required maxLength={4000} />
             </label>
             <button className="button" disabled={busy}>
-              Open support ticket
+              <UiText text={"Open support ticket"} />
             </button>
           </form>
           <div style={{ marginTop: 25 }}>
@@ -536,7 +745,22 @@ export function Account({ operations = false }: { operations?: boolean }) {
       )}
       {tab === "notifications" && (
         <>
-          {!notifications.length && <p>No notifications yet.</p>}
+          {!!notifications.some((n) => !n.read) && (
+            <button
+              className="button secondary"
+              onClick={async () => {
+                await api("notifications/mark_all_read/", "POST");
+                load();
+              }}
+            >
+              Mark all as read / সবগুলো পড়া হয়েছে
+            </button>
+          )}
+          {!notifications.length && (
+            <p>
+              <UiText text={"No notifications yet."} />
+            </p>
+          )}
           {notifications.map((n) => (
             <div className="record" key={n.id}>
               <h3>{n.title}</h3>
@@ -551,7 +775,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     load();
                   }}
                 >
-                  Mark as read
+                  <UiText text={"Mark as read"} />
                 </button>
               )}
             </div>
@@ -560,59 +784,388 @@ export function Account({ operations = false }: { operations?: boolean }) {
       )}
       {tab === "assistant" && (
         <form className="form-panel" onSubmit={assistant}>
-          <h2>U Service assistant</h2>
+          <h2>
+            <UiText text={"U Service assistant"} />
+          </h2>
           <p className="subtle">
-            Answers use approved public knowledge. This assistant cannot change
-            orders, approve medicine, or process payments.
+            <UiText
+              text={
+                "Answers use approved public knowledge. This assistant cannot change orders, approve medicine, or process payments."
+              }
+            />
           </p>
           <label className="field">
-            Your question
+            <UiText text={"Your question"} />
             <textarea name="message" required maxLength={1500} />
           </label>
           <button className="button" disabled={busy}>
-            {busy ? "Looking it up…" : "Ask assistant"}
+            <UiText text={busy ? "Looking it up…" : "Ask assistant"} />
           </button>
           {answer && <div className="chat-answer">{answer}</div>}
         </form>
       )}
       {tab === "preferences" && (
-        <form
-          className="form-panel"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const data = new FormData(e.currentTarget);
-            try {
-              await api("auth/me/", "PATCH", {
-                marketing_consent: data.has("marketing_consent"),
-              });
-              toast("Preference saved");
-            } catch (e) {
-              setError(String(e));
-            }
-          }}
-        >
-          <h2>Your privacy choices</h2>
-          <label className="field">
-            <span>
+        <>
+          <form
+            className="form-panel"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const data = new FormData(e.currentTarget);
+              try {
+                await api("auth/me/", "PATCH", {
+                  marketing_consent: data.has("marketing_consent"),
+                });
+                toast("Preference saved");
+              } catch (e) {
+                setError(String(e));
+              }
+            }}
+          >
+            <h2>
+              <UiText text={"Your privacy choices"} />
+            </h2>
+            <p className="notice">
+              {user.email_verified
+                ? "Email verified"
+                : "Your email is not verified yet."}
+            </p>
+            {!user.email_verified && (
+              <button
+                type="button"
+                className="button secondary"
+                onClick={async () => {
+                  try {
+                    await api("auth/email-verification/", "POST");
+                    toast("Verification email sent");
+                  } catch (e) {
+                    setError(
+                      e instanceof Error
+                        ? e.message
+                        : "Unable to send verification email",
+                    );
+                  }
+                }}
+              >
+                <UiText text={"Send verification email"} />
+              </button>
+            )}
+            <label className="field">
+              <span>
+                <input
+                  type="checkbox"
+                  name="marketing_consent"
+                  style={{ width: "auto", minHeight: 0 }}
+                />{" "}
+                <UiText text={"I want to receive promotional messages."} />
+              </span>
+            </label>
+            <button className="button">
+              <UiText text={"Save preference"} />
+            </button>
+            <p style={{ marginTop: 20 }}>
+              <a className="text-link" href="/api/v1/addresses/export/">
+                <UiText text={"Export profile and saved addresses"} />
+              </a>
+            </p>
+            <p className="subtle">
+              <UiText
+                text={
+                  "Deletion requests are reviewed by the team. Financial records may require retention."
+                }
+              />
+            </p>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={async () => {
+                setError("");
+                try {
+                  await api("auth/delete-request/", "POST", {
+                    reason:
+                      "Customer requested account deletion from Preferences.",
+                  });
+                  toast(
+                    "Deletion request submitted / মুছে ফেলার অনুরোধ পাঠানো হয়েছে",
+                  );
+                } catch (e) {
+                  setError(
+                    e instanceof Error
+                      ? e.message
+                      : "Unable to submit deletion request",
+                  );
+                }
+              }}
+            >
+              <UiText text={"Request account deletion"} />
+            </button>
+          </form>
+          <div className="form-panel" style={{ marginTop: 20 }}>
+            <h2>
+              <UiText text={"Saved addresses"} />
+            </h2>
+            {!addresses.length && (
+              <p className="subtle">
+                <UiText text={"No saved addresses yet."} />
+              </p>
+            )}
+            {addresses.map((a) => (
+              <div className="record" key={a.id}>
+                <div className="record-head">
+                  <div>
+                    <h3>{a.label}</h3>
+                    <p>
+                      {a.recipient} · {a.phone}
+                      <br />
+                      {a.line}, {a.area}
+                    </p>
+                  </div>
+                  <div className="button-row">
+                    <button
+                      className="button secondary"
+                      type="button"
+                      onClick={() => setEditingAddress(a.id)}
+                    >
+                      <UiText text={"Edit"} />
+                    </button>
+                    <button
+                      className="button secondary"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await api(`addresses/${a.id}/`, "DELETE");
+                          await load();
+                        } catch (e) {
+                          setError(String(e));
+                        }
+                      }}
+                    >
+                      <UiText text={"Remove"} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <form
+              key={editingAddress ?? "new-address"}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const addressForm = e.currentTarget;
+                const data = Object.fromEntries(new FormData(addressForm));
+                data.line = addressLine(
+                  String(data.line),
+                  String(data.geo_address || ""),
+                );
+                delete data.geo_address;
+                try {
+                  await api(
+                    editingAddress
+                      ? `addresses/${editingAddress}/`
+                      : "addresses/",
+                    editingAddress ? "PATCH" : "POST",
+                    data,
+                  );
+                  addressForm.reset();
+                  setEditingAddress(null);
+                  await load();
+                  toast(
+                    editingAddress
+                      ? "Address updated / ঠিকানা আপডেট হয়েছে"
+                      : "Address saved / ঠিকানা সংরক্ষিত",
+                  );
+                } catch (e) {
+                  setError(
+                    e instanceof Error ? e.message : "Unable to save address",
+                  );
+                }
+              }}
+            >
+              <div className="form-grid">
+                <label className="field">
+                  <span>
+                    <UiText text={"Label"} />
+                  </span>
+                  <input
+                    name="label"
+                    required
+                    maxLength={60}
+                    placeholder="Home"
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)?.label ??
+                      ""
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>
+                    <UiText text={"Recipient"} />
+                  </span>
+                  <input
+                    name="recipient"
+                    required
+                    maxLength={120}
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)
+                        ?.recipient ?? ""
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>
+                    <UiText text={"Phone"} />
+                  </span>
+                  <input
+                    name="phone"
+                    required
+                    pattern="\+?[0-9]{10,15}"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="01XXXXXXXXX"
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)?.phone ??
+                      ""
+                    }
+                  />
+                </label>
+                <LocationPicker
+                  districtField
+                  defaultDistrict={
+                    addresses.find((a) => a.id === editingAddress)?.district ||
+                    ""
+                  }
+                />
+                <label className="field">
+                  <span>
+                    <UiText text={"Area"} />
+                  </span>
+                  <LocalityInput
+                    name="area"
+                    required
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)?.area ?? ""
+                    }
+                  />
+                </label>
+                <label className="field wide">
+                  <span>
+                    <UiText text={"Address line"} />
+                  </span>
+                  <input
+                    name="line"
+                    required
+                    maxLength={500}
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)?.line ?? ""
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>
+                    <UiText text={"Postal code"} />
+                  </span>
+                  <input
+                    name="postal_code"
+                    maxLength={10}
+                    defaultValue={
+                      addresses.find((a) => a.id === editingAddress)
+                        ?.postal_code ?? ""
+                    }
+                  />
+                </label>
+              </div>
+              <button className="button">
+                {editingAddress ? "Update address" : "Save address"}
+              </button>
+              {editingAddress && (
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={() => setEditingAddress(null)}
+                >
+                  <UiText text={"Cancel"} />
+                </button>
+              )}
+            </form>
+          </div>
+          <form
+            className="form-panel"
+            style={{ marginTop: 20 }}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setError("");
+              const form = e.currentTarget;
+              try {
+                await api(
+                  "auth/password/",
+                  "POST",
+                  Object.fromEntries(new FormData(form)),
+                );
+                toast("Password changed / পাসওয়ার্ড বদলানো হয়েছে");
+                form.reset();
+              } catch (e) {
+                setError(
+                  e instanceof Error ? e.message : "Unable to change password",
+                );
+              }
+            }}
+          >
+            <h2>
+              <UiText text={"Change password"} />
+            </h2>
+            <label className="field">
+              <UiText text={"Current password"} />
               <input
-                type="checkbox"
-                name="marketing_consent"
-                style={{ width: "auto", minHeight: 0 }}
-              />{" "}
-              I want to receive promotional messages.
-            </span>
-          </label>
-          <button className="button">Save preference</button>
-          <p style={{ marginTop: 20 }}>
-            <a className="text-link" href="/api/v1/addresses/export/">
-              Export profile and saved addresses
-            </a>
-          </p>
-          <p className="subtle">
-            To request account deletion or a full data export, open a support
-            ticket. Financial records may require retention.
-          </p>
-        </form>
+                name="old_password"
+                type="password"
+                required
+                autoComplete="current-password"
+              />
+            </label>
+            <label className="field">
+              <UiText text={"New password"} />
+              <input
+                name="new_password"
+                type="password"
+                required
+                minLength={10}
+                autoComplete="new-password"
+              />
+            </label>
+            <button className="button">
+              <UiText text={"Update password"} />
+            </button>
+          </form>
+          <div className="form-panel" style={{ marginTop: 20 }}>
+            <h2>
+              <UiText text={"Sign out everywhere"} />
+            </h2>
+            <p className="subtle">
+              <UiText
+                text={
+                  "End all active sessions for this account, including this device."
+                }
+              />
+            </p>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={async () => {
+                setError("");
+                try {
+                  await api("auth/logout-all/", "POST");
+                  window.location.assign("/login");
+                } catch (e) {
+                  setError(
+                    e instanceof Error
+                      ? e.message
+                      : "Unable to sign out everywhere",
+                  );
+                }
+              }}
+            >
+              <UiText text={"Sign out everywhere"} />
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

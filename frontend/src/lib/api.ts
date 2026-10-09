@@ -9,6 +9,8 @@ export type Division = {
 };
 export type Offering = {
   id: number;
+  slug: string;
+  sku: string;
   division_slug: string;
   organization: number | null;
   merchant: string;
@@ -17,16 +19,30 @@ export type Offering = {
   description: string;
   description_bn: string;
   price: string;
+  sale_price: string | null;
+  current_price: string;
   stock: number;
   prescription_required: boolean;
   duration_minutes: number;
   image: string;
+  variants: ProductVariant[];
+};
+export type ProductVariant = {
+  id: number;
+  label: string;
+  attributes: Record<string, string | number | boolean>;
+  sku: string;
+  price: string;
+  sale_price: string | null;
+  current_price: string;
+  stock: number;
 };
 export type Area = {
   id: number;
   name: string;
   name_bn: string;
   delivery_fee: string;
+  district: string;
   divisions: number[];
 };
 export type User = {
@@ -35,6 +51,7 @@ export type User = {
   email: string;
   first_name: string;
   is_staff: boolean;
+  email_verified: boolean;
   roles: string[];
 };
 export type PageResult<T> = {

@@ -5,12 +5,25 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.html import escape
+from django.utils import timezone
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
-from apps.catalog.models import Division
-from .models import Order, Booking, DeliveryRequest, Prescription, StatusEvent
+from apps.engagement.models import Notification
+from .models import (
+    AuditLog,
+    EventRequest,
+    Order,
+    Booking,
+    DeliveryRequest,
+    Prescription,
+    StatusEvent,
+    ReturnRequest,
+    RiderProfile,
+    DeliveryFeedback,
+    ProviderProfile,
+)
 from .services import (
     checkout,
     book,
@@ -18,9 +31,10 @@ from .services import (
     review_prescription,
     reconcile_cod,
     request_refund,
-    validate_area,
     audit,
-    emit,
+    delivery_quote,
+    request_delivery,
+    BOOKING_TRANSITIONS,
 )
 
 
@@ -31,8 +45,86 @@ class AddressInput(serializers.Serializer):
     line = serializers.CharField(max_length=500)
 
 
+class ReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReturnRequest
+        fields = ["id", "order", "reason", "status", "review_note", "created_at", "updated_at"]
+        read_only_fields = ["id", "status", "review_note", "created_at", "updated_at"]
+
+    def validate_order(self, order):
+        if order.customer_id != self.context["request"].user.pk:
+            raise PermissionDenied()
+        if order.status != "delivered":
+            raise ValidationError("Only delivered orders can be submitted for return review.")
+        if order.division.slug != "shop":
+            raise ValidationError(
+                "Online returns currently support shop orders. Contact support for other divisions."
+            )
+        return order
+
+
+class ReturnViewSet(viewsets.ModelViewSet):
+    serializer_class = ReturnSerializer
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        qs = ReturnRequest.objects.select_related("order").order_by("-created_at")
+        if self.request.user.has_perm("operations.view_returnrequest"):
+            return qs
+        return qs.filter(order__customer=self.request.user)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        order = Order.objects.select_for_update().get(pk=serializer.validated_data["order"].pk)
+        if ReturnRequest.objects.filter(order=order).exists():
+            raise ValidationError("This order already has a return request.")
+        result = serializer.save()
+        audit(self.request.user, "return.requested", result.pk)
+
+    @action(detail=False, methods=["get"])
+    def eligible_orders(self, request):
+        orders = Order.objects.filter(
+            customer=request.user,
+            status="delivered",
+            division__slug="shop",
+            return_request__isnull=True,
+        ).order_by("-created_at", "-pk")
+        page = self.paginate_queryset(orders)
+        data = [
+            {"id": str(order.pk), "created_at": order.created_at, "total": str(order.total)} for order in page
+        ]
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def transition(self, request, pk=None):
+        if not request.user.has_perm("operations.change_returnrequest"):
+            raise PermissionDenied()
+        result = self.get_object()
+        result = ReturnRequest.objects.select_for_update().get(pk=result.pk)
+        allowed = {"requested": {"approved", "rejected"}, "approved": {"received"}, "received": {"closed"}}
+        status = request.data.get("status")
+        if status not in allowed.get(result.status, set()):
+            raise ValidationError("Invalid return status transition.")
+        note = serializers.CharField(max_length=2000, allow_blank=True).run_validation(
+            request.data.get("review_note", "")
+        )
+        before = result.status
+        result.status = status
+        result.review_note = note
+        result.save(update_fields=["status", "review_note", "updated_at"])
+        audit(request.user, "return.status_changed", result.pk, before=before, after=status)
+        Notification.objects.create(
+            user=result.order.customer,
+            title="Return request updated",
+            body=f"Your return request is now {status}.",
+        )
+        return Response(self.get_serializer(result).data)
+
+
 class ItemInput(serializers.Serializer):
     offering = serializers.IntegerField(min_value=1)
+    variant = serializers.IntegerField(min_value=1, required=False)
     quantity = serializers.IntegerField(min_value=1, max_value=99)
 
 
@@ -75,6 +167,7 @@ class OrderSerializer(serializers.ModelSerializer):
         return [
             {
                 "offering": i.offering_id,
+                "variant": i.variant_id,
                 "name": i.name,
                 "quantity": i.quantity,
                 "unit_price": str(i.unit_price),
@@ -89,6 +182,199 @@ class OrderSerializer(serializers.ModelSerializer):
             return None
 
 
+class EventRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventRequest
+        fields = [
+            "id",
+            "event_type",
+            "title",
+            "event_date",
+            "guest_count",
+            "venue",
+            "area",
+            "budget",
+            "quoted_budget",
+            "services",
+            "notes",
+            "staff_notes",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "quoted_budget", "staff_notes", "status", "created_at", "updated_at"]
+
+    def validate_guest_count(self, value):
+        if value < 1 or value > 100000:
+            raise serializers.ValidationError("Guest count must be between 1 and 100,000.")
+        return value
+
+    def validate_event_date(self, value):
+        if value < timezone.localdate():
+            raise serializers.ValidationError("Event date must be today or later.")
+        return value
+
+    def validate_budget(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
+        return value
+
+    def validate_services(self, value):
+        if not isinstance(value, list) or len(value) > 30:
+            raise serializers.ValidationError("Choose up to 30 event services.")
+        if not all(isinstance(item, str) and 1 <= len(item) <= 80 for item in value):
+            raise serializers.ValidationError("Each event service must be a short text label.")
+        return value
+
+
+class EventRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = EventRequestSerializer
+    http_method_names = ["get", "post", "patch", "head", "options"]
+
+    def get_queryset(self):
+        if self.request.user.is_staff and self.request.user.has_perm("operations.view_eventrequest"):
+            return EventRequest.objects.all().order_by("-created_at")
+        return EventRequest.objects.filter(customer=self.request.user).order_by("-created_at")
+
+    def get_object(self):
+        event = super().get_object()
+        if self.request.method in {"POST", "PATCH"}:
+            event = EventRequest.objects.select_for_update().get(pk=event.pk)
+        return event
+
+    @action(detail=True, methods=["get"])
+    def history(self, request, pk=None):
+        event = self.get_object()
+        entries = AuditLog.objects.filter(entity=str(event.pk), action__startswith="event.").order_by(
+            "created_at", "pk"
+        )
+        return Response(
+            [
+                {
+                    "action": entry.action,
+                    "created_at": entry.created_at,
+                    "status": entry.metadata.get("after"),
+                    "quoted_budget": entry.metadata.get("quoted_budget"),
+                }
+                for entry in entries
+            ]
+        )
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        event = serializer.save(customer=self.request.user)
+        audit(self.request.user, "event.requested", event.pk)
+        Notification.objects.create(
+            user=event.customer,
+            title="Event request received",
+            body=f"We received your {event.event_type} planning request: {event.title}.",
+        )
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        event = self.get_object()
+        if event.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if event.status not in {"requested", "reviewing"}:
+            raise ValidationError("Only requested or reviewing events can be edited.")
+        return super().update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def transition(self, request, pk=None):
+        if not request.user.is_staff or not request.user.has_perm("operations.change_eventrequest"):
+            raise PermissionDenied()
+        event = self.get_object()
+        status = str(request.data.get("status", ""))
+        allowed = {choice[0] for choice in EventRequest.STATUSES}
+        if status not in allowed:
+            raise ValidationError({"status": "Unsupported event status."})
+        transitions = {
+            "requested": {"reviewing", "cancelled"},
+            "reviewing": {"cancelled"},
+            "quoted": {"cancelled"},
+            "confirmed": {"completed"},
+            "completed": set(),
+            "cancelled": set(),
+        }
+        if status not in transitions.get(event.status, set()):
+            raise ValidationError({"status": f"Cannot move an event from {event.status} to {status}."})
+        before = event.status
+        event.status = status
+        event.save(update_fields=["status", "updated_at"])
+        audit(request.user, "event.status_changed", event.pk, before=before, after=status)
+        Notification.objects.create(
+            user=event.customer,
+            title="Event request updated",
+            body=f"Your event request is now {status.replace('_', ' ')}.",
+        )
+        return Response(self.get_serializer(event).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def quote(self, request, pk=None):
+        if not request.user.is_staff or not request.user.has_perm("operations.change_eventrequest"):
+            raise PermissionDenied()
+        event = self.get_object()
+        serializer = serializers.Serializer(data=request.data)
+        if event.status not in {"reviewing", "quoted"}:
+            raise ValidationError("Only reviewing or quoted events can receive a quote.")
+        serializer.fields["quoted_budget"] = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0
+        )
+        serializer.fields["staff_notes"] = serializers.CharField(
+            max_length=2000, required=False, allow_blank=True
+        )
+        serializer.is_valid(raise_exception=True)
+        event.quoted_budget = serializer.validated_data["quoted_budget"]
+        event.staff_notes = serializer.validated_data.get("staff_notes", "")
+        event.status = "quoted"
+        event.save(update_fields=["quoted_budget", "staff_notes", "status", "updated_at"])
+        audit(request.user, "event.quoted", event.pk, quoted_budget=str(event.quoted_budget))
+        Notification.objects.create(
+            user=event.customer,
+            title="Your event quote is ready",
+            body=f"The estimated quote for {event.title} is ৳{event.quoted_budget}.",
+        )
+        return Response(self.get_serializer(event).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def cancel(self, request, pk=None):
+        event = self.get_object()
+        if event.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if event.status not in {"requested", "reviewing", "quoted"}:
+            raise ValidationError("This event can no longer be cancelled.")
+        event.status = "cancelled"
+        event.save(update_fields=["status", "updated_at"])
+        audit(request.user, "event.cancelled", event.pk)
+        Notification.objects.create(
+            user=event.customer,
+            title="Event request cancelled",
+            body=f"Your event request {event.title} has been cancelled.",
+        )
+        return Response(self.get_serializer(event).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def accept_quote(self, request, pk=None):
+        event = self.get_object()
+        if event.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if event.status != "quoted" or event.quoted_budget is None:
+            raise ValidationError("A quoted event is required before acceptance.")
+        event.status = "confirmed"
+        event.save(update_fields=["status", "updated_at"])
+        audit(request.user, "event.quote_accepted", event.pk, quoted_budget=str(event.quoted_budget))
+        Notification.objects.create(
+            user=event.customer,
+            title="Event confirmed",
+            body=f"Your event {event.title} is confirmed.",
+        )
+        return Response(self.get_serializer(event).data)
+
+
 def key_from(request):
     key = request.headers.get("Idempotency-Key", "")
     if not key or len(key) > 80:
@@ -100,7 +386,7 @@ class WorkflowMixin:
     @action(detail=True, methods=["post"])
     def transition(self, request, pk=None):
         obj = self.get_object()
-        obj = transition(request.user, type(obj), obj.pk, request.data.get("status"))
+        obj = transition(request.user, type(obj), obj.pk, request.data.get("status"), request.data)
         return Response(self.get_serializer(obj).data)
 
     @action(detail=True, methods=["get"])
@@ -124,6 +410,11 @@ class WorkflowMixin:
         worker = get_object_or_404(
             get_user_model(), pk=request.data.get("worker"), groups__name=role, is_active=True
         )
+        if (
+            isinstance(obj, DeliveryRequest)
+            and RiderProfile.objects.filter(user=worker, available=False).exists()
+        ):
+            raise ValidationError("This rider is currently unavailable.")
         field = "provider" if isinstance(obj, Booking) else "rider"
         with transaction.atomic():
             obj = type(obj).objects.select_for_update().get(pk=obj.pk)
@@ -131,6 +422,8 @@ class WorkflowMixin:
                 raise ValidationError("Assignment is not allowed at this stage.")
             if isinstance(obj, Booking):
                 get_user_model().objects.select_for_update().get(pk=worker.pk)
+                if ProviderProfile.objects.filter(user=worker, available=False).exists():
+                    raise ValidationError("This provider is currently unavailable.")
                 from datetime import timedelta
 
                 conflicts = (
@@ -146,8 +439,21 @@ class WorkflowMixin:
                 ):
                     raise ValidationError("Provider already has an overlapping appointment.")
             setattr(obj, field, worker)
-            obj.save(update_fields=[field])
+            if isinstance(obj, DeliveryRequest):
+                profile, _ = RiderProfile.objects.get_or_create(user=worker)
+                if not profile.available:
+                    raise ValidationError("This rider is currently unavailable.")
+                obj.rider_earning = profile.earning_per_delivery
+            obj.save(update_fields=[field, "rider_earning"] if isinstance(obj, DeliveryRequest) else [field])
             audit(request.user, f"{obj._meta.model_name}.assigned", obj.pk, worker=worker.pk)
+            if isinstance(obj, DeliveryRequest):
+                Notification.objects.create(
+                    user=worker, title="Parcel assigned", body=f"Parcel {obj.pk} is assigned to you."
+                )
+            if isinstance(obj, Booking):
+                Notification.objects.create(
+                    user=worker, title="Service job assigned", body=f"Booking {obj.pk} at {obj.scheduled_at}."
+                )
         return Response(self.get_serializer(obj).data)
 
 
@@ -291,6 +597,16 @@ class BookingInput(serializers.Serializer):
 
 class BookingSerializer(serializers.ModelSerializer):
     service = serializers.CharField(source="offering.name")
+    available_actions = serializers.SerializerMethodField()
+
+    def get_available_actions(self, obj):
+        user = self.context["request"].user
+        states = BOOKING_TRANSITIONS.get(obj.status, set())
+        if user.has_perm("operations.change_booking"):
+            return sorted(states - ({"assigned"} if not obj.provider_id else set()))
+        if obj.provider_id == user.pk:
+            return sorted(states - {"cancelled", "confirmed", "assigned"})
+        return ["cancelled"] if obj.customer_id == user.pk and obj.status == "pending" else []
 
     class Meta:
         model = Booking
@@ -305,6 +621,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "price",
             "provider",
             "created_at",
+            "available_actions",
         ]
         read_only_fields = fields
 
@@ -314,6 +631,11 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = Booking.objects.select_related("offering").order_by("-created_at")
+        if self.request.query_params.get("assigned_to_me") == "1":
+            qs = qs.filter(provider=self.request.user)
+        status = self.request.query_params.get("status")
+        if status:
+            qs = qs.filter(status=status)
         return (
             qs
             if self.request.user.has_perm("operations.view_booking")
@@ -326,17 +648,144 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         booking = book(request.user, serializer.validated_data, key_from(request))
         return Response(self.get_serializer(booking).data, status=201)
 
+    @action(detail=False, methods=["get"])
+    def providers(self, request):
+        if not request.user.has_perm("operations.change_booking"):
+            raise PermissionDenied()
+        workers = (
+            get_user_model()
+            .objects.filter(is_active=True, groups__name="Provider")
+            .filter(Q(providerprofile__isnull=True) | Q(providerprofile__available=True))
+            .order_by("username")
+            .distinct()
+        )
+        page = self.paginate_queryset(workers)
+        return self.get_paginated_response(
+            [{"id": worker.pk, "name": worker.get_full_name() or worker.username} for worker in page]
+        )
+
+    @action(detail=False, methods=["get", "patch"])
+    def provider_profile(self, request):
+        if not request.user.groups.filter(name="Provider").exists():
+            raise PermissionDenied("Provider account required.")
+        with transaction.atomic():
+            get_user_model().objects.select_for_update().get(pk=request.user.pk)
+            profile, _ = ProviderProfile.objects.get_or_create(user=request.user)
+            if request.method == "PATCH":
+                available = serializers.BooleanField().run_validation(request.data.get("available"))
+                profile.available = available
+                profile.save(update_fields=["available", "updated_at"])
+                audit(request.user, "provider.availability_updated", profile.pk, available=available)
+        jobs = Booking.objects.filter(provider=request.user)
+        return Response(
+            {
+                "name": request.user.get_full_name() or request.user.username,
+                "available": profile.available,
+                "active_jobs": jobs.exclude(status__in=["completed", "cancelled", "failed"]).count(),
+                "completed_jobs": jobs.filter(status="completed").count(),
+                "failed_jobs": jobs.filter(status="failed").count(),
+            }
+        )
+
+
+class DeliveryAddressInput(AddressInput):
+    instructions = serializers.CharField(max_length=500, allow_blank=True, default="")
+
 
 class DeliveryInput(serializers.Serializer):
-    pickup = AddressInput()
-    dropoff = AddressInput()
+    pickup = DeliveryAddressInput()
+    dropoff = DeliveryAddressInput()
     description = serializers.CharField(max_length=500)
     weight_kg = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=Decimal("0.01"), max_value=Decimal("20")
     )
+    package_type = serializers.ChoiceField(
+        choices=["general", "documents", "clothing", "electronics", "other"], default="general"
+    )
+    quantity = serializers.IntegerField(min_value=1, max_value=100, default=1)
+    cod_amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal("100000"),
+        default=Decimal("0"),
+    )
+    fragile = serializers.BooleanField(default=False)
+    pickup_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
+    instructions = serializers.CharField(max_length=1000, allow_blank=True, default="")
+    expected_fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=Decimal("0"), required=False
+    )
+
+    def validate_pickup_at(self, value):
+        if value and value <= timezone.now():
+            raise ValidationError("Choose a future pickup time.")
+        return value
 
 
 class DeliverySerializer(serializers.ModelSerializer):
+    rider_name = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
+    can_assign = serializers.SerializerMethodField()
+    can_reconcile_cash = serializers.SerializerMethodField()
+    can_reject_assignment = serializers.SerializerMethodField()
+    feedback = serializers.SerializerMethodField()
+    can_review = serializers.SerializerMethodField()
+
+    def get_feedback(self, obj):
+        feedback = getattr(obj, "feedback", None)
+        return {"rating": feedback.rating, "comment": feedback.comment} if feedback else None
+
+    def get_can_review(self, obj):
+        return (
+            obj.status == "delivered"
+            and obj.customer_id == self.context["request"].user.pk
+            and not hasattr(obj, "feedback")
+        )
+
+    def get_can_reject_assignment(self, obj):
+        return obj.status == "assigned" and obj.rider_id == self.context["request"].user.pk
+
+    def get_can_reconcile_cash(self, obj):
+        return (
+            obj.status == "delivered"
+            and obj.cod_collected > 0
+            and not obj.cash_reconciled_at
+            and self.context["request"].user.has_perm("operations.add_payment")
+        )
+
+    def get_can_assign(self, obj):
+        return obj.status in {"confirmed", "assigned"} and self.context["request"].user.has_perm(
+            "operations.change_deliveryrequest"
+        )
+
+    def get_rider_name(self, obj):
+        return (obj.rider.get_full_name() or obj.rider.username) if obj.rider else ""
+
+    def get_available_actions(self, obj):
+        from .services import DELIVERY_TRANSITIONS
+
+        user = self.context["request"].user
+        states = DELIVERY_TRANSITIONS.get(obj.status, set())
+        if not obj.rider_id:
+            states = states - {"assigned"}
+        if user.has_perm("operations.change_deliveryrequest"):
+            return sorted(states)
+        if obj.rider_id == user.pk:
+            return sorted(
+                states
+                & {
+                    "pickup_pending",
+                    "picked_up",
+                    "in_transit",
+                    "out_for_delivery",
+                    "delivered",
+                    "failed",
+                    "returned",
+                }
+            )
+        return ["cancelled"] if obj.customer_id == user.pk and obj.status == "requested" else []
+
     class Meta:
         model = DeliveryRequest
         fields = [
@@ -349,6 +798,25 @@ class DeliverySerializer(serializers.ModelSerializer):
             "status",
             "rider",
             "created_at",
+            "package_type",
+            "fragile",
+            "pickup_at",
+            "instructions",
+            "received_by",
+            "delivery_note",
+            "failure_reason",
+            "completed_at",
+            "rider_name",
+            "available_actions",
+            "can_assign",
+            "quantity",
+            "cod_amount",
+            "cod_collected",
+            "cash_reconciled_at",
+            "can_reconcile_cash",
+            "can_reject_assignment",
+            "feedback",
+            "can_review",
         ]
         read_only_fields = fields
 
@@ -357,7 +825,9 @@ class DeliveryViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = DeliverySerializer
 
     def get_queryset(self):
-        qs = DeliveryRequest.objects.order_by("-created_at")
+        qs = DeliveryRequest.objects.select_related("rider", "feedback").order_by("-created_at", "-pk")
+        if self.request.query_params.get("status"):
+            qs = qs.filter(status=self.request.query_params["status"])
         return (
             qs
             if self.request.user.has_perm("operations.view_deliveryrequest")
@@ -367,18 +837,162 @@ class DeliveryViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     def create(self, request):
         serializer = DeliveryInput(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        division = get_object_or_404(Division, slug="delivery", active=True)
-        pickup_area = validate_area(data["pickup"], division)
-        dropoff_area = validate_area(data["dropoff"], division)
-        fee = (
-            max(pickup_area.delivery_fee, dropoff_area.delivery_fee)
-            + max(Decimal("0"), data["weight_kg"] - 1) * 20
-        )
-        with transaction.atomic():
-            obj = DeliveryRequest.objects.create(
-                customer=request.user, fee=fee.quantize(Decimal("0.01")), **data
-            )
-            audit(request.user, "delivery.created", obj.pk)
-            emit(request.user, "delivery.created", reference=str(obj.pk))
+        obj = request_delivery(request.user, serializer.validated_data, key_from(request))
         return Response(self.get_serializer(obj).data, status=201)
+
+    @action(detail=False, methods=["post"])
+    def quote(self, request):
+        serializer = DeliveryInput(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(delivery_quote(serializer.validated_data))
+
+    @action(detail=False, methods=["get"])
+    def riders(self, request):
+        if not request.user.has_perm("operations.change_deliveryrequest"):
+            raise PermissionDenied()
+        riders = (
+            get_user_model()
+            .objects.filter(groups__name="Rider", is_active=True)
+            .filter(Q(riderprofile__isnull=True) | Q(riderprofile__available=True))
+            .order_by("username")
+            .distinct()
+        )
+        page = self.paginate_queryset(riders)
+        return self.get_paginated_response(
+            [{"id": rider.pk, "name": rider.get_full_name() or rider.username} for rider in page]
+        )
+
+    @action(detail=False, methods=["get", "patch"])
+    def rider_profile(self, request):
+        if not request.user.groups.filter(name="Rider").exists():
+            raise PermissionDenied("Rider account required.")
+        profile, _ = RiderProfile.objects.get_or_create(user=request.user)
+        if request.method == "PATCH":
+
+            class ProfileInput(serializers.Serializer):
+                available = serializers.BooleanField(required=False)
+                vehicle = serializers.CharField(max_length=80, allow_blank=True, required=False)
+
+            serializer = ProfileInput(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            for key, value in serializer.validated_data.items():
+                setattr(profile, key, value)
+            profile.save()
+            audit(request.user, "rider.profile_updated", profile.pk, available=profile.available)
+        from django.db.models import Sum, Avg
+
+        jobs = DeliveryRequest.objects.filter(rider=request.user)
+        pending_cash = jobs.filter(status="delivered", cash_reconciled_at__isnull=True).aggregate(
+            amount=Sum("cod_collected")
+        )["amount"] or Decimal("0")
+        earnings = jobs.filter(status="delivered").aggregate(amount=Sum("rider_earning"))[
+            "amount"
+        ] or Decimal("0")
+        return Response(
+            {
+                "name": request.user.get_full_name() or request.user.username,
+                "available": profile.available,
+                "vehicle": profile.vehicle,
+                "completed_jobs": jobs.filter(status="delivered").count(),
+                "active_jobs": jobs.exclude(status__in=["delivered", "cancelled", "returned"]).count(),
+                "pending_cod": str(pending_cash.quantize(Decimal("0.01"))),
+                "recorded_earnings": str(earnings.quantize(Decimal("0.01"))),
+                "average_rating": jobs.aggregate(value=Avg("feedback__rating"))["value"],
+                "rating_count": DeliveryFeedback.objects.filter(delivery__rider=request.user).count(),
+                "failed_jobs": jobs.filter(status="failed").count(),
+                "returned_jobs": jobs.filter(status="returned").count(),
+            }
+        )
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def feedback(self, request, pk=None):
+        obj = self.get_object()
+        obj = DeliveryRequest.objects.select_for_update().get(pk=obj.pk)
+        if obj.customer_id != request.user.pk:
+            raise PermissionDenied()
+        if obj.status != "delivered" or DeliveryFeedback.objects.filter(delivery=obj).exists():
+            raise ValidationError("Rate a completed delivery once.")
+        rating = serializers.IntegerField(min_value=1, max_value=5).run_validation(request.data.get("rating"))
+        comment = serializers.CharField(max_length=1000, allow_blank=True).run_validation(
+            request.data.get("comment", "")
+        )
+        DeliveryFeedback.objects.create(delivery=obj, rating=rating, comment=comment)
+        audit(request.user, "delivery.feedback", obj.pk, rating=rating)
+        if obj.rider:
+            Notification.objects.create(
+                user=obj.rider, title="Delivery feedback received", body=f"Parcel {obj.pk}: {rating}/5."
+            )
+        return Response(self.get_serializer(obj).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def reject_assignment(self, request, pk=None):
+        obj = self.get_object()
+        obj = DeliveryRequest.objects.select_for_update().get(pk=obj.pk)
+        if obj.rider_id != request.user.pk:
+            raise PermissionDenied()
+        if obj.status != "assigned":
+            raise ValidationError("Only a new assignment may be rejected before acceptance.")
+        reason = serializers.CharField(max_length=500).run_validation(request.data.get("reason", ""))
+        obj.status = "confirmed"
+        obj.rider = None
+        obj.rider_earning = 0
+        obj.save(update_fields=["status", "rider", "rider_earning"])
+        StatusEvent.objects.create(
+            entity_type="delivery",
+            entity_id=str(obj.pk),
+            actor=request.user,
+            before="assigned",
+            after="confirmed",
+        )
+        audit(request.user, "delivery.assignment_rejected", obj.pk, reason=reason)
+        Notification.objects.create(
+            user=obj.customer,
+            title="Rider reassignment needed",
+            body=f"Parcel {obj.pk}: our team will assign another rider.",
+        )
+        return Response({"status": "confirmed"})
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def reconcile_cash(self, request, pk=None):
+        if not request.user.has_perm("operations.add_payment"):
+            raise PermissionDenied("Finance permission required.")
+        obj = self.get_object()
+        obj = DeliveryRequest.objects.select_for_update().get(pk=obj.pk)
+        reference = serializers.CharField(max_length=100).run_validation(request.data.get("reference", ""))
+        amount = serializers.DecimalField(
+            max_digits=10, decimal_places=2, min_value=Decimal("0.01")
+        ).run_validation(request.data.get("amount"))
+        if obj.status != "delivered" or amount != obj.cod_collected or obj.cod_collected <= 0:
+            raise ValidationError("Only the exact collected COD of a delivered parcel can be reconciled.")
+        if obj.cash_reconciled_at:
+            if obj.cash_reference != reference:
+                raise ValidationError("Cash was already reconciled with a different reference.")
+            return Response(self.get_serializer(obj).data)
+        if DeliveryRequest.objects.filter(cash_reference=reference).exists():
+            raise ValidationError("Cash deposit reference already used.")
+        obj.cash_reference = reference
+        obj.cash_reconciled_at = timezone.now()
+        from django.db import IntegrityError
+
+        try:
+            with transaction.atomic():
+                obj.save(update_fields=["cash_reference", "cash_reconciled_at"])
+        except IntegrityError:
+            raise ValidationError("Cash deposit reference already used.")
+        audit(request.user, "delivery.cash_reconciled", obj.pk, reference=reference, amount=str(amount))
+        Notification.objects.create(
+            user=obj.customer,
+            title="Parcel COD recorded",
+            body=f"Collected COD for parcel {obj.pk} has been reconciled. This does not record a payout to the sender.",
+        )
+        return Response(self.get_serializer(obj).data)
+
+    @action(detail=True, methods=["get"])
+    def receipt(self, request, pk=None):
+        obj = self.get_object()
+        return HttpResponse(
+            f"<!doctype html><html><meta charset='utf-8'><title>Parcel booking receipt</title><style>body{{font:16px system-ui;max-width:750px;margin:40px auto;padding:24px}}h1{{color:#76269c}}p{{line-height:1.8}}</style><h1>U Service · Parcel booking</h1><p>Reference: {obj.pk}<br>Status: {escape(obj.status)}<br>Booked: {obj.created_at:%Y-%m-%d %H:%M} UTC</p><h2>Pickup</h2><p>{escape(obj.pickup['recipient'])}<br>{escape(obj.pickup['line'])}, {escape(obj.pickup['area'])}</p><h2>Destination</h2><p>{escape(obj.dropoff['recipient'])}<br>{escape(obj.dropoff['line'])}, {escape(obj.dropoff['area'])}</p><p>Package: {escape(obj.description)}<br>Weight: {obj.weight_kg} kg<br>Service fee: BDT {obj.fee}<br>Received by: {escape(obj.received_by or 'Not delivered')}</p><p>This is a booking record, not a payment receipt. COD amount: BDT {obj.cod_amount}. Collection recorded: BDT {obj.cod_collected}. This is not a sender payout record; insurance is not included.</p></html>"
+        )

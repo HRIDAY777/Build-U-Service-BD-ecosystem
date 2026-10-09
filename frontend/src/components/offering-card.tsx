@@ -9,9 +9,12 @@ import {
   Zap,
   Wrench,
   House,
+  Heart,
 } from "lucide-react";
-import { Offering } from "@/lib/api";
+import { api, Offering } from "@/lib/api";
 import { useApp, Text } from "./provider";
+import { offeringPhoto } from "@/lib/photos";
+import { Photo } from "./photo";
 const icons = {
   food: UtensilsCrossed,
   pharmacy: Pill,
@@ -21,7 +24,7 @@ const icons = {
   services: House,
 };
 export function OfferingCard({ offering: o }: { offering: Offering }) {
-  const { lang, add } = useApp();
+  const { lang, add, user, toast } = useApp();
   const service = ["electrician", "mechanic", "services"].includes(
     o.division_slug,
   );
@@ -32,11 +35,40 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
         href={`/catalog/${o.id}`}
         className={`offering-image card-${o.division_slug}`}
       >
-        <Icon size={76} strokeWidth={1.1} />
+        {offeringPhoto(o) ? (
+          <Photo
+            src={offeringPhoto(o)}
+            alt={lang === "bn" ? o.name_bn : o.name}
+          />
+        ) : (
+          <Icon size={76} strokeWidth={1.1} />
+        )}
         <span>{o.division_slug.toUpperCase()}</span>
+        {o.sku?.startsWith("DEMO-") && offeringPhoto(o) && (
+          <small className="photo-demo-label">দৃষ্টান্তমূলক ছবি</small>
+        )}
       </Link>
       <div className="offering-body">
-        <small>{o.merchant}</small>
+        <div className="offering-meta">
+          <small>{o.merchant}</small>
+          {user && (
+            <button
+              className="wishlist-button"
+              type="button"
+              aria-label={`Save ${o.name} to wishlist`}
+              onClick={async () => {
+                try {
+                  await api("wishlist/", "POST", { offering: o.id });
+                  toast("Saved to wishlist / পছন্দের তালিকায় যোগ হয়েছে");
+                } catch (e) {
+                  toast(e instanceof Error ? e.message : "Already saved");
+                }
+              }}
+            >
+              <Heart size={17} />
+            </button>
+          )}
+        </div>
         <Link href={`/catalog/${o.id}`}>
           <h3>{lang === "bn" ? o.name_bn : o.name}</h3>
         </Link>

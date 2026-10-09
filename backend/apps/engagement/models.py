@@ -27,6 +27,14 @@ class SupportTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class SupportMessage(models.Model):
+    ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name="messages")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    sender_role = models.CharField(max_length=20, choices=[("customer", "Customer"), ("team", "Team")])
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class Review(models.Model):
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     order = models.OneToOneField("operations.Order", null=True, blank=True, on_delete=models.PROTECT)
@@ -68,3 +76,19 @@ class LoyaltyEntry(models.Model):
     points = models.IntegerField()
     reference = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class LoyaltyReward(models.Model):
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    points_cost = models.PositiveIntegerField()
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class LoyaltyRedemption(models.Model):
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    reward = models.ForeignKey(LoyaltyReward, on_delete=models.PROTECT)
+    points_spent = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)

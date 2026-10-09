@@ -84,6 +84,7 @@ SESSION_COOKIE_AGE = 60 * 60 * 12
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 # Only the trusted reverse proxy can reach Django in production.
@@ -120,7 +121,8 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_BEAT_SCHEDULE = {
-    "dispatch-outbox": {"task": "apps.automation.tasks.dispatch_outbox", "schedule": 30.0}
+    "dispatch-outbox": {"task": "apps.automation.tasks.dispatch_outbox", "schedule": 30.0},
+    "wishlist-alerts": {"task": "apps.catalog.tasks.dispatch_wishlist_alerts", "schedule": 300.0},
 }
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}
