@@ -64,11 +64,21 @@ type Application = {
     progress_percent: number;
   };
   entries: Entry[];
+  payment_summary?: {
+    as_of: string;
+    net_receipts: string;
+    schedule_remaining: string;
+    overdue_amount: string;
+    overdue_count: number;
+    next_unsettled_date: string | null;
+    next_unsettled_amount: string | null;
+  };
   payment_schedule: {
     date: string;
     amount: string;
     recorded_paid: string;
     remaining: string;
+    state: string;
   }[];
   updates: Update[];
 };
@@ -588,6 +598,54 @@ export function ProjectAccount() {
                   <dd>{money(total("refund"))}</dd>
                 </div>
               </dl>
+              {selected.payment_summary && (
+                <>
+                  <p>
+                    {t("হিসাবের তারিখ", "Statement date")}:{" "}
+                    {selected.payment_summary.as_of}
+                  </p>
+                  <dl className="project-totals">
+                    <div>
+                      <dt>{t("ফেরত বাদে জমা", "Net recorded receipts")}</dt>
+                      <dd>{money(selected.payment_summary.net_receipts)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t("সময়সূচিতে বাকি", "Remaining in schedule")}</dt>
+                      <dd>
+                        {money(selected.payment_summary.schedule_remaining)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>
+                        {t("তারিখ পার হওয়া বকেয়া", "Overdue in schedule")}
+                      </dt>
+                      <dd>
+                        {money(selected.payment_summary.overdue_amount)} ·{" "}
+                        {selected.payment_summary.overdue_count}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>
+                        {t(
+                          "পরের অমীমাংসিত কিস্তি",
+                          "Next unsettled instalment",
+                        )}
+                      </dt>
+                      <dd>
+                        {selected.payment_summary.next_unsettled_date
+                          ? `${selected.payment_summary.next_unsettled_date} · ${money(selected.payment_summary.next_unsettled_amount || "0")}`
+                          : "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p>
+                    {t(
+                      "বকেয়া হিসাব রেকর্ড করা লেনদেনের ভিত্তিতে। বিনিয়োগের সময়সূচি প্রস্তাবিত বিতরণের হিসাব।",
+                      "Balances use recorded transactions. Investment schedules show proposed distributions.",
+                    )}
+                  </p>
+                </>
+              )}
               <p>
                 {t("চুক্তির রেফারেন্স", "Agreement reference")}:{" "}
                 {selected.agreement_reference || "—"}
@@ -713,6 +771,24 @@ export function ProjectAccount() {
                       {" "}
                       · {t("রেকর্ডকৃত", "Recorded")}: {money(s.recorded_paid)} ·{" "}
                       {t("বাকি", "Remaining")}: {money(s.remaining)}
+                      {s.state && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          {t(
+                            (
+                              {
+                                settled: "মীমাংসিত",
+                                overdue: "তারিখ পার হয়েছে",
+                                due_today: "আজ নির্ধারিত",
+                                scheduled: "নির্ধারিত",
+                                inactive: "নিষ্ক্রিয়",
+                              } as Record<string, string>
+                            )[s.state] || s.state,
+                            s.state.replaceAll("_", " "),
+                          )}
+                        </>
+                      )}
                     </small>
                   </div>
                 ))}

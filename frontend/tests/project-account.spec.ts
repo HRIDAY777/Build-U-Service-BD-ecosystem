@@ -34,6 +34,8 @@ test("customer submits, reloads and cancels a private project application", asyn
   await expect(page.locator(".project-statement")).toContainText(
     /Not started|এখনো শুরু হয়নি/,
   );
+  await expect(page.locator(".project-statement")).toContainText(/Overdue in schedule|তারিখ পার হওয়া বকেয়া/);
+  await expect(page.locator(".project-statement")).toContainText(/Next unsettled instalment|পরের অমীমাংসিত কিস্তি/);
   await page.reload();
   await page.locator('[name="search"]').fill("Demo Project Investor");
   await page.getByRole("button", { name: /Find applications|আবেদন খুঁজুন/ }).click();

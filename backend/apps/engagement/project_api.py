@@ -79,6 +79,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     phone = serializers.RegexField(r"^\+?[0-9][0-9 -]{6,19}$", max_length=20)
     entries = EntrySerializer(many=True, read_only=True)
     payment_schedule = serializers.SerializerMethodField()
+    payment_summary = serializers.SerializerMethodField()
     project_title = serializers.CharField(source="project.title", read_only=True, default="")
     updates = serializers.SerializerMethodField()
     consent = serializers.BooleanField(write_only=True)
@@ -114,8 +115,31 @@ class ApplicationSerializer(serializers.ModelSerializer):
             settled = min(max(paid, Decimal(0)), Decimal(row["amount"]))
             row["recorded_paid"] = str(settled)
             row["remaining"] = str(Decimal(row["amount"]) - settled)
+            today = timezone.localdate().isoformat()
+            row["state"] = "settled" if Decimal(row["remaining"]) == 0 else (
+                "overdue" if obj.status == "active" and row["date"] < today else
+                "due_today" if obj.status == "active" and row["date"] == today else
+                "scheduled" if obj.status == "active" else "inactive"
+            )
             paid -= settled
         return rows
+
+    def get_payment_summary(self, obj):
+        rows = self.get_payment_schedule(obj)
+        unpaid = [row for row in rows if Decimal(row["remaining"]) > 0]
+        overdue = [row for row in unpaid if row["state"] == "overdue"]
+        totals = {kind: sum((entry.amount for entry in obj.entries.all() if entry.kind == kind), Decimal("0")) for kind in ["receipt", "refund", "distribution"]}
+        net = totals["receipt"] - totals["refund"]
+        return {
+            "as_of": timezone.localdate().isoformat(),
+            "net_receipts": f"{net:.2f}",
+            "funding_remaining": f'{max(Decimal("0"), obj.amount - net):.2f}',
+            "schedule_remaining": f'{sum((Decimal(row["remaining"]) for row in unpaid), Decimal("0")):.2f}',
+            "overdue_amount": f'{sum((Decimal(row["remaining"]) for row in overdue), Decimal("0")):.2f}',
+            "overdue_count": len(overdue),
+            "next_unsettled_date": unpaid[0]["date"] if unpaid and obj.status == "active" else None,
+            "next_unsettled_amount": unpaid[0]["remaining"] if unpaid and obj.status == "active" else None,
+        }
 
     def validate(self, attrs):
         if not attrs.pop("consent", False):
@@ -142,7 +166,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectApplication
         fields = ["id", "kind", "name", "phone", "address", "details", "package", "amount", "months", "expected_total", "terms_version", "status", "project", "project_title", "agreement_reference", "review_note", "start_date", "created_at", "entries", "payment_schedule", "updates", "request_key", "consent"]
-        fields += ["term", "accepted_at", "is_owner", "agreement_sha256", "agreement_download", "signed_name", "acceptance_snapshot"]
+        fields += ["term", "accepted_at", "is_owner", "agreement_sha256", "agreement_download", "signed_name", "acceptance_snapshot", "payment_summary"]
         read_only_fields = ["id", "expected_total", "terms_version", "status", "project", "agreement_reference", "review_note", "start_date", "created_at", "accepted_at", "agreement_sha256", "signed_name", "acceptance_snapshot"]
         extra_kwargs = {"phone": {"min_length": 7}, "request_key": {"validators": []}}
 
@@ -211,6 +235,11 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
         for kind, total in totals.items():
             row("Total " + kind, f"{total:.2f}")
         row("Net receipts", f'{totals["receipt"] - totals["refund"]:.2f}')
+        summary = self.get_serializer(obj).data["payment_summary"]
+        row("Statement date", summary["as_of"])
+        row("Remaining in schedule", summary["schedule_remaining"])
+        row("Overdue in schedule", summary["overdue_amount"])
+        row("Next unsettled date", summary["next_unsettled_date"] or "")
         audit(request.user, "project.statement.downloaded", obj.pk)
         return response
 

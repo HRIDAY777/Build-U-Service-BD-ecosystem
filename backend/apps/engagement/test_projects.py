@@ -1,6 +1,7 @@
 import uuid
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth import get_user_model
@@ -147,6 +148,43 @@ class ProjectAccountTests(TestCase):
         rows = schedule(obj)
         self.assertEqual(rows[0]["date"], "2024-02-29")
         self.assertEqual(sum(Decimal(r["amount"]) for r in rows), Decimal("4000.40"))
+
+    @patch("apps.engagement.project_api.timezone.localdate", return_value=date(2026, 3, 1))
+    def test_overdue_summary_uses_net_receipts_and_active_schedule(self, _today):
+        key = self.create()
+        obj = ProjectApplication.objects.get(pk=key)
+        obj.kind = "client"
+        obj.amount = obj.expected_total = Decimal("10000")
+        obj.months = 4
+        obj.status = "active"
+        obj.start_date = date(2026, 1, 1)
+        obj.save()
+        for kind, amount, reference in [("receipt", "7500", "SUMMARY-RECEIPT"), ("refund", "1000", "SUMMARY-REFUND")]:
+            ProjectEntry.objects.create(application=obj, kind=kind, amount=amount, reference=reference, date=date(2026, 1, 2), recorded_by=self.staff)
+        url = f"/api/v1/project-applications/{key}/"
+        result = self.client.get(url).data
+        summary = result["payment_summary"]
+        self.assertEqual(summary["net_receipts"], "6500.00")
+        self.assertEqual(summary["schedule_remaining"], "3500.00")
+        self.assertEqual(summary["overdue_amount"], "500.00")
+        self.assertEqual(summary["overdue_count"], 1)
+        self.assertEqual(summary["next_unsettled_date"], "2026-02-01")
+        statement = self.client.get(url+"statement/").content.decode("utf-8-sig")
+        self.assertIn("Overdue in schedule,500.00", statement)
+        self.assertIn("Next unsettled date,2026-02-01", statement)
+        self.assertEqual(result["payment_schedule"][1]["state"], "due_today")
+        obj.status = "cancelled"
+        obj.save()
+        summary = self.client.get(url).data["payment_summary"]
+        self.assertEqual(summary["overdue_amount"], "0.00")
+        self.assertIsNone(summary["next_unsettled_date"])
+
+    def test_no_dates_or_overdue_before_term_start(self):
+        key = self.create()
+        summary = self.client.get(f"/api/v1/project-applications/{key}/").data["payment_summary"]
+        self.assertEqual(summary["schedule_remaining"], "0.00")
+        self.assertEqual(summary["overdue_count"], 0)
+        self.assertIsNone(summary["next_unsettled_date"])
 
     def test_public_gallery_excludes_private_updates_and_projects(self):
         ManagedProject.objects.create(title="Private", category="solar", area="Dhaka", description="Private")
