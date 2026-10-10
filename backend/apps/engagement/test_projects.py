@@ -1,8 +1,11 @@
 import uuid
+import tempfile
+from pathlib import Path
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from .project_models import ProjectApplication, ManagedProject, ProjectEntry, ProjectUpdate
 from .project_api import schedule
@@ -10,6 +13,13 @@ from .project_api import schedule
 
 class ProjectAccountTests(TestCase):
     def setUp(self):
+        test_root = Path(__file__).resolve().parents[3] / "artifacts"
+        test_root.mkdir(exist_ok=True)
+        temporary = tempfile.TemporaryDirectory(dir=test_root)
+        self.addCleanup(temporary.cleanup)
+        media = override_settings(MEDIA_ROOT=temporary.name)
+        media.enable()
+        self.addCleanup(media.disable)
         users = get_user_model()
         self.owner = users.objects.create_user(username="project-owner", email="owner@example.invalid")
         self.other = users.objects.create_user(username="project-other", email="other@example.invalid")
@@ -25,6 +35,12 @@ class ProjectAccountTests(TestCase):
         response = self.client.post("/api/v1/project-applications/", self.payload(), format="json")
         self.assertEqual(response.status_code, 201, response.data)
         return response.data["id"]
+
+    def upload(self, url):
+        document = SimpleUploadedFile("agreement.pdf", b"%PDF-1.4\n% Local test document\n%%EOF", content_type="application/pdf")
+        response = self.client.post(url+"agreement/", {"document": document}, format="multipart")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(len(response.data["agreement_sha256"]), 64)
 
     def test_server_prices_terms_idempotency_and_privacy(self):
         payload = self.payload()
@@ -65,13 +81,14 @@ class ProjectAccountTests(TestCase):
         url = f'/api/v1/project-applications/{result.data["id"]}/'
         self.client.force_authenticate(self.staff)
         self.client.post(url+"review/", {"status": "reviewing"}, format="json")
+        self.upload(url)
         confirmed = self.client.post(url+"review/", {"status": "approved", "project": self.project.pk, "agreement_reference": "TEST-CLIENT", "confirmed_amount": "120000"}, format="json")
         self.assertEqual(confirmed.data["amount"], "120000.00")
         self.assertEqual(self.client.post(url+"review/", {"status": "active", "start_date": "2026-01-31"}, format="json").status_code, 400)
         self.client.force_authenticate(self.other)
         self.assertEqual(self.client.post(url+"accept/", {"consent": True}, format="json").status_code, 404)
         self.client.force_authenticate(self.owner)
-        self.assertEqual(self.client.post(url+"accept/", {"consent": True}, format="json").status_code, 200)
+        self.assertEqual(self.client.post(url+"accept/", {"consent": True, "signed_name": "Test Applicant"}, format="json").status_code, 200)
         self.client.force_authenticate(self.staff)
         self.assertEqual(self.client.post(url+"ledger/", {"kind": "receipt", "amount": "72000", "date": "2026-01-30", "reference": "TEST-CLIENT-60"}, format="json").status_code, 201)
         result = self.client.post(url+"review/", {"status": "active", "start_date": "2026-01-31"}, format="json")
@@ -85,10 +102,11 @@ class ProjectAccountTests(TestCase):
         self.client.force_authenticate(self.staff)
         self.assertEqual(self.client.post(url+"review/", {"status": "active"}, format="json").status_code, 400)
         self.assertEqual(self.client.post(url+"review/", {"status": "reviewing"}, format="json").status_code, 200)
+        self.upload(url)
         self.assertEqual(self.client.post(url+"review/", {"status": "approved"}, format="json").status_code, 400)
         self.assertEqual(self.client.post(url+"review/", {"status": "approved", "project": self.project.pk, "agreement_reference": "TEST-AGREEMENT"}, format="json").status_code, 200)
         self.client.force_authenticate(self.owner)
-        self.assertEqual(self.client.post(url+"accept/", {"consent": True}, format="json").status_code, 200)
+        self.assertEqual(self.client.post(url+"accept/", {"consent": True, "signed_name": "Test Applicant"}, format="json").status_code, 200)
         self.client.force_authenticate(self.staff)
         self.assertEqual(self.client.post(url+"review/", {"status": "active", "start_date": "2026-01-31"}, format="json").status_code, 400)
         receipt = {"kind": "receipt", "amount": "10000", "date": "2026-01-01", "reference": "TEST-CAPITAL"}
@@ -128,3 +146,33 @@ class ProjectAccountTests(TestCase):
         url = f"/api/v1/project-applications/{key}/cancel/"
         self.assertEqual(self.client.post(url).status_code, 200)
         self.assertEqual(self.client.post(url).status_code, 400)
+
+    def test_private_document_and_frozen_consent_evidence(self):
+        key = self.create()
+        url = f"/api/v1/project-applications/{key}/"
+        document = SimpleUploadedFile("bad.pdf", b"not a PDF")
+        self.assertEqual(self.client.post(url+"agreement/", {"document": document}, format="multipart").status_code, 403)
+        self.client.force_authenticate(self.staff)
+        self.client.post(url+"review/", {"status": "reviewing"}, format="json")
+        document = SimpleUploadedFile("bad.pdf", b"not a PDF")
+        self.assertEqual(self.client.post(url+"agreement/", {"document": document}, format="multipart").status_code, 400)
+        self.upload(url)
+        self.client.post(url+"review/", {"status": "approved", "project": self.project.pk, "agreement_reference": "PRIVATE-TEST"}, format="json")
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(url+"agreement-file/").status_code, 404)
+        self.client.force_authenticate(self.owner)
+        download = self.client.get(url+"agreement-file/")
+        self.assertEqual(download.status_code, 200)
+        self.assertIn("attachment", download["Content-Disposition"])
+        self.assertTrue(b"".join(download.streaming_content).startswith(b"%PDF-"))
+        download.close()
+        self.assertEqual(self.client.post(url+"accept/", {"consent": True, "signed_name": "Other"}, format="json").status_code, 400)
+        accepted = self.client.post(url+"accept/", {"consent": True, "signed_name": "Test Applicant"}, format="json")
+        self.assertEqual(accepted.status_code, 200)
+        evidence = accepted.data["acceptance_snapshot"]
+        self.assertEqual(evidence["document_sha256"], accepted.data["agreement_sha256"])
+        self.assertEqual(evidence["amount"], "10000.00")
+        self.assertEqual(self.client.post(url+"accept/", {"consent": True, "signed_name": "Test Applicant"}, format="json").data["acceptance_snapshot"], evidence)
+        self.client.force_authenticate(self.staff)
+        document = SimpleUploadedFile("new.pdf", b"%PDF-1.4\n%%EOF")
+        self.assertEqual(self.client.post(url+"agreement/", {"document": document}, format="multipart").status_code, 400)

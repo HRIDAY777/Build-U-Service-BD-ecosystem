@@ -52,6 +52,9 @@ type Application = {
   start_date: string | null;
   accepted_at: string | null;
   is_owner: boolean;
+  agreement_download: string;
+  agreement_sha256: string;
+  signed_name: string;
   created_at: string;
   terms_version: string;
   term: {
@@ -497,6 +500,28 @@ export function ProjectAccount() {
                 {selected.terms_version}
               </p>
               <h3>{t("সময়সূচি", "Schedule")}</h3>
+              {selected.agreement_download && (
+                <p>
+                  <a
+                    href={selected.agreement_download}
+                    className="button outline"
+                  >
+                    {t(
+                      "ব্যক্তিগত চুক্তির PDF ডাউনলোড",
+                      "Download private agreement PDF",
+                    )}
+                  </a>
+                  <small>
+                    {t("নথির SHA-256", "Document SHA-256")}:{" "}
+                    {selected.agreement_sha256}
+                  </small>
+                </p>
+              )}
+              {selected.signed_name && (
+                <p>
+                  {t("সম্মতির নাম", "Acknowledged by")}: {selected.signed_name}
+                </p>
+              )}
               <p>
                 {t(
                   "গ্রাহকের অনুমোদিত পরিকল্পনা স্বীকার",
@@ -510,9 +535,21 @@ export function ProjectAccount() {
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      void action("accept", { consent: true });
+                      void action("accept", {
+                        consent: true,
+                        signed_name: new FormData(e.currentTarget).get(
+                          "signed_name",
+                        ),
+                      });
                     }}
                   >
+                    <label className="field">
+                      {t(
+                        "আবেদনে দেওয়া পূর্ণ নাম লিখুন",
+                        "Type the applicant's full name",
+                      )}
+                      <input name="signed_name" required maxLength={120} />
+                    </label>
                     <label>
                       <input type="checkbox" required />
                       {t(
@@ -619,6 +656,47 @@ export function ProjectAccount() {
                 )}
               {(permissions.review || permissions.ledger) && (
                 <>
+                  {permissions.review && selected.status === "reviewing" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setBusy(true);
+                        setMessage("");
+                        try {
+                          const data = new FormData(e.currentTarget);
+                          const result = await api<Application>(
+                            `project-applications/${selected.id}/agreement/`,
+                            "POST",
+                            data,
+                          );
+                          setSelected(result);
+                          await load();
+                        } catch (error) {
+                          setMessage(
+                            error instanceof Error
+                              ? error.message
+                              : "Upload failed",
+                          );
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      <h3>{t("চূড়ান্ত চুক্তির PDF", "Final agreement PDF")}</h3>
+                      <label className="field">
+                        {t("PDF (সর্বোচ্চ ৫ MB)", "PDF (up to 5 MB)")}
+                        <input
+                          name="document"
+                          type="file"
+                          accept="application/pdf"
+                          required
+                        />
+                      </label>
+                      <button className="button" disabled={busy}>
+                        {t("ব্যক্তিগত নথি আপলোড", "Upload private document")}
+                      </button>
+                    </form>
+                  )}
                   <h3>{t("টিমের পর্যালোচনা", "Team review")}</h3>
                   <form
                     onSubmit={(e) => {

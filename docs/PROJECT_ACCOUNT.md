@@ -6,8 +6,8 @@ Integrated into the existing Django/Next website, based on the user-supplied Lar
 
 1. `/projects`: five proposed packages, illustrative calculations, client 10/30/20/40 calculator, enquiry and paginated project gallery with category filters.
 2. `/project-account`: authenticated investor/client applications, geographic address picker, consent, duplicate-request protection, private application history and cancellation while pending.
-3. Operations: submitted -> reviewing -> approved/rejected; approval requires an assigned project and reviewed agreement reference. Client price can be confirmed on approval.
-4. Customer: reviews and acknowledges the approved price/plan/reference in their account. This is not an electronic signature replacing the signed agreement.
+3. Operations: submitted -> reviewing -> approved/rejected; approval requires an assigned project, reviewed agreement reference and private PDF (maximum 5 MB). Client price can be confirmed on approval.
+4. Customer: downloads the private PDF and acknowledges the approved price/plan/reference using their name. The account stores the document SHA-256, timestamp and immutable terms snapshot. This is authenticated typed-name consent, not a certified digital signature replacing signed paperwork. Only the owner and authorized staff can download the attachment; it has no public media URL. Upload checks size and PDF header, not malware; production scanning remains necessary.
 5. Finance: records completed receipts with unique references. Investor activation requires recorded capital and customer acknowledgement. Client term activation requires recorded 60% milestone receipts.
 6. Operations: confirms actual handover/start date; term does not start at application time.
 7. Account: maturity, time progress, month-end-safe instalments, rounded final instalment, recorded payments and remaining amounts, ledger, project updates and printable statement. Regular investor distributions include principal. Client schedule covers the remaining 40%; milestones cover 10/30/20.
@@ -27,10 +27,12 @@ The Laravel model used annual estimates that differ from the supplied PDFs and i
 
 ## Boundary
 
-This is a local application, review and manual accounting workflow. It does not launch a public fundraising offer, collect investment funds, execute bank payouts, validate identities, digitally sign legal agreements or certify the proposal's legal/financial assumptions. Original PDFs and archive remain private sources. Signed paperwork is represented by a reviewed reference. Production launch and payment/settlement integrations remain separate work.
+This is a local application, review and manual accounting workflow. It does not launch a public fundraising offer, collect investment funds, execute bank payouts, validate identities, provide certified digital signatures or certify the proposal's legal/financial assumptions. Original PDFs and archive remain private sources. Reviewed documents and typed-name consent evidence are stored privately. Production launch and payment/settlement integrations remain separate work. The user confirmed no provider accounts exist yet; see [Bangla setup checklist](PROJECT_LIVE_SETUP.bn.md).
 
 ## Verification
 
 Backend tests cover all package totals, private access, consent, idempotency, invalid inputs, owner acknowledgement, client confirmed quotes, approval/funding gates, ledger bounds, completion, month-end rounding, public/private gallery and cancellation. Browser checks cover package enquiry and real API persistence, private application/reload/cancellation, mobile width and admin controls. Frontend lint/typecheck and production build pass.
 
 Final local verification: full backend suite 111 tests passed; 8 project-specific tests passed after the final milestone guard; two project browser workflows passed; admin runtime errors zero; lint/typecheck and production build passed.
+
+2026-10-10 document update: 112 backend tests passed, including private PDF access, invalid upload, typed-name matching and frozen acceptance evidence. Two project browser workflows, lint, typecheck, production build, Ruff and migration consistency passed. Local backend and frontend were restarted with the changes.

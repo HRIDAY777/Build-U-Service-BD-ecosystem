@@ -1,8 +1,12 @@
 import calendar
+import hashlib
+import uuid
+import unicodedata
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction, IntegrityError
 from django.utils import timezone
+from django.http import FileResponse
 from rest_framework import serializers, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -78,6 +82,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
     consent = serializers.BooleanField(write_only=True)
     term = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
+    agreement_download = serializers.SerializerMethodField()
+
+    def get_agreement_download(self, obj):
+        return f"/api/v1/project-applications/{obj.pk}/agreement-file/" if obj.agreement_file else ""
 
     def get_is_owner(self, obj):
         return obj.customer_id == self.context["request"].user.pk
@@ -132,8 +140,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectApplication
         fields = ["id", "kind", "name", "phone", "address", "details", "package", "amount", "months", "expected_total", "terms_version", "status", "project", "project_title", "agreement_reference", "review_note", "start_date", "created_at", "entries", "payment_schedule", "updates", "request_key", "consent"]
-        fields += ["term", "accepted_at", "is_owner"]
-        read_only_fields = ["id", "expected_total", "terms_version", "status", "project", "agreement_reference", "review_note", "start_date", "created_at", "accepted_at"]
+        fields += ["term", "accepted_at", "is_owner", "agreement_sha256", "agreement_download", "signed_name", "acceptance_snapshot"]
+        read_only_fields = ["id", "expected_total", "terms_version", "status", "project", "agreement_reference", "review_note", "start_date", "created_at", "accepted_at", "agreement_sha256", "signed_name", "acceptance_snapshot"]
         extra_kwargs = {"phone": {"min_length": 7}, "request_key": {"validators": []}}
 
 
@@ -188,11 +196,47 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
         obj = ProjectApplication.objects.select_for_update().get(pk=self.get_object().pk)
         if obj.customer_id != request.user.pk or obj.status != "approved" or request.data.get("consent") is not True:
             raise ValidationError("Only the owner can acknowledge an approved plan with explicit consent.")
+        signed_name = str(request.data.get("signed_name", "")).strip()
+        if unicodedata.normalize("NFC", signed_name).casefold() != unicodedata.normalize("NFC", obj.name.strip()).casefold():
+            raise ValidationError("Type the applicant's full name exactly as shown.")
+        if not obj.agreement_file:
+            raise ValidationError("A reviewed agreement PDF is required before acknowledgement.")
         if not obj.accepted_at:
             obj.accepted_at = timezone.now()
+            obj.signed_name = signed_name
+            obj.acceptance_snapshot = {"application": str(obj.pk), "customer": obj.customer_id, "name": signed_name, "kind": obj.kind, "package": obj.package, "amount": str(obj.amount), "expected_total": str(obj.expected_total), "months": obj.months, "project": obj.project_id, "agreement_reference": obj.agreement_reference, "document_sha256": obj.agreement_sha256, "terms_version": obj.terms_version, "accepted_at": obj.accepted_at.isoformat(), "method": "authenticated-typed-name-consent"}
             obj.save()
             audit(request.user, "project.application.acknowledged", obj.pk, agreement=obj.agreement_reference, amount=str(obj.amount), terms=obj.terms_version)
         return Response(self.get_serializer(obj).data)
+
+    @action(detail=True, methods=["post"], url_path="agreement")
+    @transaction.atomic
+    def agreement(self, request, pk=None):
+        if not request.user.is_staff or not request.user.has_perm("engagement.change_projectapplication"):
+            raise PermissionDenied()
+        obj = ProjectApplication.objects.select_for_update().get(pk=self.get_object().pk)
+        if obj.status != "reviewing" or obj.accepted_at:
+            raise ValidationError("Upload the final reviewed PDF while the application is under review.")
+        document = request.FILES.get("document")
+        if not document or not 0 < document.size <= 5 * 1024 * 1024:
+            raise ValidationError("Upload a PDF up to 5 MB.")
+        content = document.read()
+        if not content.startswith(b"%PDF-"):
+            raise ValidationError("A PDF document is required.")
+        document.seek(0)
+        document.name = f"{uuid.uuid4()}.pdf"
+        obj.agreement_sha256 = hashlib.sha256(content).hexdigest()
+        obj.agreement_file = document
+        obj.save()
+        audit(request.user, "project.agreement.uploaded", obj.pk, sha256=obj.agreement_sha256)
+        return Response(self.get_serializer(obj).data, status=201)
+
+    @action(detail=True, methods=["get"], url_path="agreement-file")
+    def agreement_file(self, request, pk=None):
+        obj = self.get_object()
+        if not obj.agreement_file:
+            raise ValidationError("No agreement document has been uploaded.")
+        return FileResponse(obj.agreement_file.open("rb"), as_attachment=True, filename=f"agreement-{obj.pk}.pdf", content_type="application/pdf")
 
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -205,6 +249,8 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
         if target not in transitions.get(obj.status, []):
             raise ValidationError("Invalid status transition.")
         if target == "approved":
+            if not obj.agreement_file:
+                raise ValidationError("Upload the reviewed agreement PDF before approval.")
             try:
                 obj.project = ManagedProject.objects.get(pk=request.data.get("project"))
             except (ManagedProject.DoesNotExist, ValueError, TypeError):
