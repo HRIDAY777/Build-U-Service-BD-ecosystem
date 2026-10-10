@@ -10,7 +10,7 @@
 | ২. Unified account / RBAC | Registration, session login, CSRF, ownership, groups/permissions, profile, password recovery, email verification | Subdomain SSO verification, staff MFA, full account security review |
 | ৩. Corporate / CMS | Company logo, homepage, divisions, content pages, demo stock/district images | Complete editorial content for every requested corporate page, legal/business approval, full CMS publishing workflow |
 | ৪. Shop | Catalog, category/search/filter, variants/SKU/sale pricing, inventory, cart, COD checkout, wishlist/share/alerts, reviews, returns | Barcode/media gallery/video, collections, frequently bought together, recently viewed, recommendations and advanced promotions |
-| ৫. Food / restaurant | Shared food catalog, ordering and merchant operations | Restaurant hours/minimum order, food add-ons/meal modifiers, cuisine/nearby filters, preparation estimates, branch menus, staff accounts and settlements |
+| ৫. Food / restaurant | Shared food catalog, ordering, owner pause/resume, enforced Bangladesh weekly/overnight/all-day hours, minimum food subtotal and preparation snapshot | Food add-ons/meal modifiers, cuisine/nearby filters, branch menus, staff accounts and settlements |
 | ৬. Service booking | Electrician/mechanic/general-service booking, provider assignment, progress and overlap checks | Skills matching, calendar/leave/duration slots, problem types/media, parts requests, complete service quotes/payment/refunds |
 | ৭. Pharmacy | Catalog/order and private prescription upload/human review | Verified pharmacist eligibility, retention/expiry rules, regulatory launch approval, full prescription browser verification |
 | ৮. Delivery / rider | Parcel quote/request, assignment/history, handover, manual COD reconciliation, rider availability/earnings/feedback | Live GPS, recipient proof/OTP, route optimization, complete dispatch exceptions and payout accounting |
@@ -65,3 +65,7 @@
 - CI workflow যোগ করা হয়েছে; GitHub-এর remote run এবং PostgreSQL পরীক্ষার ফল এখনও যাচাই হয়নি।
 
 - Complete local browser suite: ৮টির সবগুলো পাস (customer ordering/booking/delivery, mobile layout, partner application, event packages, language, geography, photos and wishlist)।
+
+## পরের ধাপ: রেস্টুরেন্ট অর্ডারের নিয়ম
+
+রেস্টুরেন্ট পরিচালনার পর্বে owner controls, hours/minimum enforcement, public status এবং preparation estimate সম্পন্ন করা হয়েছে। Full backend suite: ৯০টি পাস; নতুন restaurant flow-সহ customer browser checks: ৪টি পাস; production build পাস। ২৪ ঘণ্টার সময়সূচিও অতিরিক্ত backend ও browser check-এ পাস করেছে। খাদ্যের add-ons/modifiers এবং booking calendar পরবর্তী কাজ।

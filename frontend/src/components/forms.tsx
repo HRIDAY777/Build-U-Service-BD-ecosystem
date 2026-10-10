@@ -485,6 +485,7 @@ export function CheckoutForm() {
     discount: string;
     delivery_fee: string;
     total: string;
+    preparation_minutes: number | null;
   } | null>(null);
   const [methods, setMethods] = useState<string[]>(["cod"]);
   const [savedAddresses, setSavedAddresses] = useState<
@@ -540,6 +541,7 @@ export function CheckoutForm() {
         discount: string;
         delivery_fee: string;
         total: string;
+        preparation_minutes: number | null;
       }>(
         quote ? "orders/" : "orders/quote/",
         "POST",
@@ -690,6 +692,19 @@ export function CheckoutForm() {
                 Delivery: ৳{quote.delivery_fee}
               </p>
               <strong>Total to pay: ৳{quote.total}</strong>
+              {quote.preparation_minutes != null && (
+                <p>
+                  <Text
+                    bn="খাবার প্রস্তুতির আনুমানিক সময়: "
+                    en="Estimated food preparation: "
+                  />
+                  {quote.preparation_minutes}{" "}
+                  <Text
+                    bn="মিনিট; ডেলিভারির সময় আলাদা।"
+                    en="minutes; delivery time is additional."
+                  />
+                </p>
+              )}
             </div>
           )}
           {error && (

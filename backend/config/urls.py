@@ -18,12 +18,13 @@ from apps.engagement.api import (
 )
 from apps.content.api import PageViewSet, FAQViewSet
 from apps.automation.api import AssistantView
-from apps.catalog.partner_api import PartnerOfferingViewSet
+from apps.catalog.partner_api import PartnerOfferingViewSet, PartnerRestaurantViewSet
 from apps.catalog.api import SharedWishlistView
 from apps.operations.payments import PaymentMethodsView, PaymentStartView, PaymentIPNView, PaymentReturnView
 
 router = DefaultRouter()
 router.register("partner-offerings", PartnerOfferingViewSet, basename="partner-offering")
+router.register("partner-restaurants", PartnerRestaurantViewSet, basename="partner-restaurant")
 for prefix, view, basename in [
     ("addresses", AddressViewSet, "address"),
     ("divisions", DivisionViewSet, "division"),

@@ -23,6 +23,7 @@ type RecordItem = {
   items?: { name: string; quantity: number }[];
   description?: string;
   scheduled_at?: string;
+  preparation_minutes?: number | null;
   available_actions?: string[];
 };
 type EventItem = {
@@ -487,6 +488,12 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   <p>
                     <UiText text={"Appointment:"} />
                     {new Date(r.scheduled_at).toLocaleString()}
+                  </p>
+                )}
+                {r.preparation_minutes != null && (
+                  <p>
+                    খাবার প্রস্তুতির আনুমানিক সময় / Estimated food preparation:{" "}
+                    {r.preparation_minutes} মিনিট / minutes
                   </p>
                 )}
                 <div className="record-actions">

@@ -6,7 +6,8 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from apps.catalog.models import Offering, ProductVariant, ServiceArea
+from apps.catalog.models import Offering, ProductVariant, ServiceArea, Organization
+from apps.catalog.restaurant_rules import restaurant_status
 from apps.automation.models import OutboxEvent
 from apps.engagement.models import LoyaltyEntry, Notification
 from .models import (
@@ -101,13 +102,16 @@ def checkout(user, data, key, preview=False):
         )
     division = products[0].division
     organization_id = products[0].organization_id
+    organization = Organization.objects.select_for_update().get(pk=organization_id) if organization_id else None
+    if organization and not organization.approved:
+        raise ValidationError("This merchant is not approved.")
+    if organization and organization.division_id != division.id:
+        raise ValidationError("This merchant does not belong to the selected division.")
     if division.kind != "goods" or not division.active:
         raise ValidationError("Use the booking form for services.")
     for product in products:
         if product.division_id != division.id or product.organization_id != organization_id:
             raise ValidationError("Each checkout must contain items from one division and one merchant.")
-        if product.organization and not product.organization.approved:
-            raise ValidationError("This merchant is not approved.")
         if product.pk in base_quantities and product.stock < base_quantities[product.pk]:
             raise ValidationError(f"Insufficient stock for {product.name}.")
     for variant in variants:
@@ -115,6 +119,16 @@ def checkout(user, data, key, preview=False):
             raise ValidationError(f"Insufficient stock for {variant.offering.name} ({variant.label}).")
     area = validate_area(data["address"], division)
     subtotal = sum((line["price"] * line["quantity"] for line in resolved_lines), Decimal("0"))
+    if division.slug == "food":
+        if not organization:
+            raise ValidationError("Choose food from an approved restaurant.")
+        status = restaurant_status(organization)
+        if status["paused"]:
+            raise ValidationError("এই রেস্টুরেন্ট এখন অর্ডার নিচ্ছে না / This restaurant has paused orders.")
+        if status["is_open"] is False:
+            raise ValidationError("রেস্টুরেন্ট এখন বন্ধ / This restaurant is currently closed.")
+        if subtotal < organization.minimum_order:
+            raise ValidationError(f"খাবারের ন্যূনতম অর্ডার / Minimum food subtotal: ৳{organization.minimum_order} (ডেলিভারি চার্জের আগে / before delivery fee).")
     discount = Decimal("0")
     coupon = None
     if data.get("coupon"):
@@ -139,6 +153,7 @@ def checkout(user, data, key, preview=False):
             "discount": str(discount),
             "delivery_fee": str(area.delivery_fee),
             "total": str(total),
+            "preparation_minutes": organization.preparation_minutes if division.slug == "food" else None,
         }
     if "expected_total" in data and data["expected_total"] != total:
         raise ValidationError("The total changed. Review a fresh quote before placing your order.")
@@ -147,6 +162,7 @@ def checkout(user, data, key, preview=False):
         customer=user,
         division=division,
         organization_id=organization_id,
+        preparation_minutes=organization.preparation_minutes if division.slug == "food" else None,
         address=data["address"],
         subtotal=subtotal,
         discount=discount,

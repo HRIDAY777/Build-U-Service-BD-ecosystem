@@ -280,6 +280,7 @@ class AreaViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
+    ordering_status = serializers.SerializerMethodField()
     division_name = serializers.CharField(source="division.name", read_only=True)
     division_name_bn = serializers.CharField(source="division.name_bn", read_only=True)
     division_slug = serializers.CharField(source="division.slug", read_only=True)
@@ -297,7 +298,12 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "address",
             "description",
             "opening_hours",
+            "accepting_orders", "weekly_hours", "minimum_order", "preparation_minutes", "ordering_status",
         ]
+
+    def get_ordering_status(self, obj):
+        from .restaurant_rules import restaurant_status
+        return restaurant_status(obj)
 
 
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):

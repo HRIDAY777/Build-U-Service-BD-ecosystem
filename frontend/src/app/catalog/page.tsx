@@ -3,6 +3,7 @@ import Link from "next/link";
 import { serverGet, PageResult, Division, Offering } from "@/lib/api";
 import { OfferingCard } from "@/components/offering-card";
 import { Text } from "@/components/provider";
+import { Restaurant, RestaurantInfo } from "@/components/restaurant-info";
 type Category = {
   id: number;
   division_slug: string;
@@ -50,12 +51,22 @@ export default async function Catalog({
       `categories/?${new URLSearchParams(params.division ? { division: params.division } : {})}`,
     ),
   ]);
+  const restaurant =
+    params.organization && /^\d+$/.test(params.organization)
+      ? await serverGet<Restaurant>(`organizations/${params.organization}/`)
+      : null;
   return (
     <div className="page-wrap">
       <span className="eyebrow">U SERVICE BD · DISCOVER</span>
       <h1>
         <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Your everyday starts here" />
       </h1>
+      {restaurant && (
+        <>
+          <h2>{restaurant.name}</h2>
+          <RestaurantInfo restaurant={restaurant} />
+        </>
+      )}
       <p className="page-intro">
         <Text
           bn="খাবার, কেনাকাটা ও বিশ্বস্ত সেবা বেছে নিন।"

@@ -3,6 +3,7 @@ import { UiText } from "@/components/ui-text";
 
 import { useEffect, useState, FormEvent } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
+import { PartnerRestaurants } from "./partner-restaurants";
 export function PartnerCatalog() {
   const [items, setItems] = useState<Offering[]>([]);
   const [error, setError] = useState("");
@@ -41,6 +42,7 @@ export function PartnerCatalog() {
   }
   return (
     <>
+      <PartnerRestaurants />
       <h2>
         <UiText text={"Your catalog & inventory"} />
       </h2>

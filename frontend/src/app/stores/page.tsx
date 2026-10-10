@@ -5,8 +5,9 @@ import { Text } from "@/components/provider";
 import { LocalityInput } from "@/components/location-picker";
 import { Photo } from "@/components/photo";
 import { divisionPhotos } from "@/lib/photos";
+import { Restaurant, RestaurantInfo } from "@/components/restaurant-info";
 
-type Business = {
+type Business = Restaurant & {
   id: number;
   name: string;
   division: number;
@@ -119,6 +120,7 @@ export default async function Stores({
               {business.address || "ঠিকানা দেওয়া হয়নি / Address not provided"}
             </p>
             <p>{business.description}</p>
+            <RestaurantInfo restaurant={business} />
             {business.opening_hours && (
               <p>
                 <Text bn="সময়সূচি: " en="Hours: " />

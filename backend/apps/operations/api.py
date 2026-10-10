@@ -159,6 +159,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "items",
             "rider",
             "prescription_status",
+            "preparation_minutes",
             "created_at",
         ]
         read_only_fields = fields

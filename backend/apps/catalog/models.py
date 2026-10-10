@@ -2,6 +2,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.core.validators import MinValueValidator, MaxValueValidator
+from .restaurant_rules import validate_weekly_hours
 
 
 class Division(models.Model):
@@ -28,6 +30,16 @@ class Organization(models.Model):
     address = models.CharField(max_length=500, blank=True)
     description = models.TextField(blank=True)
     opening_hours = models.CharField(max_length=180, blank=True)
+    accepting_orders = models.BooleanField(default=True)
+    weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
+    minimum_order = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    preparation_minutes = models.PositiveIntegerField(default=30, validators=[MinValueValidator(1), MaxValueValidator(360)])
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(minimum_order__gte=0), name="organization_minimum_nonnegative"),
+            models.CheckConstraint(condition=Q(preparation_minutes__gte=1, preparation_minutes__lte=360), name="organization_preparation_valid"),
+        ]
 
     def __str__(self):
         return self.name
