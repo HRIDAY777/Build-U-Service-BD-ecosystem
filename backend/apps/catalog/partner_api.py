@@ -1,4 +1,7 @@
 from decimal import Decimal
+from django.core.exceptions import ValidationError as DjangoValidationError
+from .service_schedule import validate_leave_dates
+from .restaurant_rules import validate_weekly_hours
 from django.db import transaction
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
@@ -89,6 +92,26 @@ def food_settings(offering):
             for group in offering.food_option_groups.all().order_by("id")]
 
 
+class ServiceScheduleInput(serializers.Serializer):
+    weekly_hours = serializers.JSONField()
+    leave_dates = serializers.JSONField()
+    duration_minutes = serializers.IntegerField(min_value=1, max_value=1440)
+
+    def validate_weekly_hours(self, value):
+        try:
+            validate_weekly_hours(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.messages) from exc
+        return value
+
+    def validate_leave_dates(self, value):
+        try:
+            validate_leave_dates(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.messages) from exc
+        return value
+
+
 class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfferingSerializer
 
@@ -97,6 +120,30 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("catalog.change_offering"):
             return qs
         return qs.filter(organization__owner=self.request.user, organization__approved=True)
+
+    @action(detail=True, methods=["get", "put"])
+    @transaction.atomic
+    def service_schedule(self, request, pk=None):
+        offering = self.get_object()
+        offering = Offering.objects.select_for_update().select_related("organization", "division").get(pk=offering.pk)
+        if offering.division.kind != "service":
+            raise ValidationError("Choose a service offering.")
+        if not request.user.has_perm("catalog.change_offering") and (
+            not offering.organization or not offering.organization.approved
+            or offering.organization.owner_id != request.user.pk
+        ):
+            raise PermissionDenied()
+        if request.method == "PUT":
+            data = ServiceScheduleInput(data=request.data)
+            data.is_valid(raise_exception=True)
+            offering.service_weekly_hours = data.validated_data["weekly_hours"]
+            offering.service_leave_dates = data.validated_data["leave_dates"]
+            offering.duration_minutes = data.validated_data["duration_minutes"]
+            offering.save(update_fields=["service_weekly_hours", "service_leave_dates", "duration_minutes", "updated_at"])
+            audit(request.user, "service.schedule_updated", offering.pk)
+        return Response({"weekly_hours": offering.service_weekly_hours,
+                         "leave_dates": offering.service_leave_dates,
+                         "duration_minutes": offering.duration_minutes, "timezone": "Asia/Dhaka"})
 
     @action(detail=True, methods=["get", "put"])
     @transaction.atomic

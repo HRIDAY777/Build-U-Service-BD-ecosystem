@@ -24,6 +24,8 @@ export type Offering = {
   stock: number;
   prescription_required: boolean;
   duration_minutes: number;
+  service_weekly_hours: Record<string, { open: string; close: string }[]>;
+  service_leave_dates: string[];
   image: string;
   variants: ProductVariant[];
   food_option_groups: FoodOptionGroup[];

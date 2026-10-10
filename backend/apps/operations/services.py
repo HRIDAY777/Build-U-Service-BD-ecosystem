@@ -1,3 +1,4 @@
+from apps.catalog.service_schedule import appointment_allowed
 import hashlib
 import json
 from decimal import Decimal
@@ -76,7 +77,7 @@ def checkout(user, data, key, preview=False):
         raise ValidationError("One or more variants are unavailable.")
     variants_by_id = {variant.pk: variant for variant in variants}
     offering_variant_ids = set(
-        ProductVariant.objects.filter(offering_id__in=quantities, offering__division__slug="food", active=True).values_list(
+        ProductVariant.objects.filter(offering_id__in=quantities, active=True).values_list(
             "offering_id", flat=True
         )
     )
@@ -436,18 +437,22 @@ def book(user, data, key):
         if previous.request_hash != digest:
             raise ValidationError("This booking key was already used with different details.")
         return previous
-    offering = Offering.objects.filter(
+    offering = Offering.objects.select_for_update().filter(
         pk=data["offering"], active=True, division__active=True, division__kind="service"
     ).first()
     if not offering:
         raise ValidationError("Service not available.")
     if data["scheduled_at"] <= timezone.now():
         raise ValidationError("Choose a future appointment.")
+    if not appointment_allowed(offering.service_weekly_hours, offering.service_leave_dates,
+                               data["scheduled_at"], offering.duration_minutes):
+        raise ValidationError("এই সময়ে সেবা বন্ধ বা পর্যাপ্ত সময় নেই / Service is closed or the appointment exceeds available hours.")
     validate_area(data["address"], offering.division)
     booking = Booking.objects.create(
         customer=user,
         offering=offering,
         scheduled_at=data["scheduled_at"],
+        duration_minutes=offering.duration_minutes,
         address=data["address"],
         notes=data.get("notes", ""),
         price=offering.price,

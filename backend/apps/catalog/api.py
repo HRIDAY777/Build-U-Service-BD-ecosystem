@@ -97,6 +97,8 @@ class OfferingSerializer(serializers.ModelSerializer):
             "stock",
             "prescription_required",
             "duration_minutes",
+            "service_weekly_hours",
+            "service_leave_dates",
             "image",
             "variants",
             "food_option_groups",

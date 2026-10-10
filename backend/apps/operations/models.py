@@ -2,6 +2,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from apps.catalog.restaurant_rules import validate_weekly_hours
+from apps.catalog.service_schedule import validate_leave_dates
 
 
 class Coupon(models.Model):
@@ -87,6 +89,7 @@ class Booking(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="jobs"
     )
     scheduled_at = models.DateTimeField()
+    duration_minutes = models.PositiveIntegerField(default=60)
     address = models.JSONField()
     notes = models.TextField(blank=True)
     status = models.CharField(max_length=30, default="pending", db_index=True)
@@ -102,6 +105,8 @@ class Booking(models.Model):
 
 
 class ProviderProfile(models.Model):
+    weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
+    leave_dates = models.JSONField(default=list, blank=True, validators=[validate_leave_dates])
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     available = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)

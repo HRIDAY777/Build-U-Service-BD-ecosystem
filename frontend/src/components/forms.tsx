@@ -864,7 +864,7 @@ export function BookingForm({ item }: { item: Offering }) {
         "POST",
         {
           offering: item.id,
-          scheduled_at: new Date(data.scheduled_at).toISOString(),
+          scheduled_at: new Date(`${data.scheduled_at}+06:00`).toISOString(),
           address: address(data),
           notes: data.notes,
         },
@@ -889,15 +889,41 @@ export function BookingForm({ item }: { item: Offering }) {
         ৳{item.price} · {item.duration_minutes}
         <UiText text={"minutes · Payment after service"} />
       </p>
+      {(item.service_leave_dates || []).length > 0 && (
+        <p>
+          বন্ধের তারিখ / Closed dates: {item.service_leave_dates.join(", ")}
+        </p>
+      )}
+      {Object.keys(item.service_weekly_hours || {}).length > 0 && (
+        <div className="notice">
+          <strong>বুকিংয়ের সময় / Booking hours (Bangladesh)</strong>
+          {[
+            "সোমবার",
+            "মঙ্গলবার",
+            "বুধবার",
+            "বৃহস্পতিবার",
+            "শুক্রবার",
+            "শনিবার",
+            "রবিবার",
+          ].map((day, i) => (
+            <p key={day}>
+              {day}:{" "}
+              {(item.service_weekly_hours[String(i)] || [])
+                .map((slot) => `${slot.open}–${slot.close}`)
+                .join(", ") || "বন্ধ / Closed"}
+            </p>
+          ))}
+        </div>
+      )}
       <form className="form-panel" onSubmit={submit}>
         <label className="field">
-          তারিখ ও সময় / Date & time
+          তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)
           <input type="datetime-local" name="scheduled_at" required />
         </label>
         <p className="subtle">
           <UiText
             text={
-              "Time is entered in your device’s local timezone and converted for scheduling."
+              "Times use Bangladesh time (Asia/Dhaka). The team confirms your appointment."
             }
           />
         </p>

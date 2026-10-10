@@ -1,3 +1,6 @@
+from apps.catalog.service_schedule import appointment_allowed, validate_leave_dates
+from apps.catalog.restaurant_rules import validate_weekly_hours
+from django.core.exceptions import ValidationError as DjangoValidationError
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -457,6 +460,10 @@ class WorkflowMixin:
                 get_user_model().objects.select_for_update().get(pk=worker.pk)
                 if ProviderProfile.objects.filter(user=worker, available=False).exists():
                     raise ValidationError("This provider is currently unavailable.")
+                profile = ProviderProfile.objects.filter(user=worker).first()
+                if profile and not appointment_allowed(profile.weekly_hours, profile.leave_dates,
+                                                       obj.scheduled_at, obj.duration_minutes):
+                    raise ValidationError("প্রোভাইডারের কাজের সময় বা ছুটির সাথে মিলছে না / Provider is outside working hours or on leave.")
                 from datetime import timedelta
 
                 conflicts = (
@@ -464,10 +471,10 @@ class WorkflowMixin:
                     .exclude(pk=obj.pk)
                     .exclude(status__in=["cancelled", "completed", "failed"])
                 )
-                end = obj.scheduled_at + timedelta(minutes=obj.offering.duration_minutes)
+                end = obj.scheduled_at + timedelta(minutes=obj.duration_minutes)
                 if any(
                     b.scheduled_at < end
-                    and b.scheduled_at + timedelta(minutes=b.offering.duration_minutes) > obj.scheduled_at
+                    and b.scheduled_at + timedelta(minutes=b.duration_minutes) > obj.scheduled_at
                     for b in conflicts.select_related("offering")
                 ):
                     raise ValidationError("Provider already has an overlapping appointment.")
@@ -648,6 +655,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "service",
             "offering",
             "scheduled_at",
+            "duration_minutes",
             "address",
             "notes",
             "status",
@@ -657,6 +665,26 @@ class BookingSerializer(serializers.ModelSerializer):
             "available_actions",
         ]
         read_only_fields = fields
+
+
+class ProviderScheduleInput(serializers.Serializer):
+    available = serializers.BooleanField(required=False)
+    weekly_hours = serializers.JSONField(required=False)
+    leave_dates = serializers.JSONField(required=False)
+
+    def validate_weekly_hours(self, value):
+        try:
+            validate_weekly_hours(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.messages) from exc
+        return value
+
+    def validate_leave_dates(self, value):
+        try:
+            validate_leave_dates(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.messages) from exc
+        return value
 
 
 class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
@@ -682,6 +710,21 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         return Response(self.get_serializer(booking).data, status=201)
 
     @action(detail=False, methods=["get"])
+    def calendar(self, request):
+        if not request.user.groups.filter(name="Provider").exists():
+            raise PermissionDenied("Provider account required.")
+        from datetime import datetime, time, timedelta
+        from zoneinfo import ZoneInfo
+        day = serializers.DateField().run_validation(request.query_params.get("date"))
+        start = datetime.combine(day, time(), ZoneInfo("Asia/Dhaka"))
+        end = start + timedelta(days=7)
+        jobs = Booking.objects.filter(provider=request.user, scheduled_at__gte=start - timedelta(days=1),
+                                      scheduled_at__lt=end).exclude(status__in=["cancelled", "completed", "failed"]).select_related("offering").order_by("scheduled_at")
+        results = [job for job in jobs if job.scheduled_at + timedelta(minutes=job.duration_minutes) > start]
+        return Response({"timezone": "Asia/Dhaka", "date": day.isoformat(),
+                         "results": self.get_serializer(results, many=True).data})
+
+    @action(detail=False, methods=["get"])
     def providers(self, request):
         if not request.user.has_perm("operations.change_booking"):
             raise PermissionDenied()
@@ -705,15 +748,21 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
             get_user_model().objects.select_for_update().get(pk=request.user.pk)
             profile, _ = ProviderProfile.objects.get_or_create(user=request.user)
             if request.method == "PATCH":
-                available = serializers.BooleanField().run_validation(request.data.get("available"))
-                profile.available = available
-                profile.save(update_fields=["available", "updated_at"])
-                audit(request.user, "provider.availability_updated", profile.pk, available=available)
+                changes = ProviderScheduleInput(data=request.data)
+                changes.is_valid(raise_exception=True)
+                for field, value in changes.validated_data.items():
+                    setattr(profile, field, value)
+                profile.save()
+                audit(request.user, "provider.availability_updated", profile.pk,
+                      fields=list(changes.validated_data))
         jobs = Booking.objects.filter(provider=request.user)
         return Response(
             {
                 "name": request.user.get_full_name() or request.user.username,
                 "available": profile.available,
+                "weekly_hours": profile.weekly_hours,
+                "leave_dates": profile.leave_dates,
+                "timezone": "Asia/Dhaka",
                 "active_jobs": jobs.exclude(status__in=["completed", "cancelled", "failed"]).count(),
                 "completed_jobs": jobs.filter(status="completed").count(),
                 "failed_jobs": jobs.filter(status="failed").count(),

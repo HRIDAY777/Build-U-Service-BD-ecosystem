@@ -3,6 +3,7 @@ import { UiText } from "@/components/ui-text";
 
 import { useEffect, useState, FormEvent } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
+import { ScheduleEditor } from "./schedule-editor";
 import { FoodOptionEditor } from "./food-option-editor";
 import { PartnerRestaurants } from "./partner-restaurants";
 export function PartnerCatalog() {
@@ -117,6 +118,13 @@ export function PartnerCatalog() {
               <UiText text={"Record adjustment"} />
             </button>
           </form>
+          {["services", "electrician", "mechanic"].includes(
+            item.division_slug,
+          ) && (
+            <ScheduleEditor
+              endpoint={`partner-offerings/${item.id}/service_schedule/`}
+            />
+          )}
           {item.division_slug === "food" && <FoodOptionEditor id={item.id} />}
         </div>
       ))}

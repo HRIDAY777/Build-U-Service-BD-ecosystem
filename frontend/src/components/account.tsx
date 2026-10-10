@@ -27,6 +27,7 @@ type RecordItem = {
   }[];
   description?: string;
   scheduled_at?: string;
+  duration_minutes?: number;
   preparation_minutes?: number | null;
   available_actions?: string[];
 };
@@ -494,7 +495,16 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 {r.scheduled_at && (
                   <p>
                     <UiText text={"Appointment:"} />
-                    {new Date(r.scheduled_at).toLocaleString()}
+                    {new Date(r.scheduled_at).toLocaleString(
+                      lang === "bn" ? "bn-BD" : "en-GB",
+                      { timeZone: "Asia/Dhaka" },
+                    )}
+                  </p>
+                )}
+                {r.duration_minutes != null && (
+                  <p>
+                    কাজের সময় / Duration: {r.duration_minutes} মিনিট / minutes ·
+                    বাংলাদেশ সময় / Bangladesh time
                   </p>
                 )}
                 {r.preparation_minutes != null && (

@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from .restaurant_rules import validate_weekly_hours
+from .service_schedule import validate_leave_dates
 
 
 class Division(models.Model):
@@ -69,6 +70,8 @@ class Offering(models.Model):
     active = models.BooleanField(default=True)
     prescription_required = models.BooleanField(default=False)
     duration_minutes = models.PositiveIntegerField(default=60)
+    service_weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
+    service_leave_dates = models.JSONField(default=list, blank=True, validators=[validate_leave_dates])
     image = models.URLField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

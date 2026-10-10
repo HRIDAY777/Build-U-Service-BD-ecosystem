@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { ScheduleEditor } from "./schedule-editor";
+import { ProviderCalendar } from "./provider-calendar";
 import { useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
@@ -8,6 +10,7 @@ type Job = {
   id: string;
   service: string;
   scheduled_at: string;
+  duration_minutes: number;
   status: string;
   address: { recipient: string; phone: string; line: string; area: string };
   notes: string;
@@ -183,7 +186,13 @@ export function ProviderDashboard() {
           <h2>{job.service}</h2>
           <p>
             {labels[job.status] || job.status} ·{" "}
-            {new Date(job.scheduled_at).toLocaleString("bn-BD")}
+            {new Date(job.scheduled_at).toLocaleString("bn-BD", {
+              timeZone: "Asia/Dhaka",
+            })}
+          </p>
+          <p>
+            {job.duration_minutes} মিনিট / minutes · বাংলাদেশ সময় / Bangladesh
+            time
           </p>
           <small>বুকিং: {job.id}</small>
           <p>
@@ -212,6 +221,12 @@ export function ProviderDashboard() {
         </article>
       ))}
       {data && !data.jobs.count && <p>এই অবস্থায় কোনো নিয়োগকৃত কাজ নেই।</p>}
+      <ScheduleEditor
+        key={`schedule-${user.id}`}
+        endpoint="bookings/provider_profile/"
+        provider
+      />
+      <ProviderCalendar key={`calendar-${user.id}`} />
       <div className="search-row">
         <button
           className="button secondary"
