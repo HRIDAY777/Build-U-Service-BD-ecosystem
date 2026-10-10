@@ -644,6 +644,9 @@ export function ProjectAccount() {
               <button className="button outline" onClick={() => window.print()}>
                 {t("হিসাব প্রিন্ট করুন", "Print statement")}
               </button>
+              <a className="button outline" href={`/api/v1/project-applications/${selected.id}/statement/`}>
+                {t("হিসাব ডাউনলোড (CSV)", "Download statement (CSV)")}
+              </a>
               {selected.is_owner &&
                 ["submitted", "reviewing"].includes(selected.status) && (
                   <button

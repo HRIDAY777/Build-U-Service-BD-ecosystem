@@ -147,6 +147,27 @@ class ProjectAccountTests(TestCase):
         self.assertEqual(self.client.post(url).status_code, 200)
         self.assertEqual(self.client.post(url).status_code, 400)
 
+    def test_statement_privacy_totals_and_spreadsheet_safety(self):
+        key = self.create()
+        obj = ProjectApplication.objects.get(pk=key)
+        obj.name = "=UNTRUSTED()"
+        obj.save()
+        ProjectEntry.objects.create(application=obj, kind="receipt", amount="120.00", reference="@unsafe", note="+formula", date=date.today(), recorded_by=self.staff)
+        ProjectEntry.objects.create(application=obj, kind="refund", amount="20.00", reference="refund", date=date.today(), recorded_by=self.staff)
+        url = f"/api/v1/project-applications/{key}/statement/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        text = response.content.decode("utf-8-sig")
+        self.assertIn("'=UNTRUSTED()", text)
+        self.assertIn("'@unsafe", text)
+        self.assertIn("'+formula", text)
+        self.assertIn("Net receipts,100.00", text)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_authenticate(None)
+        self.assertIn(self.client.get(url).status_code, [401, 403])
+
     def test_private_document_and_frozen_consent_evidence(self):
         key = self.create()
         url = f"/api/v1/project-applications/{key}/"

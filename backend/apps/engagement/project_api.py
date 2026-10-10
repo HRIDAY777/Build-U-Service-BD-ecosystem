@@ -1,4 +1,5 @@
 import calendar
+import csv
 import hashlib
 import uuid
 import unicodedata
@@ -6,7 +7,7 @@ from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction, IntegrityError
 from django.utils import timezone
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from rest_framework import serializers, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -158,6 +159,42 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
         qs = ProjectApplication.objects.select_related("project").prefetch_related("entries", "project__updates").order_by("-created_at")
         user = self.request.user
         return qs if user.is_staff and user.has_perm("engagement.view_projectapplication") else qs.filter(customer=user)
+
+    @action(detail=True, methods=["get"], url_path="statement")
+    def statement(self, request, pk=None):
+        obj = self.get_object()
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="project-{obj.pk}-statement.csv"'
+        response["Cache-Control"] = "private, no-store"
+        response.write("\ufeff")
+        writer = csv.writer(response)
+
+        def row(*values):
+            # Treat user text as text even when opened in spreadsheet software.
+            writer.writerow(["'" + str(value) if str(value).lstrip().startswith(("=", "+", "-", "@")) else value for value in values])
+
+        row("Application", obj.pk)
+        row("Name", obj.name)
+        row("Kind", obj.kind)
+        row("Status", obj.status)
+        row("Currency", "BDT")
+        row("Amount", obj.amount)
+        row("Proposed total", obj.expected_total)
+        row("Agreement", obj.agreement_reference)
+        row("Terms version", obj.terms_version)
+        row("Recorded transactions only; this statement does not execute payments.")
+        row()
+        row("Date", "Type", "Amount (BDT)", "Reference", "Note")
+        totals = {"receipt": Decimal("0"), "distribution": Decimal("0"), "refund": Decimal("0")}
+        for entry in obj.entries.order_by("date", "pk"):
+            row(entry.date, entry.kind, entry.amount, entry.reference, entry.note)
+            totals[entry.kind] += entry.amount
+        row()
+        for kind, total in totals.items():
+            row("Total " + kind, f"{total:.2f}")
+        row("Net receipts", f'{totals["receipt"] - totals["refund"]:.2f}')
+        audit(request.user, "project.statement.downloaded", obj.pk)
+        return response
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):

@@ -36,6 +36,11 @@ test("customer submits, reloads and cancels a private project application", asyn
   );
   await page.reload();
   await page.getByRole("button", { name: /Demo Project Investor/ }).click();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("link", { name: /Download statement|হিসাব ডাউনলোড/ }).click();
+  const statement = await downloaded;
+  expect(statement.suggestedFilename()).toMatch(/^project-.*-statement\.csv$/);
+  expect(await statement.failure()).toBeNull();
   await page
     .getByRole("button", { name: /Cancel application|আবেদন বাতিল করুন/ })
     .click();
