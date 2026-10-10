@@ -83,3 +83,7 @@ Extended local demo now includes 144 extra offerings, 12 fictional businesses, 1
 `/projects` presents five proposed plans from the user-supplied business documents, unit calculations, and the 10/30/20/40 client payment illustration. Enquiries persist as admin Leads with plan, units and proposed capital. No funds, investment ownership, signed agreements or automatic payouts are created. Proposed figures are not guaranteed returns; project review and final terms remain required. Original PDFs remain private local sources.
 
 Verified: package arithmetic and invalid units, real enquiry API/DB persistence, mobile overflow, frontend lint/typecheck and production build.
+
+## Project account extension
+
+Group 27 now includes persistent client/investor applications, guarded staff review, confirmed quotes and owner acknowledgement, private statements, manual receipts/distributions/refunds, term scheduling, notifications and project gallery updates. See `PROJECT_ACCOUNT.md` for workflow, verification and remaining production boundaries. `/account` and the footer link to `/project-account`.

@@ -642,3 +642,35 @@ footer .company-logo {
   outline: 3px solid #782783;
   outline-offset: 3px;
 }
+.project-plan progress {
+  width: 100%;
+  accent-color: #a63699;
+}
+.project-ledger {
+  max-height: 320px;
+  overflow: auto;
+  line-height: 2;
+}
+.project-account .project-statement p {
+  overflow-wrap: anywhere;
+}
+@media print {
+  body:has(.project-statement) header,
+  body:has(.project-statement) footer,
+  body:has(.project-statement) .topbar {
+    display: none;
+  }
+  .project-account > :not(.project-statement),
+  .project-statement button,
+  .project-statement form {
+    display: none !important;
+  }
+  .project-statement {
+    max-width: none;
+    border: 0;
+  }
+  .project-ledger {
+    max-height: none;
+    overflow: visible;
+  }
+}

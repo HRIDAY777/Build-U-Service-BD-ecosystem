@@ -14,6 +14,33 @@ from .models import (
     LoyaltyReward,
     LoyaltyRedemption,
 )
+from .project_models import ManagedProject, ProjectApplication, ProjectEntry, ProjectUpdate
+
+
+@admin.register(ManagedProject)
+class ManagedProjectAdmin(AuditedAdmin):
+    list_display = ["title", "category", "area", "progress", "published"]
+    list_filter = ["category", "published"]
+    search_fields = ["title", "area"]
+
+
+@admin.register(ProjectUpdate)
+class ProjectUpdateAdmin(AuditedAdmin):
+    list_display = ["title", "project", "date", "public"]
+    list_filter = ["project", "public"]
+
+
+@admin.register(ProjectApplication)
+class ProjectApplicationAdmin(ReadOnlyAdmin):
+    list_display = ["id", "name", "kind", "package", "amount", "status", "project"]
+    list_filter = ["kind", "status", "package"]
+    search_fields = ["name", "phone", "agreement_reference"]
+
+
+@admin.register(ProjectEntry)
+class ProjectEntryAdmin(ReadOnlyAdmin):
+    list_display = ["application", "kind", "amount", "reference", "date", "recorded_by"]
+    search_fields = ["reference", "application__name"]
 
 
 @admin.register(Lead)

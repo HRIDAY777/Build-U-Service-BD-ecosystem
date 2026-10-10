@@ -22,7 +22,10 @@ from apps.catalog.partner_api import PartnerOfferingViewSet, PartnerRestaurantVi
 from apps.catalog.api import SharedWishlistView
 from apps.operations.payments import PaymentMethodsView, PaymentStartView, PaymentIPNView, PaymentReturnView
 
+from apps.engagement.project_api import ManagedProjectViewSet, ProjectApplicationViewSet
 router = DefaultRouter()
+router.register("managed-projects", ManagedProjectViewSet, basename="managed-project")
+router.register("project-applications", ProjectApplicationViewSet, basename="project-application")
 router.register("partner-offerings", PartnerOfferingViewSet, basename="partner-offering")
 router.register("partner-restaurants", PartnerRestaurantViewSet, basename="partner-restaurant")
 for prefix, view, basename in [

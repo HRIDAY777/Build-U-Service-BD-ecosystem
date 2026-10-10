@@ -203,6 +203,12 @@ export function Account({ operations = false }: { operations?: boolean }) {
               en="Your everyday, all together"
             />
           </h1>
+          <Link href="/project-account" className="text-link">
+            <Text
+              bn="প্রজেক্ট ও বিনিয়োগ অ্যাকাউন্ট"
+              en="Project & investment account"
+            />
+          </Link>
           <p>
             <UiText
               text={"Sign in to view your orders, bookings and requests."}
