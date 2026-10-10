@@ -2,11 +2,24 @@
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Text } from "@/components/provider";
 export default function ResetPassword() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-wrap" role="status">
+          লোড হচ্ছে / Loading…
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+function ResetPasswordForm() {
   const params = useSearchParams();
   const [request, setRequest] = useState(!params.get("token"));
   const [sent, setSent] = useState(false);

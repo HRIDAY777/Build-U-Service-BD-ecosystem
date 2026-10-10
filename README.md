@@ -8,7 +8,7 @@ The language switch now covers shared navigation/footer, account controls, event
 
 ## Implemented
 
-See [the feature audit](docs/FEATURE_STATUS.md) for 26 working local feature groups and the remaining implementation and external dependencies. This count is not a completion percentage.
+See [the master-prompt phase audit](docs/MASTER_PROMPT_AUDIT.md) and [the feature audit](docs/FEATURE_STATUS.md) for 26 working local feature groups and the remaining implementation and external dependencies. This count is not a completion percentage.
 
 - Corporate homepage, division browsing, searchable catalog and editable content pages.
 - Catalog price ranges, stock filtering and price/name/recent-update sorting, with filters preserved across division changes and pagination.
@@ -103,7 +103,7 @@ npm.cmd run test:e2e
 
 Browser tests require both development servers and the demo catalog. They create clearly labeled local test accounts and records; do not run against production. `CHROMIUM_PATH` optionally selects an existing browser executable.
 
-The last full backend run passed 66 tests, including delivery pricing, idempotency, dispatch, privacy, handover, failure/returns and cancellation. Frontend lint and TypeScript checks passed. The latest full browser run passed five tests covering registration, checkout, cancellation, booking, parcel requests, support, partner applications, desktop/mobile layout, cascading Bangladesh location selection, and subject photos on home, weddings, products and stores. Gateway tests use controlled responses; they do not prove a live merchant integration.
+The full backend run on 10 October 2026 passed 83 tests, including delivery pricing, idempotency, dispatch, privacy, handover, failure/returns and cancellation. Frontend lint and TypeScript checks passed. The Next.js production build also passed on 10 October 2026 after correcting Suspense boundaries for password recovery and email verification. Windows SWC requires running outside the restricted filesystem sandbox. The latest full browser run passed five tests covering registration, checkout, cancellation, booking, parcel requests, support, partner applications, desktop/mobile layout, cascading Bangladesh location selection, and subject photos on home, weddings, products and stores. Gateway tests use controlled responses; they do not prove a live merchant integration.
 
 ## Demo photography
 

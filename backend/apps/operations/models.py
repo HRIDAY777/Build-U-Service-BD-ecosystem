@@ -195,6 +195,7 @@ class EventRequest(models.Model):
     budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     quoted_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     services = models.JSONField(default=list)
+    package_selection = models.JSONField(default=dict, blank=True)
     notes = models.TextField(blank=True)
     staff_notes = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default="requested", db_index=True)

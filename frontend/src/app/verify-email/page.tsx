@@ -2,10 +2,23 @@
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 export default function VerifyEmail() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-wrap" role="status">
+          লোড হচ্ছে / Loading…
+        </div>
+      }
+    >
+      <VerifyEmailResult />
+    </Suspense>
+  );
+}
+function VerifyEmailResult() {
   const params = useSearchParams();
   const [state, setState] = useState("Verifying your email…");
   useEffect(() => {

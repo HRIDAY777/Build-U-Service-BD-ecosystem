@@ -5,7 +5,7 @@ This checklist records what can be verified in the repository and what still req
 ## Verified locally
 
 - Django system checks and migration drift checks pass.
-- 41 backend tests pass, including authentication, authorization, checkout, inventory, booking, delivery, payment verification, addresses, notifications, and session invalidation.
+- 83 backend tests pass (10 October 2026), including authentication, authorization, checkout, inventory, booking, delivery, payment verification, addresses, notifications, and session invalidation.
 - Ruff, frontend ESLint, TypeScript, and formatting checks pass.
 - Session authentication uses HTTP-only cookies, CSRF protection, SameSite cookies, server-side permissions, throttling, audit events, and production HSTS settings.
 - Docker Compose defines PostgreSQL, Redis, Django, Celery worker/beat, Next.js, and Nginx services.
@@ -24,4 +24,4 @@ This checklist records what can be verified in the repository and what still req
 
 ## Known environment limitations
 
-The local Windows sandbox cannot complete the Next.js production build because SWC cannot canonicalize the workspace path and returns `Access is denied`. Lint, type checking, and runtime tests pass; verify `npm run build` in a normal developer or CI checkout before release.
+The restricted Windows sandbox prevents SWC from canonicalizing the workspace path. The production build succeeded outside that sandbox on 10 October 2026, after fixing missing Suspense boundaries on password recovery/email verification. The new GitHub Actions workflow checks backend tests on PostgreSQL and frontend lint/type/build; its remote run has not yet been verified. A successful local build does not establish deployed staging or production readiness.

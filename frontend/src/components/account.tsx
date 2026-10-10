@@ -36,6 +36,7 @@ type EventItem = {
   budget: string | null;
   quoted_budget: string | null;
   services: string[];
+  package_selection: { bundle?: string; tiers?: Record<string, string> };
   notes: string;
   staff_notes: string;
   status: string;
@@ -325,6 +326,38 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </span>
               </div>
               <p>{event.services.join(" · ") || "Planning consultation"}</p>
+              {event.package_selection?.bundle && (
+                <p>
+                  প্যাকেজ / Package:{" "}
+                  {
+                    (
+                      {
+                        essential: "সাদামাটা আয়োজন / Essential gathering",
+                        celebration: "উৎসব আয়োজন / Celebration",
+                        wedding:
+                          "সম্পূর্ণ বিবাহ পরিকল্পনা / Full wedding planning",
+                      } as Record<string, string>
+                    )[event.package_selection.bundle]
+                  }
+                </p>
+              )}
+              {Object.entries(event.package_selection?.tiers || {}).map(
+                ([service, tier]) => (
+                  <p key={service}>
+                    {service}:{" "}
+                    {
+                      (
+                        {
+                          general: "সাধারণ / General",
+                          silver: "সিলভার / Silver",
+                          gold: "গোল্ডেন / Golden",
+                          ultra_gold: "আল্ট্রা গোল্ডেন / Ultra Golden",
+                        } as Record<string, string>
+                      )[tier]
+                    }
+                  </p>
+                ),
+              )}
               {event.budget !== null && <p>Customer budget: ৳{event.budget}</p>}
               {event.notes && (
                 <p>

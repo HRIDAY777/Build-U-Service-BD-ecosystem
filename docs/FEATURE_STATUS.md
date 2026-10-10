@@ -1,4 +1,6 @@
-# Feature audit — 8 October 2026
+# Feature audit — updated 10 October 2026
+
+See `MASTER_PROMPT_AUDIT.md` for the 19 original build phases and detailed remaining work.
 
 This is a count of **26 working local feature groups**, not 26 individual requirements and not a percentage of the original master prompt. A group can have a working basic workflow while advanced requirements remain open. The application has not completed a production launch. Local tests do not certify external services or production concurrency.
 
@@ -46,7 +48,7 @@ These items remain open even where a related basic feature works:
 9. Separate subdomain routing and secure shared login across those subdomains.
 10. Staff MFA, upload malware scanning, object storage, retention enforcement, backups/restore drills and operational monitoring.
 11. Full analytics/advertising attribution and production performance/accessibility review.
-12. Remaining master-prompt documentation, production build, PostgreSQL concurrency/load checks, staging end-to-end verification and deployment.
+12. Remaining master-prompt documentation, PostgreSQL concurrency/load checks, staging end-to-end verification and deployment.
 
 ## External and business inputs required
 
@@ -68,3 +70,7 @@ API:
 - Existing booking assignment/transition/history endpoints remain authoritative. Responses now include permission-aware `available_actions`.
 
 Provider availability does not establish skills certification, fixed working hours, payroll, service payment or nationwide coverage.
+
+## Event package selection and build verification
+
+Event requests now preserve a bundle and per-service tier selection as validated structured data. Choosing a package checks its service, survives the sign-in step via a non-personal session draft, and appears in customer and staff request details. Prices remain demo planning indications; the staff quote remains authoritative. Backend rejects unsupported bundles/tiers and tier selections for services not requested. Password reset/email verification now have Suspense boundaries, and the full Next.js production build passed outside the Windows restricted filesystem sandbox.

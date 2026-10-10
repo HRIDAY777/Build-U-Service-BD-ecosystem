@@ -196,6 +196,7 @@ class EventRequestSerializer(serializers.ModelSerializer):
             "budget",
             "quoted_budget",
             "services",
+            "package_selection",
             "notes",
             "staff_notes",
             "status",
@@ -225,6 +226,30 @@ class EventRequestSerializer(serializers.ModelSerializer):
         if not all(isinstance(item, str) and 1 <= len(item) <= 80 for item in value):
             raise serializers.ValidationError("Each event service must be a short text label.")
         return value
+
+    def validate_package_selection(self, value):
+        services = {
+            "Venue setup", "Catering", "Decoration", "Photography",
+            "Music and sound", "Staff and coordination", "Transport",
+        }
+        if not isinstance(value, dict) or set(value) - {"bundle", "tiers"}:
+            raise serializers.ValidationError("Choose a supported event package.")
+        bundle = value.get("bundle", "")
+        if not isinstance(bundle, str) or bundle not in {"", "essential", "celebration", "wedding"}:
+            raise serializers.ValidationError("Unsupported package bundle.")
+        tiers = value.get("tiers", {})
+        if not isinstance(tiers, dict) or set(tiers) - services:
+            raise serializers.ValidationError("Unsupported package service.")
+        if any(not isinstance(tier, str) or tier not in {"general", "silver", "gold", "ultra_gold"} for tier in tiers.values()):
+            raise serializers.ValidationError("Unsupported service tier.")
+        return {"bundle": bundle, "tiers": tiers} if value else {}
+
+    def validate(self, attrs):
+        selection = attrs.get("package_selection", getattr(self.instance, "package_selection", {}))
+        services = attrs.get("services", getattr(self.instance, "services", []))
+        if set(selection.get("tiers", {})) - set(services):
+            raise serializers.ValidationError({"package_selection": "Selected tiers must belong to requested services."})
+        return attrs
 
 
 class EventRequestViewSet(viewsets.ModelViewSet):

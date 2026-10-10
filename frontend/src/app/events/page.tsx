@@ -24,10 +24,15 @@ type EventRequest = {
   budget: string | null;
   quoted_budget: string | null;
   services: string[];
+  package_selection: PackageSelection;
   notes: string;
   staff_notes: string;
   status: string;
 };
+
+type PackageSelection = { bundle?: string; tiers?: Record<string, string> };
+const tierIds = ["general", "silver", "gold", "ultra_gold"];
+const bundleIds = ["essential", "celebration", "wedding"];
 
 const serviceOptions = [
   "Venue setup",
@@ -142,9 +147,25 @@ const servicePackageGroups = [
     ["১টি গাড়ি", "২টি গাড়ি", "অতিথি শাটল", "সম্পূর্ণ ট্রান্সপোর্ট ডেস্ক"],
   ],
 ] as const;
+const bundleServices: Record<string, string[]> = {
+  essential: [
+    "Venue setup",
+    "Decoration",
+    "Catering",
+    "Staff and coordination",
+  ],
+  celebration: ["Decoration", "Catering", "Photography", "Music and sound"],
+  wedding: [...serviceOptions],
+};
 const tierNames = ["সাধারণ", "সিলভার", "গোল্ডেন", "আল্ট্রা গোল্ডেন"];
 
-function ServicePackageTable() {
+function ServicePackageTable({
+  selection,
+  onSelect,
+}: {
+  selection: PackageSelection;
+  onSelect: (service: string, tier: string) => void;
+}) {
   return (
     <section
       className="service-package-section"
@@ -171,7 +192,16 @@ function ServicePackageTable() {
                   <span className="eyebrow">{tier}</span>
                   <strong>{prices[index]}</strong>
                   <p>{benefits[index]}</p>
-                  <a href="#event-request">বাছুন</a>
+                  <button
+                    type="button"
+                    className="button secondary"
+                    aria-pressed={selection.tiers?.[service] === tierIds[index]}
+                    onClick={() => onSelect(service, tierIds[index])}
+                  >
+                    {selection.tiers?.[service] === tierIds[index]
+                      ? "বাছাই করা হয়েছে"
+                      : "বাছুন"}
+                  </button>
                 </div>
               ))}
             </div>
@@ -186,7 +216,13 @@ function ServicePackageTable() {
   );
 }
 
-function EventPackages() {
+function EventPackages({
+  selection,
+  onSelect,
+}: {
+  selection: PackageSelection;
+  onSelect: (bundle: string) => void;
+}) {
   return (
     <section className="event-packages" aria-labelledby="event-packages-title">
       <div className="record-head">
@@ -199,7 +235,7 @@ function EventPackages() {
         <span className="subtle">প্রাথমিক বাজেট · কাস্টম কোটেশন দেওয়া হবে</span>
       </div>
       <div className="event-package-grid">
-        {eventPackages.map((pkg) => (
+        {eventPackages.map((pkg, index) => (
           <article className={`event-package-card ${pkg.tone}`} key={pkg.name}>
             <Photo src={pkg.image} alt={`${pkg.name} / ${pkg.en}`} />
             <div className="event-package-body">
@@ -212,9 +248,16 @@ function EventPackages() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <a className="button secondary" href="#event-request">
-                এই প্যাকেজ নিয়ে শুরু করুন
-              </a>
+              <button
+                type="button"
+                className="button secondary"
+                aria-pressed={selection.bundle === bundleIds[index]}
+                onClick={() => onSelect(bundleIds[index])}
+              >
+                {selection.bundle === bundleIds[index]
+                  ? "বাছাই করা হয়েছে"
+                  : "এই প্যাকেজ নিয়ে শুরু করুন"}
+              </button>
             </div>
           </article>
         ))}
@@ -229,6 +272,60 @@ function EventPackages() {
 
 export default function EventsPage() {
   const { user, toast, lang } = useApp();
+  const [selection, setSelection] = useState<PackageSelection>({});
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem("event-package-draft") || "{}",
+      );
+      if (typeof saved === "object" && saved && !Array.isArray(saved)) {
+        const tiers = Object.fromEntries(
+          Object.entries(saved.tiers || {}).filter(
+            ([service, tier]) =>
+              serviceOptions.includes(service) &&
+              tierIds.includes(String(tier)),
+          ),
+        );
+        setSelection({
+          bundle: bundleIds.includes(saved.bundle) ? saved.bundle : "",
+          tiers: tiers as Record<string, string>,
+        });
+        setSelectedServices([
+          ...new Set([
+            ...Object.keys(tiers),
+            ...(bundleServices[saved.bundle] || []),
+          ]),
+        ]);
+      }
+    } catch {
+      /* A blocked storage setting must not prevent planning. */
+    }
+  }, []);
+  function selectPackage(next: PackageSelection) {
+    setSelection(next);
+    try {
+      sessionStorage.setItem("event-package-draft", JSON.stringify(next));
+    } catch {}
+    document
+      .getElementById("event-request")
+      ?.scrollIntoView({ behavior: "smooth" });
+  }
+  function selectBundle(bundle: string) {
+    selectPackage({ ...selection, bundle });
+    setSelectedServices((current) => [
+      ...new Set([...current, ...(bundleServices[bundle] || [])]),
+    ]);
+  }
+  function selectTier(service: string, tier: string) {
+    selectPackage({
+      ...selection,
+      tiers: { ...selection.tiers, [service]: tier },
+    });
+    setSelectedServices((current) =>
+      current.includes(service) ? current : [...current, service],
+    );
+  }
   const [events, setEvents] = useState<EventRequest[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -266,12 +363,18 @@ export default function EventsPage() {
         area: data.get("area"),
         budget: data.get("budget") || null,
         services,
+        package_selection: selection,
         notes: addressLine(
           String(data.get("notes") || ""),
           String(data.get("geo_address") || ""),
         ),
       });
       form.reset();
+      setSelectedServices([]);
+      setSelection({});
+      try {
+        sessionStorage.removeItem("event-package-draft");
+      } catch {}
       toast("Event request submitted / ইভেন্ট অনুরোধ পাঠানো হয়েছে");
       await load();
     } catch (e) {
@@ -296,8 +399,8 @@ export default function EventsPage() {
             স্টক ছবি · পরিকল্পনার অনুপ্রেরণা
           </span>
         </div>
-        <EventPackages />
-        <ServicePackageTable />
+        <EventPackages selection={selection} onSelect={selectBundle} />
+        <ServicePackageTable selection={selection} onSelect={selectTier} />
         <h1>
           <UiText text={"Wedding & event planning"} />
         </h1>
@@ -325,8 +428,8 @@ export default function EventsPage() {
           স্টক ছবি · পরিকল্পনার অনুপ্রেরণা
         </span>
       </div>
-      <EventPackages />
-      <ServicePackageTable />
+      <EventPackages selection={selection} onSelect={selectBundle} />
+      <ServicePackageTable selection={selection} onSelect={selectTier} />
       <span className="eyebrow">U EVENTS</span>
       <h1>
         <Text bn="বিয়ে ও ইভেন্ট ম্যানেজমেন্ট" en="Wedding & event management" />
@@ -342,6 +445,30 @@ export default function EventsPage() {
         <p className="error" role="alert">
           {error}
         </p>
+      )}
+      {(selection.bundle || Object.keys(selection.tiers || {}).length > 0) && (
+        <div className="notice" role="status">
+          <strong>নির্বাচিত প্যাকেজ / Selected package</strong>
+          {selection.bundle && (
+            <p>{eventPackages[bundleIds.indexOf(selection.bundle)]?.name}</p>
+          )}
+          {Object.entries(selection.tiers || {}).map(([service, tier]) => (
+            <p key={service}>
+              {translateUi(service, lang)} · {tierNames[tierIds.indexOf(tier)]}
+            </p>
+          ))}
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => selectPackage({})}
+          >
+            প্যাকেজ সরান / Clear packages
+          </button>
+          <p>
+            ডেমো মূল্য চূড়ান্ত নয়। টিমের নিশ্চিত কোটেশন গ্রহণের পর আয়োজন নিশ্চিত
+            হবে।
+          </p>
+        </div>
       )}
       <form className="form-panel" id="event-request" onSubmit={submit}>
         <div className="form-grid">
@@ -419,7 +546,24 @@ export default function EventsPage() {
           <div className="check-grid">
             {serviceOptions.map((service) => (
               <label className="check-row" key={service}>
-                <input type="checkbox" name="services" value={service} />
+                <input
+                  type="checkbox"
+                  name="services"
+                  value={service}
+                  checked={selectedServices.includes(service)}
+                  onChange={(e) => {
+                    setSelectedServices((current) =>
+                      e.target.checked
+                        ? [...current, service]
+                        : current.filter((item) => item !== service),
+                    );
+                    if (!e.target.checked) {
+                      const tiers = { ...selection.tiers };
+                      delete tiers[service];
+                      selectPackage({ ...selection, tiers });
+                    }
+                  }}
+                />
                 <UiText text={service} />
               </label>
             ))}
@@ -500,6 +644,28 @@ export default function EventsPage() {
                   </li>
                 ))}
               </ul>
+            )}
+            {(event.package_selection?.bundle ||
+              Object.keys(event.package_selection?.tiers || {}).length > 0) && (
+              <div className="notice">
+                {event.package_selection.bundle && (
+                  <p>
+                    {
+                      eventPackages[
+                        bundleIds.indexOf(event.package_selection.bundle)
+                      ]?.name
+                    }
+                  </p>
+                )}
+                {Object.entries(event.package_selection.tiers || {}).map(
+                  ([service, tier]) => (
+                    <p key={service}>
+                      {translateUi(service, lang)} ·{" "}
+                      {tierNames[tierIds.indexOf(tier)]}
+                    </p>
+                  ),
+                )}
+              </div>
             )}
             {event.quoted_budget && (
               <p className="notice">
