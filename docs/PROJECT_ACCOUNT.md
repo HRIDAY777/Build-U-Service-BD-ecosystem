@@ -40,3 +40,5 @@ Final local verification: full backend suite 111 tests passed; 8 project-specifi
 Account statements also download as private CSV with BDT transaction totals and net receipts. Access follows the same owner/staff permissions; downloads are audited and spreadsheet formula prefixes in user-supplied text are escaped. CSV downloads do not confirm or execute transfers.
 
 Applications support paginated search by name, phone or agreement reference, combined with status and investor/client filters. Search never broadens owner visibility. Applying or resetting filters returns to page one; stale list responses cannot overwrite newer search results.
+
+Reviewer project choices support loading subsequent pages, a visible error and retry without losing existing choices, and display the assigned project even before its page has loaded. Review forms reset between applications/status changes and cannot submit terminal applications. A browser test with controlled paginated API responses covers failed page-two loading, retry and selection; the real customer workflow is tested separately.

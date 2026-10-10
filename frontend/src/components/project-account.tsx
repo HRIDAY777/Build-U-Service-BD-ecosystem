@@ -123,6 +123,10 @@ export function ProjectAccount() {
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState<Application | null>(null);
   const [projects, setProjects] = useState<ManagedProject[]>([]);
+  const [projectPage, setProjectPage] = useState(0);
+  const [moreProjects, setMoreProjects] = useState(false);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projectsError, setProjectsError] = useState("");
   const [permissions, setPermissions] = useState({
     review: false,
     ledger: false,
@@ -157,12 +161,37 @@ export function ProjectAccount() {
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
+  const loadProjects = useCallback(async (requestedPage: number) => {
+    setProjectsLoading(true);
+    setProjectsError("");
+    try {
+      const data = await api<PageResult<ManagedProject>>(
+        `managed-projects/?page=${requestedPage}`,
+      );
+      setProjects((previous) =>
+        requestedPage === 1
+          ? data.results
+          : [
+              ...previous,
+              ...data.results.filter(
+                (project) =>
+                  !previous.some((existing) => existing.id === project.id),
+              ),
+            ],
+      );
+      setProjectPage(requestedPage);
+      setMoreProjects(Boolean(data.next));
+    } catch (error) {
+      setProjectsError(
+        error instanceof Error ? error.message : "Unable to load projects",
+      );
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, []);
   useEffect(() => {
-    if (user?.is_staff)
-      api<PageResult<ManagedProject>>("managed-projects/")
-        .then((data) => setProjects(data.results))
-        .catch(() => {});
-  }, [user]);
+    if (user?.is_staff) void loadProjects(1);
+  }, [user, loadProjects]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -606,6 +635,7 @@ export function ProjectAccount() {
                 !selected.accepted_at &&
                 selected.is_owner && (
                   <form
+                    key={`${selected.id}-${selected.status}`}
                     onSubmit={(e) => {
                       e.preventDefault();
                       void action("accept", {
@@ -778,6 +808,7 @@ export function ProjectAccount() {
                   )}
                   <h3>{t("টিমের পর্যালোচনা", "Team review")}</h3>
                   <form
+                    key={`review-${selected.id}-${selected.status}`}
                     onSubmit={(e) => {
                       e.preventDefault();
                       void action(
@@ -805,15 +836,55 @@ export function ProjectAccount() {
                     </label>
                     <label className="field">
                       {t("প্রজেক্ট", "Project")}
-                      <select name="project">
+                      <select
+                        name="project"
+                        defaultValue={selected.project ?? ""}
+                        disabled={projectsLoading}
+                      >
                         <option value="">—</option>
+                        {selected.project &&
+                          !projects.some(
+                            (project) => project.id === selected.project,
+                          ) && (
+                            <option value={selected.project}>
+                              {selected.project_title}
+                            </option>
+                          )}
                         {projects.map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.title}
+                            {t(p.title_bn || p.title, p.title)}
                           </option>
                         ))}
                       </select>
                     </label>
+                    {projectsLoading && (
+                      <p role="status">
+                        {t("প্রকল্প লোড হচ্ছে…", "Loading projects…")}
+                      </p>
+                    )}
+                    {projectsError && (
+                      <p role="alert">
+                        {projectsError}{" "}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void loadProjects(projectPage ? projectPage + 1 : 1)
+                          }
+                        >
+                          {t("আবার চেষ্টা", "Retry")}
+                        </button>
+                      </p>
+                    )}
+                    {moreProjects && !projectsError && (
+                      <button
+                        type="button"
+                        className="button outline"
+                        disabled={projectsLoading}
+                        onClick={() => void loadProjects(projectPage + 1)}
+                      >
+                        {t("আরও প্রকল্প দেখুন", "Load more projects")}
+                      </button>
+                    )}
                     <label className="field">
                       {t(
                         "যাচাইকৃত চুক্তির রেফারেন্স",
@@ -851,7 +922,14 @@ export function ProjectAccount() {
                     </label>
                     <button
                       className="button"
-                      disabled={busy || !permissions.review}
+                      disabled={
+                        busy ||
+                        !permissions.review ||
+                        projectsLoading ||
+                        ["completed", "cancelled", "rejected"].includes(
+                          selected.status,
+                        )
+                      }
                     >
                       {t("পর্যালোচনা সংরক্ষণ", "Save review")}
                     </button>
