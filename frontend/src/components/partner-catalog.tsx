@@ -1,7 +1,7 @@
 "use client";
 import { UiText } from "@/components/ui-text";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, useCallback, FormEvent } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
 import { ScheduleEditor } from "./schedule-editor";
 import { FoodOptionEditor } from "./food-option-editor";
@@ -10,16 +10,27 @@ export function PartnerCatalog() {
   const [items, setItems] = useState<Offering[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  async function load() {
+  const [page, setPage] = useState(1);
+  const [next, setNext] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      setItems((await api<PageResult<Offering>>("partner-offerings/")).results);
+      const result = await api<PageResult<Offering>>(
+        `partner-offerings/?page=${page}`,
+      );
+      setItems(result.results);
+      setNext(!!result.next);
     } catch (e) {
       setError(String(e));
+    } finally {
+      setLoading(false);
     }
-  }
+  }, [page]);
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
   async function update(
     e: FormEvent<HTMLFormElement>,
     id: number,
@@ -56,7 +67,8 @@ export function PartnerCatalog() {
         />
       </p>
       {error && <p className="error">{error}</p>}
-      {!items.length && (
+      {loading && <p role="status">তালিকা লোড হচ্ছে / Loading catalog…</p>}
+      {!loading && !items.length && (
         <p>
           <UiText text={"No catalog items are assigned to your business."} />
         </p>
@@ -128,6 +140,23 @@ export function PartnerCatalog() {
           {item.division_slug === "food" && <FoodOptionEditor id={item.id} />}
         </div>
       ))}
+      <nav className="search-row" aria-label="Partner catalog pages">
+        <button
+          type="button"
+          disabled={loading || busy || page === 1}
+          onClick={() => setPage((value) => value - 1)}
+        >
+          আগের পৃষ্ঠা / Previous page
+        </button>
+        <span>পৃষ্ঠা / Page {page}</span>
+        <button
+          type="button"
+          disabled={loading || busy || !next}
+          onClick={() => setPage((value) => value + 1)}
+        >
+          পরের পৃষ্ঠা / Next page
+        </button>
+      </nav>
     </>
   );
 }

@@ -74,3 +74,6 @@ Provider schedules do not establish skills certification, payroll, service payme
 ## Event package selection and build verification
 
 Event requests now preserve a bundle and per-service tier selection as validated structured data. Choosing a package checks its service, survives the sign-in step via a non-personal session draft, and appears in customer and staff request details. Prices remain demo planning indications; the staff quote remains authoritative. Backend rejects unsupported bundles/tiers and tier selections for services not requested. Password reset/email verification now have Suspense boundaries, and the full Next.js production build passed outside the Windows restricted filesystem sandbox.
+
+
+Extended local demo now includes 144 extra offerings, 12 fictional businesses, 18 new categories, 32 variants, 110 food options and 152 active Dhaka city/district service areas. Partner catalog pagination exposes all assigned items. Coverage and fees are demonstration settings; see `EXTENDED_DEMO_DATA.md`.
