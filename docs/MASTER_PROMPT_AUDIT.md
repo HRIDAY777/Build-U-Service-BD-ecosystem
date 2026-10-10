@@ -63,3 +63,5 @@
 - Next.js production build: সফল, ২৫টি static page তৈরি; dynamic route-ও build হয়েছে।
 - Event package ও language browser tests: ২টি পাস, Chrome দিয়ে প্রকৃত স্থানীয় frontend/backend-এ।
 - CI workflow যোগ করা হয়েছে; GitHub-এর remote run এবং PostgreSQL পরীক্ষার ফল এখনও যাচাই হয়নি।
+
+- Complete local browser suite: ৮টির সবগুলো পাস (customer ordering/booking/delivery, mobile layout, partner application, event packages, language, geography, photos and wishlist)।
