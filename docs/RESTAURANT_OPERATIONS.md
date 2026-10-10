@@ -30,4 +30,13 @@ The public directory and restaurant catalog show current ordering status, minimu
 
 ## Verified scope
 
-Backend tests cover boundaries, overnight/week rollover, full-day hours, malformed hours, minimum calculation, failed-order stock, pause-after-quote, duplicate checkout, preparation snapshot, ownership and audit. A browser test creates a clearly labeled local QA restaurant, edits its rules through the owner screen and verifies the public result; it disables that fixture afterward. Food modifiers/add-ons, cuisine discovery, branch-specific menus and settlements remain separate unfinished requirements.
+Backend tests cover boundaries, overnight/week rollover, full-day hours, malformed hours, minimum calculation, failed-order stock, pause-after-quote, duplicate checkout, preparation snapshot, ownership and audit. A browser test creates a clearly labeled local QA restaurant, edits its rules through the owner screen and verifies the public result; it disables that fixture afterward. Cuisine discovery, branch-specific menus and settlements remain separate unfinished requirements.
+
+
+## Meal options and add-ons
+
+In the owner portal, open Catalog, then Manage food options under a food item. Add a named group, set minimum and maximum choices, and add options with extra prices. Both names can be translated. Minimum zero means optional; minimum one means customers must select. A maximum of one permits a single selection. Turn a group or option off to stop offering it. Saving validates that required groups have enough active options. Records are retained rather than deleted.
+
+Customers choose options on the meal detail page. Different selections create separate cart lines. The server recalculates each unit price from the base or variant sale price plus selected options; quantities apply to the complete unit price. Inactive, foreign, repeated or missing required options fail checkout without consuming stock. Old quotes require another review if prices change. Orders preserve option names, group names and extra prices; later menu changes do not rewrite order details or invoices. Idempotent repeats preserve the original order.
+
+Validation on 10 October 2026: 94 backend tests passed, including four dedicated modifier tests; four browser tests passed, including owner editing, required selection, separate cart lines, quote, checkout and account details. Frontend lint, TypeScript via production build, and production build passed. This does not verify production database concurrency or external settlement integrations.

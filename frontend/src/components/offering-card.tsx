@@ -93,6 +93,8 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
             >
               <ArrowUpRight size={20} />
             </Link>
+          ) : o.variants?.length || o.food_option_groups?.length ? (
+            <Link className="round-button" href={`/catalog/${o.id}`} aria-label={`Choose options for ${o.name}`}><ArrowUpRight size={20} /></Link>
           ) : (
             <button
               className="round-button"

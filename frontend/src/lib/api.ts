@@ -26,6 +26,21 @@ export type Offering = {
   duration_minutes: number;
   image: string;
   variants: ProductVariant[];
+  food_option_groups: FoodOptionGroup[];
+};
+export type FoodOption = {
+  id: number;
+  name: string;
+  name_bn: string;
+  price: string;
+};
+export type FoodOptionGroup = {
+  id: number;
+  name: string;
+  name_bn: string;
+  min_choices: number;
+  max_choices: number;
+  options: FoodOption[];
 };
 export type ProductVariant = {
   id: number;

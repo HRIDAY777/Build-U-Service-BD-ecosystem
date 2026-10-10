@@ -1,6 +1,6 @@
 from django.contrib import admin
 from apps.operations.services import audit
-from .models import Division, Organization, Offering, ProductVariant, Category, ServiceArea
+from .models import Division, Organization, Offering, ProductVariant, Category, ServiceArea, FoodOptionGroup, FoodOption
 
 
 class AuditedAdmin(admin.ModelAdmin):
@@ -15,13 +15,30 @@ class ProductVariantInline(admin.TabularInline):
     fields = ["label", "attributes", "sku", "price", "sale_price", "cost_price", "stock", "active"]
 
 
+class FoodOptionGroupInline(admin.TabularInline):
+    model = FoodOptionGroup
+    extra = 0
+    show_change_link = True
+
+
+class FoodOptionInline(admin.TabularInline):
+    model = FoodOption
+    extra = 0
+
+
+@admin.register(FoodOptionGroup)
+class FoodOptionGroupAdmin(AuditedAdmin):
+    list_display = ["name", "offering", "min_choices", "max_choices", "active"]
+    inlines = [FoodOptionInline]
+
+
 @admin.register(Offering)
 class OfferingAdmin(AuditedAdmin):
     list_display = ["name", "division", "organization", "price", "stock", "active", "prescription_required"]
     list_filter = ["division", "active", "prescription_required"]
     search_fields = ["name", "name_bn", "sku"]
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [ProductVariantInline]
+    inlines = [ProductVariantInline, FoodOptionGroupInline]
     fields = [
         "division",
         "organization",

@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from apps.catalog.models import Offering, ProductVariant, ServiceArea, Organization
+from apps.catalog.models import Offering, ProductVariant, ServiceArea, Organization, FoodOptionGroup, FoodOption
 from apps.catalog.restaurant_rules import restaurant_status
 from apps.automation.models import OutboxEvent
 from apps.engagement.models import LoyaltyEntry, Notification
@@ -76,11 +76,17 @@ def checkout(user, data, key, preview=False):
         raise ValidationError("One or more variants are unavailable.")
     variants_by_id = {variant.pk: variant for variant in variants}
     offering_variant_ids = set(
-        ProductVariant.objects.filter(offering_id__in=quantities, active=True).values_list(
+        ProductVariant.objects.filter(offering_id__in=quantities, offering__division__slug="food", active=True).values_list(
             "offering_id", flat=True
         )
     )
     resolved_lines = []
+    groups = list(FoodOptionGroup.objects.select_for_update().filter(offering_id__in=quantities, offering__division__slug="food", active=True).order_by("id"))
+    selected_option_ids = {option for item in data["items"] for option in item.get("food_options", [])}
+    options = list(FoodOption.objects.select_for_update().filter(pk__in=selected_option_ids, active=True, group_id__in=[group.pk for group in groups]).order_by("id"))
+    options_by_id = {option.pk: option for option in options}
+    if len(options) != len(selected_option_ids):
+        raise ValidationError("খাবারের একটি অপশন এখন পাওয়া যাচ্ছে না / One or more food options are unavailable.")
     base_quantities = {}
     variant_quantities = {}
     for item in data["items"]:
@@ -97,8 +103,24 @@ def checkout(user, data, key, preview=False):
         else:
             base_quantities[product.pk] = base_quantities.get(product.pk, 0) + item["quantity"]
             price = product.current_price
+        choices = item.get("food_options", [])
+        food_groups = [group for group in groups if group.offering_id == product.pk]
+        groups_by_id = {group.pk: group for group in food_groups}
+        if choices and product.division.slug != "food":
+            raise ValidationError("Extra food options apply only to food items.")
+        if any(options_by_id[choice].group_id not in groups_by_id for choice in choices):
+            raise ValidationError("Choose options belonging to this meal.")
+        for group in food_groups:
+            count = sum(options_by_id[choice].group_id == group.pk for choice in choices)
+            if not group.min_choices <= count <= group.max_choices:
+                raise ValidationError(f"{group.name_bn or group.name}: {group.min_choices}–{group.max_choices}টি বাছুন / Choose {group.min_choices}–{group.max_choices} options.")
+        price += sum((options_by_id[choice].price for choice in choices), Decimal("0"))
+        snapshots = [{"id": choice, "group": groups_by_id[options_by_id[choice].group_id].name,
+                      "group_bn": groups_by_id[options_by_id[choice].group_id].name_bn,
+                      "name": options_by_id[choice].name, "name_bn": options_by_id[choice].name_bn,
+                      "price": str(options_by_id[choice].price)} for choice in choices]
         resolved_lines.append(
-            {"product": product, "variant": variant, "quantity": item["quantity"], "price": price}
+            {"product": product, "variant": variant, "quantity": item["quantity"], "price": price, "food_options": snapshots}
         )
     division = products[0].division
     organization_id = products[0].organization_id
@@ -196,6 +218,7 @@ def checkout(user, data, key, preview=False):
             name=f"{product.name} ({variant.label})"[:180] if variant else product.name,
             quantity=quantity,
             unit_price=line["price"],
+            food_options=line["food_options"],
         )
         InventoryMovement.objects.create(
             offering=product, variant=variant, order=order, delta=-quantity, reason="order_reserved"

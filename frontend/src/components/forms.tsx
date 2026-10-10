@@ -10,6 +10,7 @@ import { ShoppingBag, ArrowRight } from "lucide-react";
 import { LocationPicker, addressLine } from "./location-picker";
 import { Photo } from "./photo";
 import { offeringPhoto } from "@/lib/photos";
+import { cartLineKey, cartUnitPrice } from "@/lib/cart";
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "Something went wrong. Please try again.";
 function fields(form: HTMLFormElement) {
@@ -354,6 +355,21 @@ export function OfferingDetail({ item }: { item: Offering }) {
   const variants = item.variants ?? [];
   const selectedVariant =
     variants.find((variant) => variant.id === selectedVariantId) ?? null;
+  const [foodIds, setFoodIds] = useState<number[]>([]);
+  const foodGroups = item.food_option_groups ?? [];
+  const foodOptions = foodGroups
+    .flatMap((group) => group.options)
+    .filter((option) => foodIds.includes(option.id));
+  const foodValid = foodGroups.every((group) => {
+    const count = group.options.filter((option) =>
+      foodIds.includes(option.id),
+    ).length;
+    return count >= group.min_choices && count <= group.max_choices;
+  });
+  const optionPrice = foodOptions.reduce(
+    (sum, option) => sum + Number(option.price),
+    0,
+  );
   const regularPrice = selectedVariant?.price ?? item.price;
   const currentPrice =
     selectedVariant?.current_price ?? item.current_price ?? item.price;
@@ -393,7 +409,7 @@ export function OfferingDetail({ item }: { item: Offering }) {
             {Number(currentPrice) < Number(regularPrice) && (
               <s>৳{Number(regularPrice).toLocaleString()} </s>
             )}
-            ৳{Number(currentPrice).toLocaleString()}
+            ৳{(Number(currentPrice) + optionPrice).toLocaleString()}
           </div>
           {item.prescription_required && (
             <p className="notice">
@@ -448,12 +464,57 @@ export function OfferingDetail({ item }: { item: Offering }) {
                   </select>
                 </label>
               )}
+              {foodGroups.map((group) => (
+                <fieldset key={group.id}>
+                  <legend>
+                    {lang === "bn" ? group.name_bn || group.name : group.name}
+                  </legend>
+                  <p>
+                    {lang === "bn"
+                      ? `কমপক্ষে ${group.min_choices}, সর্বোচ্চ ${group.max_choices}টি বাছুন`
+                      : `Choose ${group.min_choices} to ${group.max_choices}`}
+                  </p>
+                  {group.options.map((option) => (
+                    <label key={option.id} className="field">
+                      <input
+                        type="checkbox"
+                        checked={foodIds.includes(option.id)}
+                        disabled={
+                          !foodIds.includes(option.id) &&
+                          group.max_choices > 1 &&
+                          group.options.filter((o) => foodIds.includes(o.id))
+                            .length >= group.max_choices
+                        }
+                        onChange={(event) =>
+                          setFoodIds((ids) =>
+                            event.target.checked
+                              ? [
+                                  ...ids.filter(
+                                    (id) =>
+                                      group.max_choices !== 1 ||
+                                      !group.options.some((o) => o.id === id),
+                                  ),
+                                  option.id,
+                                ]
+                              : ids.filter((id) => id !== option.id),
+                          )
+                        }
+                      />
+                      {lang === "bn"
+                        ? option.name_bn || option.name
+                        : option.name}{" "}
+                      · +৳{option.price}
+                    </label>
+                  ))}
+                </fieldset>
+              ))}
               <button
                 className="button"
                 disabled={
-                  variants.length ? !selectedVariant?.stock : !item.stock
+                  !foodValid ||
+                  (variants.length ? !selectedVariant?.stock : !item.stock)
                 }
-                onClick={() => add(item, selectedVariant)}
+                onClick={() => add(item, selectedVariant, foodOptions)}
               >
                 {(selectedVariant?.stock ?? item.stock)
                   ? "ব্যাগে যোগ করুন / Add to bag"
@@ -518,15 +579,7 @@ export function CheckoutForm() {
     setRequestKey(crypto.randomUUID());
   }, [cart]);
   const subtotal = cart.reduce(
-    (s, i) =>
-      s +
-      Number(
-        i.variant?.current_price ??
-          i.offering.current_price ??
-          i.variant?.price ??
-          i.offering.price,
-      ) *
-        i.quantity,
+    (sum, item) => sum + cartUnitPrice(item) * item.quantity,
     0,
   );
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -550,6 +603,9 @@ export function CheckoutForm() {
             offering: i.offering.id,
             ...(i.variant ? { variant: i.variant.id } : {}),
             quantity: i.quantity,
+            food_options: (i.foodOptions || [])
+              .map((option) => option.id)
+              .sort((a, b) => a - b),
           })),
           address: address(data),
           coupon: data.coupon,
@@ -729,13 +785,15 @@ export function CheckoutForm() {
         <aside className="form-panel">
           <h2>আপনার ব্যাগ / Your bag</h2>
           {cart.map((i) => (
-            <div
-              className="cart-line"
-              key={`${i.offering.id}:${i.variant?.id ?? "base"}`}
-            >
+            <div className="cart-line" key={cartLineKey(i)}>
               <div>
                 <strong>{i.offering.name}</strong>
                 {i.variant && <small>{i.variant.label}</small>}
+                {(i.foodOptions || []).map((option) => (
+                  <small key={option.id}>
+                    {option.name} · +৳{option.price}
+                  </small>
+                ))}
                 {Number(i.variant?.current_price ?? i.offering.current_price) <
                   Number(i.variant?.price ?? i.offering.price) && (
                   <small>
@@ -743,22 +801,21 @@ export function CheckoutForm() {
                   </small>
                 )}
                 <small>
-                  {i.quantity} × ৳
-                  {i.variant?.current_price ?? i.offering.current_price}
+                  {i.quantity} × ৳{cartUnitPrice(i).toFixed(2)}
                 </small>
                 <button
-                  onClick={() => remove(i.offering.id, i.variant?.id ?? null)}
+                  onClick={() =>
+                    remove(
+                      i.offering.id,
+                      i.variant?.id ?? null,
+                      (i.foodOptions || []).map((option) => option.id),
+                    )
+                  }
                 >
                   <UiText text={"Remove"} />
                 </button>
               </div>
-              <span>
-                ৳
-                {(
-                  Number(i.variant?.current_price ?? i.offering.current_price) *
-                  i.quantity
-                ).toFixed(2)}
-              </span>
+              <span>৳{(cartUnitPrice(i) * i.quantity).toFixed(2)}</span>
             </div>
           ))}
           <div className="total-line">

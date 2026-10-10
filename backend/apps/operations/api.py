@@ -126,6 +126,12 @@ class ItemInput(serializers.Serializer):
     offering = serializers.IntegerField(min_value=1)
     variant = serializers.IntegerField(min_value=1, required=False)
     quantity = serializers.IntegerField(min_value=1, max_value=99)
+    food_options = serializers.ListField(child=serializers.IntegerField(min_value=1), max_length=40, default=list)
+
+    def validate_food_options(self, value):
+        if len(set(value)) != len(value):
+            raise serializers.ValidationError("Choose each food option only once per meal.")
+        return sorted(value)
 
 
 class CheckoutInput(serializers.Serializer):
@@ -172,6 +178,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 "name": i.name,
                 "quantity": i.quantity,
                 "unit_price": str(i.unit_price),
+                "food_options": i.food_options,
             }
             for i in obj.items.all()
         ]
@@ -601,7 +608,7 @@ class OrderViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         if order.customer_id != request.user.id and not request.user.has_perm("operations.view_payment"):
             raise PermissionDenied()
         rows = "".join(
-            f"<tr><td>{escape(i.name)}</td><td>{i.quantity}</td><td>BDT {i.unit_price}</td><td>BDT {i.unit_price * i.quantity}</td></tr>"
+            f"<tr><td>{escape(i.name)}<small>{escape(', '.join(option.get('name', '') for option in i.food_options))}</small></td><td>{i.quantity}</td><td>BDT {i.unit_price}</td><td>BDT {i.unit_price * i.quantity}</td></tr>"
             for i in order.items.all()
         )
         return HttpResponse(

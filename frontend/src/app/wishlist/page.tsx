@@ -301,7 +301,7 @@ export default function WishlistPage() {
             >
               শেয়ার
             </button>{" "}
-            {item.offering_detail.variants?.length ? (
+            {item.offering_detail.variants?.length || item.offering_detail.food_option_groups?.length ? (
               <Link
                 className="button"
                 href={`/catalog/${item.offering_detail.id}`}

@@ -3,6 +3,7 @@ import { UiText } from "@/components/ui-text";
 
 import { useEffect, useState, FormEvent } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
+import { FoodOptionEditor } from "./food-option-editor";
 import { PartnerRestaurants } from "./partner-restaurants";
 export function PartnerCatalog() {
   const [items, setItems] = useState<Offering[]>([]);
@@ -116,6 +117,7 @@ export function PartnerCatalog() {
               <UiText text={"Record adjustment"} />
             </button>
           </form>
+          {item.division_slug === "food" && <FoodOptionEditor id={item.id} />}
         </div>
       ))}
     </>

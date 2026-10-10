@@ -6,20 +6,20 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { api, User, Offering, ProductVariant } from "@/lib/api";
-type CartItem = {
-  offering: Offering;
-  variant?: ProductVariant | null;
-  quantity: number;
-};
+import { api, User, Offering, ProductVariant, FoodOption } from "@/lib/api";
+import { CartItem, cartLineKey } from "@/lib/cart";
 type Context = {
   lang: "bn" | "en";
   setLang: (v: "bn" | "en") => void;
   user: User | null;
   refresh: () => Promise<void>;
   cart: CartItem[];
-  add: (o: Offering, variant?: ProductVariant | null) => void;
-  remove: (id: number, variantId?: number | null) => void;
+  add: (
+    o: Offering,
+    variant?: ProductVariant | null,
+    foodOptions?: FoodOption[],
+  ) => void;
+  remove: (id: number, variantId?: number | null, optionIds?: number[]) => void;
   clear: () => void;
   toast: (message: string) => void;
 };
@@ -65,7 +65,36 @@ export function Provider({ children }: { children: ReactNode }) {
     }
     document.documentElement.lang = value;
   }
-  function add(offering: Offering, variant: ProductVariant | null = null) {
+  function add(
+    offering: Offering,
+    variant: ProductVariant | null = null,
+    foodOptions: FoodOption[] = [],
+  ) {
+    if (offering.variants?.length && !variant) {
+      setMessage(
+        lang === "bn" ? "আগে পণ্যের অপশন বাছুন" : "Choose an option first",
+      );
+      return;
+    }
+    if (
+      (offering.food_option_groups || []).some((group) => {
+        const count = foodOptions.filter((option) =>
+          group.options.some((choice) => choice.id === option.id),
+        ).length;
+        return count < group.min_choices || count > group.max_choices;
+      })
+    ) {
+      setMessage(
+        lang === "bn"
+          ? "খাবারের প্রয়োজনীয় অপশন বাছুন"
+          : "Choose the required food options",
+      );
+      return;
+    }
+    if (!(variant?.stock ?? offering.stock)) {
+      setMessage(lang === "bn" ? "স্টক নেই" : "Out of stock");
+      return;
+    }
     if (
       cart.length &&
       (cart[0].offering.division_slug !== offering.division_slug ||
@@ -79,15 +108,11 @@ export function Provider({ children }: { children: ReactNode }) {
       return;
     }
     setCart((items) => {
-      const found = items.find(
-        (i) =>
-          i.offering.id === offering.id &&
-          (i.variant?.id ?? null) === variant?.id,
-      );
+      const key = cartLineKey({ offering, variant, foodOptions });
+      const found = items.find((i) => cartLineKey(i) === key);
       return found
         ? items.map((i) =>
-            i.offering.id === offering.id &&
-            (i.variant?.id ?? null) === variant?.id
+            cartLineKey(i) === key
               ? {
                   ...i,
                   quantity: Math.min(
@@ -98,7 +123,7 @@ export function Provider({ children }: { children: ReactNode }) {
                 }
               : i,
           )
-        : [...items, { offering, variant, quantity: 1 }];
+        : [...items, { offering, variant, foodOptions, quantity: 1 }];
     });
     setMessage(lang === "bn" ? "ব্যাগে যোগ হয়েছে" : "Added to your bag");
   }
@@ -111,13 +136,19 @@ export function Provider({ children }: { children: ReactNode }) {
         refresh,
         cart,
         add,
-        remove: (id, variantId) =>
+        remove: (id, variantId, optionIds) =>
           setCart((items) =>
             items.filter(
               (i) =>
                 i.offering.id !== id ||
                 (variantId !== undefined &&
-                  (i.variant?.id ?? null) !== variantId),
+                  (i.variant?.id ?? null) !== variantId) ||
+                (optionIds !== undefined &&
+                  (i.foodOptions || [])
+                    .map((option) => option.id)
+                    .sort((a, b) => a - b)
+                    .join(",") !==
+                    [...optionIds].sort((a, b) => a - b).join(",")),
             ),
           ),
         clear: () => setCart([]),

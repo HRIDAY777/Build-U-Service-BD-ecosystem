@@ -37,7 +37,7 @@ This is a count of **26 working local feature groups**, not 26 individual requir
 
 These items remain open even where a related basic feature works:
 
-1. Catalog supports product/variant labels, attributes, SKU, regular/sale/cost pricing and stock; checkout applies the sale price and cost price is private. Barcode, food modifiers and branch-specific menus remain open. Restaurant operating rules now support pause/resume, validated weekly/overnight/all-day hours, minimum subtotal and preparation snapshots; see `RESTAURANT_OPERATIONS.md`.
+1. Catalog supports product/variant labels, attributes, SKU, regular/sale/cost pricing and stock; checkout applies the sale price and cost price is private. Required/optional food modifiers, owner editing, server pricing and order snapshots are implemented. Barcode and branch-specific menus remain open. Restaurant operating rules now support pause/resume, validated weekly/overnight/all-day hours, minimum subtotal and preparation snapshots; see `RESTAURANT_OPERATIONS.md`.
 2. Provider skills/eligibility matching, working hours, leave and duration-aware customer slot selection. Current assignment prevents overlapping appointments; availability is an on/off switch.
 3. Wallet, loyalty expiry, referral rewards, actual reward delivery and advanced promotion rules. Staff can mark redemptions fulfilled in admin; handing the reward to the customer remains a manual operation.
 4. Partner onboarding documents, review/approval and expiry controls.

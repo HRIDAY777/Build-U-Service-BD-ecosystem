@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import WishlistShare
 from .wishlist import check_wishlist_alerts, offering_snapshot
-from .models import Category, Division, Organization, Offering, ProductVariant, ServiceArea, WishlistItem
+from .models import Category, Division, Organization, Offering, ProductVariant, ServiceArea, WishlistItem, FoodOptionGroup, FoodOption
 
 
 class DivisionSerializer(serializers.ModelSerializer):
@@ -27,12 +27,43 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class FoodOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOption
+        fields = ["id", "name", "name_bn", "price"]
+
+
+class FoodOptionGroupSerializer(serializers.ModelSerializer):
+    options = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FoodOptionGroup
+        fields = ["id", "name", "name_bn", "min_choices", "max_choices", "options"]
+
+    def get_options(self, obj):
+        choices = getattr(obj, "public_options", None)
+        if choices is None:
+            choices = obj.options.filter(active=True).order_by("id")
+        return FoodOptionSerializer(choices, many=True).data
+
+
 class OfferingSerializer(serializers.ModelSerializer):
     division_slug = serializers.CharField(source="division.slug", read_only=True)
     merchant = serializers.CharField(source="organization.name", read_only=True, default="U Service BD")
     variants = serializers.SerializerMethodField()
     stock = serializers.SerializerMethodField()
     current_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    food_option_groups = serializers.SerializerMethodField()
+
+    def get_food_option_groups(self, obj):
+        if obj.division.slug != "food":
+            return []
+        groups = getattr(obj, "public_food_groups", None)
+        if groups is None:
+            groups = obj.food_option_groups.filter(active=True).prefetch_related(
+                Prefetch("options", queryset=FoodOption.objects.filter(active=True).order_by("id"), to_attr="public_options")
+            ).order_by("id")
+        return FoodOptionGroupSerializer(groups, many=True).data
 
     def get_variants(self, obj):
         variants = getattr(obj, "active_variants", None)
@@ -68,6 +99,7 @@ class OfferingSerializer(serializers.ModelSerializer):
             "duration_minutes",
             "image",
             "variants",
+            "food_option_groups",
         ]
 
 
@@ -123,6 +155,9 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
             .filter(Q(organization__isnull=True) | Q(organization__approved=True))
             .select_related("division", "organization")
             .prefetch_related(
+                Prefetch("food_option_groups", queryset=FoodOptionGroup.objects.filter(active=True).prefetch_related(
+                    Prefetch("options", queryset=FoodOption.objects.filter(active=True).order_by("id"), to_attr="public_options")
+                ).order_by("id"), to_attr="public_food_groups"),
                 Prefetch(
                     "variants",
                     queryset=ProductVariant.objects.filter(active=True).order_by("id"),

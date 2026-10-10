@@ -1,5 +1,6 @@
 import uuid
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -126,6 +127,40 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.offering.name} - {self.label}"
+
+
+class FoodOptionGroup(models.Model):
+    offering = models.ForeignKey(Offering, on_delete=models.CASCADE, related_name="food_option_groups")
+    name = models.CharField(max_length=100)
+    name_bn = models.CharField(max_length=100, blank=True)
+    min_choices = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(20)])
+    max_choices = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=Q(min_choices__lte=models.F("max_choices"), max_choices__gte=1, max_choices__lte=20), name="food_group_choice_limits")]
+
+    def clean(self):
+        super().clean()
+        if self.offering_id and self.offering.division.slug != "food":
+            raise ValidationError({"offering": "Choose a food offering."})
+
+    def __str__(self):
+        return f"{self.offering.name} · {self.name}"
+
+
+class FoodOption(models.Model):
+    group = models.ForeignKey(FoodOptionGroup, on_delete=models.CASCADE, related_name="options")
+    name = models.CharField(max_length=100)
+    name_bn = models.CharField(max_length=100, blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=Q(price__gte=0), name="food_option_price_nonnegative")]
+
+    def __str__(self):
+        return self.name
 
 
 class WishlistItem(models.Model):

@@ -20,7 +20,11 @@ type RecordItem = {
   payment_status?: string;
   payment_method?: string;
   prescription_status?: string;
-  items?: { name: string; quantity: number }[];
+  items?: {
+    name: string;
+    quantity: number;
+    food_options?: { name: string; name_bn: string }[];
+  }[];
   description?: string;
   scheduled_at?: string;
   preparation_minutes?: number | null;
@@ -66,7 +70,7 @@ const eventNextStates: Record<string, string[]> = {
   confirmed: ["completed"],
 };
 export function Account({ operations = false }: { operations?: boolean }) {
-  const { user, refresh, toast } = useApp();
+  const { user, refresh, toast, lang } = useApp();
   const [tab, setTab] = useState("orders");
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [stats, setStats] = useState<Record<string, number | string>>({});
@@ -467,7 +471,10 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     <h3>
                       {r.service ||
                         r.items
-                          ?.map((i) => `${i.name} × ${i.quantity}`)
+                          ?.map(
+                            (i) =>
+                              `${i.name} ${(i.food_options || []).map((option) => (lang === "bn" ? option.name_bn || option.name : option.name)).join(", ")} × ${i.quantity}`,
+                          )
                           .join(", ") ||
                         r.description ||
                         r.division_slug}

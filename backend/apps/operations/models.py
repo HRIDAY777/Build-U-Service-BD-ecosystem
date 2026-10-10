@@ -58,6 +58,7 @@ class OrderItem(models.Model):
     name = models.CharField(max_length=180)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    food_options = models.JSONField(default=list, blank=True)
 
 
 class InventoryMovement(models.Model):
