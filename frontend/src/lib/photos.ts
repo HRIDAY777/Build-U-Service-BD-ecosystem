@@ -13,6 +13,7 @@ export const divisionPhotos: Record<string, string> = {
 export function offeringPhoto(item: Offering) {
   if (item.image) return item.image;
   if (!item.sku?.startsWith("DEMO-")) return "";
+  if (item.sku.startsWith("DEMO-EXTENDED-")) return "";
   const specific: Record<string, string> = {
     "steel-water-bottle": "/images/photos/bottle.jpg",
     "ac-cleaning": "/images/photos/aircon.jpg",

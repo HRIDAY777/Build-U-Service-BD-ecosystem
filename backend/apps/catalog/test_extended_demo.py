@@ -18,6 +18,10 @@ class ExtendedDemoTests(TestCase):
             self.assertTrue(area.divisions.filter(slug="delivery").exists())
             self.assertTrue(area.divisions.filter(slug="services").exists())
         item = Offering.objects.get(sku="DEMO-EXTENDED-SHOP-1-1")
+        self.assertEqual(item.image, "/images/photos/tshirt.jpg")
+        self.assertIn("Cotton T-shirt", item.description)
+        item.image = "/images/custom-shirt.jpg"
+        item.description = "Owner's own description"
         item.price = 999
         item.save()
         area = ServiceArea.objects.get(name="Uttara Sector 18")
@@ -29,6 +33,8 @@ class ExtendedDemoTests(TestCase):
         item.refresh_from_db()
         area.refresh_from_db()
         self.assertEqual(item.price, 999)
+        self.assertEqual(item.image, "/images/custom-shirt.jpg")
+        self.assertEqual(item.description, "Owner's own description")
         self.assertFalse(area.active)
         self.assertEqual(area.delivery_fee, 155)
         self.assertEqual(ServiceArea.objects.count(), count)

@@ -542,3 +542,48 @@ footer .company-logo {
     height: 150px;
   }
 }
+
+.offering-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.offering-details span {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #475569;
+}
+.offering-old-price {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: #64748b;
+}
+.offering-kind-service {
+  border-top: 3px solid #a63699;
+}
+.offering-kind-food {
+  border-top: 3px solid #e8a449;
+}
+.offering-kind-shop .offering-image {
+  background: #f5f2ee;
+}
+.catalog-filters {
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.catalog-filters .field {
+  min-width: 0;
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .catalog-filters {
+    grid-template-columns: 1fr;
+  }
+}

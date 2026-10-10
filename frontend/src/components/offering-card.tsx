@@ -10,6 +10,17 @@ import {
   Wrench,
   House,
   Heart,
+  Shirt,
+  Umbrella,
+  Cable,
+  LampDesk,
+  Bath,
+  BedDouble,
+  Smartphone,
+  Package,
+  LockKeyhole,
+  Droplets,
+  Bike,
 } from "lucide-react";
 import { api, Offering } from "@/lib/api";
 import { useApp, Text } from "./provider";
@@ -28,9 +39,33 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
   const service = ["electrician", "mechanic", "services"].includes(
     o.division_slug,
   );
-  const Icon = icons[o.division_slug as keyof typeof icons] || House;
+  const itemIcons = {
+    "Polo shirt": Shirt,
+    "Cotton panjabi": Shirt,
+    "Cotton kurti": Shirt,
+    Umbrella: Umbrella,
+    "USB cable": Cable,
+    "LED desk lamp": LampDesk,
+    "Bath towel": Bath,
+    "Bedsheet set": BedDouble,
+    "Phone stand": Smartphone,
+    "Lunch box": Package,
+    "Storage basket": Package,
+    "Kitchen apron": Shirt,
+    "Door lock fitting": LockKeyhole,
+    "Plumbing inspection": Droplets,
+    "Tap replacement visit": Droplets,
+    "Motorbike inspection": Bike,
+    "Scooter inspection": Bike,
+  };
+  const Icon =
+    itemIcons[o.name as keyof typeof itemIcons] ||
+    icons[o.division_slug as keyof typeof icons] ||
+    House;
   return (
-    <article className="offering-card">
+    <article
+      className={`offering-card offering-kind-${service ? "service" : o.division_slug}`}
+    >
       <Link
         href={`/catalog/${o.id}`}
         className={`offering-image card-${o.division_slug}`}
@@ -43,9 +78,22 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
         ) : (
           <Icon size={76} strokeWidth={1.1} />
         )}
-        <span>{o.division_slug.toUpperCase()}</span>
+        <span>
+          {lang === "bn"
+            ? {
+                food: "খাবার",
+                shop: "পণ্য",
+                pharmacy: "যত্ন",
+                services: "বাসার সেবা",
+                electrician: "ইলেকট্রিক",
+                mechanic: "মেকানিক",
+              }[o.division_slug] || "সেবা"
+            : o.division_slug}
+        </span>
         {o.sku?.startsWith("DEMO-") && offeringPhoto(o) && (
-          <small className="photo-demo-label">দৃষ্টান্তমূলক ছবি</small>
+          <small className="photo-demo-label">
+            {lang === "bn" ? "দৃষ্টান্তমূলক ছবি" : "Illustrative photo"}
+          </small>
         )}
       </Link>
       <div className="offering-body">
@@ -78,9 +126,41 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
             <Text bn="প্রেসক্রিপশন প্রয়োজন" en="Prescription required" />
           </span>
         )}
+        <div className="offering-details">
+          {service ? (
+            <span>
+              {o.duration_minutes}{" "}
+              {lang === "bn" ? "মিনিটের ভিজিট" : "minute visit"}
+            </span>
+          ) : (
+            <span>
+              {o.stock
+                ? lang === "bn"
+                  ? "মজুত আছে"
+                  : "In stock"
+                : lang === "bn"
+                  ? "এখন মজুত নেই"
+                  : "Out of stock"}
+            </span>
+          )}
+          {!!(o.variants?.length || o.food_option_groups?.length) && (
+            <span>{lang === "bn" ? "অপশন বেছে নিন" : "Options available"}</span>
+          )}
+        </div>
         <div className="offering-bottom">
           <strong>
-            ৳{Number(o.price).toLocaleString()}
+            ৳
+            {Number(o.current_price ?? o.price).toLocaleString(
+              lang === "bn" ? "bn-BD" : "en-BD",
+            )}
+            {Number(o.current_price) < Number(o.price) && (
+              <del className="offering-old-price">
+                ৳
+                {Number(o.price).toLocaleString(
+                  lang === "bn" ? "bn-BD" : "en-BD",
+                )}
+              </del>
+            )}
             <small>
               {service ? (lang === "bn" ? " / সেবা" : " / service") : ""}
             </small>
@@ -94,7 +174,13 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
               <ArrowUpRight size={20} />
             </Link>
           ) : o.variants?.length || o.food_option_groups?.length ? (
-            <Link className="round-button" href={`/catalog/${o.id}`} aria-label={`Choose options for ${o.name}`}><ArrowUpRight size={20} /></Link>
+            <Link
+              className="round-button"
+              href={`/catalog/${o.id}`}
+              aria-label={`Choose options for ${o.name}`}
+            >
+              <ArrowUpRight size={20} />
+            </Link>
           ) : (
             <button
               className="round-button"

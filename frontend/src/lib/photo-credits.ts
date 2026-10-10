@@ -59,4 +59,44 @@ export const stockPhotos = [
     "Vegetable rice",
     "https://www.pexels.com/photo/delicious-vegetable-fried-rice-with-fresh-cucumber-34668494/",
   ],
+  [
+    "tshirt",
+    "White cotton T-shirt",
+    "https://www.pexels.com/photo/white-t-shirt-on-white-surface-12039633/",
+  ],
+  [
+    "backpack",
+    "Backpack flat lay",
+    "https://www.pexels.com/photo/red-and-black-backpack-beside-black-headphones-and-a-notebook-5330721/",
+  ],
+  [
+    "mug",
+    "Ceramic mug",
+    "https://www.pexels.com/photo/mug-beside-a-notebook-11451724/",
+  ],
+  [
+    "notebook",
+    "Notebook on a desk",
+    "https://www.pexels.com/photo/notebook-calendar-and-a-black-mug-on-a-wooden-table-4985338/",
+  ],
+  [
+    "lemonade",
+    "Glass of lemonade",
+    "https://www.pexels.com/photo/glass-of-lemonade-18142613/",
+  ],
+  [
+    "sandwich",
+    "Grilled sandwich",
+    "https://www.pexels.com/photo/close-up-photo-of-sandwich-on-ceramic-plate-8478421/",
+  ],
+  [
+    "bicycle",
+    "Bicycle maintenance",
+    "https://www.pexels.com/photo/man-repairing-bicycle-on-grass-10213677/",
+  ],
+  [
+    "lightbulb",
+    "LED light bulb",
+    "https://www.pexels.com/photo/light-bulb-on-white-surface-with-shadow-7140253/",
+  ],
 ] as const;

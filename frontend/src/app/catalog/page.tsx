@@ -94,7 +94,7 @@ export default async function Catalog({
           </Link>
         </p>
       )}
-      <form className="form-panel" action="/catalog">
+      <form className="form-panel catalog-filters" action="/catalog">
         <label className="field">
           <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
           <input

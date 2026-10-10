@@ -92,6 +92,49 @@ CATALOG = {
 PHOTOS={slug:f"/images/photos/{slug}.jpg" for slug in CATALOG}
 
 
+ITEM_PHOTOS = {
+    "Chicken biryani": "food", "Fried rice": "vegetable",
+    "Cotton T-shirt": "tshirt", "Canvas backpack": "backpack",
+    "Ceramic mug": "mug", "Notebook set": "notebook",
+    "Steel flask": "bottle", "Reusable shopping bag": "shop",
+    "Fresh lemonade": "lemonade", "Chicken sandwich": "sandwich",
+    "First aid box": "pharmacy", "Bicycle tune-up": "bicycle",
+    "Bicycle brake adjustment": "bicycle", "Light fitting": "lightbulb",
+    "Ceiling light installation": "lightbulb",
+}
+CATEGORY_COPY = {
+    "Rice meals": ("Choose your portion and optional sides before adding to your bag.", "ব্যাগে যোগ করার আগে খাবারের পরিমাণ ও অতিরিক্ত পদ বেছে নিন।"),
+    "Snacks": ("Select your serving and extras on the menu page.", "মেনু থেকে পরিমাণ ও অতিরিক্ত খাবার নির্বাচন করুন।"),
+    "Family meals": ("Review the platter and portion choices for your group.", "পরিবারের জন্য প্ল্যাটার ও পরিমাণের অপশন দেখুন।"),
+    "Breakfast": ("A breakfast menu sample; check the restaurant hours before ordering.", "সকালের নাস্তার নমুনা মেনু; অর্ডারের আগে রেস্তোরাঁর সময় দেখুন।"),
+    "Drinks": ("A refreshing drink selection for your meal.", "খাবারের সঙ্গে পানীয় বেছে নিন।"),
+    "Desserts": ("A sweet finish to your meal.", "খাবারের শেষে মিষ্টান্নের আয়োজন।"),
+    "Clothing": ("Select an available size and colour; the photo is illustrative.", "উপলব্ধ মাপ ও রং বেছে নিন; ছবিটি দৃষ্টান্তমূলক।"),
+    "Bags": ("Everyday carry essentials; check the item details before ordering.", "দৈনন্দিন ব্যবহারের ব্যাগ; অর্ডারের আগে বিস্তারিত দেখুন।"),
+    "Kitchen": ("For your kitchen and dining routine.", "রান্নাঘর ও খাবার পরিবেশনের দৈনন্দিন প্রয়োজন।"),
+    "Stationery": ("For study, writing and organising your desk.", "পড়াশোনা, লেখালেখি ও টেবিল গুছিয়ে রাখার জন্য।"),
+    "Home essentials": ("Useful essentials for your living space.", "ঘর সাজানো ও দৈনন্দিন ব্যবহারের প্রয়োজনীয় পণ্য।"),
+    "Accessories": ("Everyday accessories; review compatibility and details.", "দৈনন্দিন অনুষঙ্গ; উপযোগিতা ও বিস্তারিত দেখে নিন।"),
+    "Care essentials": ("Care accessories; read the item details and instructions.", "যত্নের অনুষঙ্গ; পণ্যের বিস্তারিত ও ব্যবহারের নির্দেশনা দেখুন।"),
+    "Personal care": ("Personal hygiene essentials for your daily routine.", "দৈনন্দিন পরিচ্ছন্নতার প্রয়োজনীয় পণ্য।"),
+    "Cleaning": ("Choose a visit time. Room size and cleaning scope are confirmed before work.", "ভিজিটের সময় বেছে নিন। কাজের আগে জায়গার আয়তন ও পরিষ্কারের পরিধি নিশ্চিত হবে।"),
+    "Home maintenance": ("Book an inspection or fitting visit. Materials and parts are quoted separately.", "পরীক্ষা বা লাগানোর ভিজিট বুক করুন। উপকরণ ও যন্ত্রাংশের দাম আলাদাভাবে জানানো হবে।"),
+    "Electrical work": ("Book a technician visit. Required parts and work scope are confirmed first.", "টেকনিশিয়ানের ভিজিট বুক করুন। প্রয়োজনীয় যন্ত্রাংশ ও কাজের পরিধি আগে নিশ্চিত হবে।"),
+    "Bike care": ("Book a maintenance visit; replacement parts are quoted separately.", "রক্ষণাবেক্ষণের ভিজিট বুক করুন; বদলানোর যন্ত্রাংশের দাম আলাদা।"),
+    "Vehicle care": ("Arrange an inspection; repairs require a separate confirmed quote.", "পরীক্ষার সময় নির্ধারণ করুন; মেরামতের জন্য আলাদা অনুমোদিত মূল্য প্রয়োজন।"),
+}
+
+
+def presentation(name, bn, category):
+    en, bangla = CATEGORY_COPY[category]
+    photo = ITEM_PHOTOS.get(name)
+    return {
+        "image": f"/images/photos/{photo}.jpg" if photo else "",
+        "description": f"{name}. {en} Demo listing; sample price.",
+        "description_bn": f"{bn}। {bangla} ডেমো তালিকা; নমুনা মূল্য।",
+    }
+
+
 class Command(BaseCommand):
     help = "Add local demo catalog variety and sample Dhaka city/district service coverage."
 
@@ -120,6 +163,16 @@ class Command(BaseCommand):
                     service=divisions[slug].kind=="service"
                     item,created=Offering.objects.get_or_create(sku=f"DEMO-{key.upper()}",defaults={"slug":key,"division":divisions[slug],"organization":org,"category":category,"name":name,"name_bn":bn,"price":price,"sale_price":Decimal(price)*Decimal("0.95") if index%4==0 and not service else None,"stock":0 if index%13==0 else 15+index,"duration_minutes":120 if slug=="services" and index<7 else 60,"service_weekly_hours":{str(day):[{"open":"09:00","close":"19:00"}] for day in range(7)} if service else {},"description":"Demo listing with illustrative imagery. Scope and any parts are confirmed before service; prices are sample values.","description_bn":"ডেমো তালিকা ও দৃষ্টান্তমূলক ছবি। সেবার পরিধি ও যন্ত্রাংশের মূল্য কাজের আগে নিশ্চিত করা হবে। মূল্য নমুনা হিসেবে দেওয়া।","image":PHOTOS[slug]})
                     counts["offerings"]+=created
+                    profile = presentation(name, bn, category_name)
+                    updates = {}
+                    if created or item.image == PHOTOS[slug]:
+                        updates["image"] = profile["image"]
+                    if created or item.description.startswith("Demo listing with illustrative imagery."):
+                        updates["description"] = profile["description"]
+                    if created or item.description_bn.startswith("ডেমো তালিকা ও দৃষ্টান্তমূলক ছবি।"):
+                        updates["description_bn"] = profile["description_bn"]
+                    if updates:
+                        Offering.objects.filter(pk=item.pk).update(**updates)
                     if slug=="food" and index<=11:
                         for title,title_bn,minimum,maximum,choices in [("Portion","পরিমাণ",1,1,[("Regular","সাধারণ",0),("Large","বড়",80)]),("Extras","অতিরিক্ত",0,2,[("Salad","সালাদ",30),("Drink","পানীয়",50),("Dessert","মিষ্টান্ন",60)])]:
                             group,created=FoodOptionGroup.objects.get_or_create(offering=item,name=title,defaults={"name_bn":title_bn,"min_choices":minimum,"max_choices":maximum})

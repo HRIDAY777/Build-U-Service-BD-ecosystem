@@ -30,3 +30,9 @@ $env:DJANGO_DEBUG='true'
 The command defaults to `demo_catalog_owner` if `--owner` is omitted. It requires an existing owner and base divisions, refuses non-DEBUG environments, and can be repeated without duplicating records or resetting edited prices/stock. Repeating it on the current database created zero new records.
 
 Validation: 103 backend tests passed, including production guard and repeat/preservation checks. Frontend lint, TypeScript and production build passed. Browser validation covers catalog pagination, district coverage and existing customer workflows.
+
+## Catalog presentation update
+
+Eight subject-specific Pexels photos are bundled with sources on `/photo-credits`. Extended demos use matched photos or item icons instead of unrelated division photos. Category-specific bilingual descriptions identify sample prices; custom owner descriptions/images are preserved when rerunning the seed. Cards display current sale prices, stock, duration and options. Catalog filters use a responsive grid.
+
+Validation: extended demo preservation tests (2), customer browser checks (3), frontend lint/typecheck and production build passed. Local test throttling was cleared by restarting the backend before browser verification.
