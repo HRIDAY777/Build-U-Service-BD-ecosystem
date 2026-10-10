@@ -2,7 +2,7 @@
 
 See `MASTER_PROMPT_AUDIT.md` for the 19 original build phases and detailed remaining work.
 
-This is a count of **26 working local feature groups**, not 26 individual requirements and not a percentage of the original master prompt. A group can have a working basic workflow while advanced requirements remain open. The application has not completed a production launch. Local tests do not certify external services or production concurrency.
+This is a count of **27 working local feature groups**, not 26 individual requirements and not a percentage of the original master prompt. A group can have a working basic workflow while advanced requirements remain open. The application has not completed a production launch. Local tests do not certify external services or production concurrency.
 
 | # | Working local group | Evidence / entry point |
 | --- | --- | --- |
@@ -77,3 +77,9 @@ Event requests now preserve a bundle and per-service tier selection as validated
 
 
 Extended local demo now includes 144 extra offerings, 12 fictional businesses, 18 new categories, 32 variants, 110 food options and 152 active Dhaka city/district service areas. Partner catalog pagination exposes all assigned items. Coverage and fees are demonstration settings; see `EXTENDED_DEMO_DATA.md`.
+
+## Project plans and enquiry (group 27)
+
+`/projects` presents five proposed plans from the user-supplied business documents, unit calculations, and the 10/30/20/40 client payment illustration. Enquiries persist as admin Leads with plan, units and proposed capital. No funds, investment ownership, signed agreements or automatic payouts are created. Proposed figures are not guaranteed returns; project review and final terms remain required. Original PDFs remain private local sources.
+
+Verified: package arithmetic and invalid units, real enquiry API/DB persistence, mobile overflow, frontend lint/typecheck and production build.

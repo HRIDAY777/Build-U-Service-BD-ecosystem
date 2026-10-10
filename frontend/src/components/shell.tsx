@@ -146,6 +146,12 @@ export function Footer() {
           <Link href="/contact?interest=partner">
             <UiText text={"Become a partner"} />
           </Link>
+          <Link href="/projects">
+            <Text
+              bn="প্রজেক্ট ও বিনিয়োগ পরিকল্পনা"
+              en="Projects & investment plans"
+            />
+          </Link>
           <Link href="/contact?interest=provider">
             <UiText text={"Become a provider"} />
           </Link>
