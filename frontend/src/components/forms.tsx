@@ -1,4 +1,5 @@
 "use client";
+import { BookingTimes } from "./booking-times";
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -848,6 +849,7 @@ export function CheckoutForm() {
 export function BookingForm({ item }: { item: Offering }) {
   const { user } = useApp();
   const router = useRouter();
+  const [scheduled, setScheduled] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [key] = useState(() =>
@@ -918,8 +920,21 @@ export function BookingForm({ item }: { item: Offering }) {
       <form className="form-panel" onSubmit={submit}>
         <label className="field">
           তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)
-          <input type="datetime-local" name="scheduled_at" required />
+          <input
+            type="datetime-local"
+            name="scheduled_at"
+            required
+            value={scheduled}
+            onInput={(e) => setScheduled(e.currentTarget.value)}
+          />
         </label>
+        <BookingTimes
+          key={scheduled.slice(0, 10)}
+          id={item.id}
+          day={scheduled.slice(0, 10)}
+          onSelect={setScheduled}
+        />
+
         <p className="subtle">
           <UiText
             text={

@@ -14,4 +14,13 @@ API: owner GET/PUT `/api/v1/partner-offerings/{id}/service_schedule/` with `week
 
 Verified locally on 10 October 2026: 98 backend tests passed; five related browser tests passed and cover owner schedule saving, closed-date rejection, provider leave persistence, calendar loading and existing customer workflows. Frontend lint, TypeScript and production build pass. This batch also fixes the requirement to choose a product variant for non-food products.
 
-Still open: skills and area matching, live customer slot suggestions and capacity reservation, rescheduling workflows, service problem types/media/parts, full quote/payment/refund flows and production database concurrency verification. Schedules do not automatically assign a worker or reserve provider capacity when a customer submits a pending request.
+Still open: skills and area matching, provider-capacity-aware slot suggestions and capacity reservation, rescheduling workflows, service problem types/media/parts, full quote/payment/refund flows and production database concurrency verification. Schedules do not automatically assign a worker or reserve provider capacity when a customer submits a pending request.
+
+
+## Suggested service times
+
+On the booking form, choose a date in the date/time field and press View day times. Starts are suggested every 15 minutes, for up to 90 days ahead. Only future starts whose entire duration fits an opening period and avoids closed dates appear. Clicking a time fills the booking field in Bangladesh time. Overnight opening windows are included. Refreshing the list reads current server settings; submitting still rechecks hours and leave.
+
+A service without configured hours asks for a preferred time rather than inventing available slots. A closed day displays no times. Public `GET /api/v1/offerings/{id}/booking_times/?date=YYYY-MM-DD` returns only service-hour suggestions, duration and confirmation status, with no provider/customer/job details and no cache storage. These suggestions do not claim that a worker is free and do not reserve capacity.
+
+Latest validation: full backend suite 101 tests passed; lint and production build passed. Five related browser checks passed (three customer regressions and two scheduling tests). The scheduling tests cover selecting a suggested start, duration boundaries, refreshed closure, unconfigured fallback and customer workflows.

@@ -35,7 +35,7 @@ See [the master-prompt phase audit](docs/MASTER_PROMPT_AUDIT.md) and [the featur
 - Authorized staff event review and status transitions with audit records.
 - Staff event quotations with customer-visible quoted budget and planning notes.
 - Customer quote acceptance and confirmation with protected event status flow.
-- Service/provider weekly schedules, closed dates and leave, a private provider calendar, Bangladesh-time booking and duration snapshots. [Scheduling guide](docs/SERVICE_SCHEDULING.md).
+- Service/provider weekly schedules, closed dates and leave, a private provider calendar, Bangladesh-time booking, duration snapshots and service-hour-based time suggestions. [Scheduling guide](docs/SERVICE_SCHEDULING.md).
 - Food option groups with required/optional choices, owner editing, extra prices, distinct cart lines and immutable order snapshots.
 - Restaurant owner controls for pause/resume, Bangladesh-time weekly/overnight/all-day hours, minimum food subtotal and preparation estimates. Public restaurant pages show these rules; quote and checkout enforce them again. [Restaurant guide](docs/RESTAURANT_OPERATIONS.md).
 - Cart, server-calculated checkout quotes, COD orders, stock reservations, coupons and printable invoices.
@@ -106,7 +106,7 @@ npm.cmd run test:e2e
 
 Browser tests require both development servers and the demo catalog. They create clearly labeled local test accounts and records; do not run against production. `CHROMIUM_PATH` optionally selects an existing browser executable.
 
-The full backend run on 10 October 2026 passed 98 tests, including delivery pricing, idempotency, dispatch, privacy, handover, failure/returns and cancellation. Frontend lint and TypeScript checks passed. The Next.js production build also passed on 10 October 2026 after correcting Suspense boundaries for password recovery and email verification. Windows SWC requires running outside the restricted filesystem sandbox. The latest full browser run passed five tests covering registration, checkout, cancellation, booking, parcel requests, support, partner applications, desktop/mobile layout, cascading Bangladesh location selection, and subject photos on home, weddings, products and stores. Gateway tests use controlled responses; they do not prove a live merchant integration.
+The full backend run on 10 October 2026 passed 101 tests, including delivery pricing, idempotency, dispatch, privacy, handover, failure/returns and cancellation. Frontend lint and TypeScript checks passed. The Next.js production build also passed on 10 October 2026 after correcting Suspense boundaries for password recovery and email verification. Windows SWC requires running outside the restricted filesystem sandbox. The latest full browser run passed five tests covering registration, checkout, cancellation, booking, parcel requests, support, partner applications, desktop/mobile layout, cascading Bangladesh location selection, and subject photos on home, weddings, products and stores. Gateway tests use controlled responses; they do not prove a live merchant integration.
 
 ## Demo photography
 

@@ -2,6 +2,7 @@
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 def validate_leave_dates(value):
@@ -44,3 +45,24 @@ def appointment_allowed(hours, leave_dates, start, duration):
             if opening <= start and end <= closing:
                 return True
     return False
+
+
+def suggested_appointments(offering, day, now=None):
+    """Public service-hour suggestions, not reserved provider capacity."""
+    if day.isoformat() in offering.service_leave_dates:
+        return {"mode": "closed", "slots": []}
+    if not offering.service_weekly_hours:
+        return {"mode": "manual", "slots": []}
+    zone = ZoneInfo("Asia/Dhaka")
+    now = now or timezone.now()
+    start = datetime.combine(day, time(), zone)
+    slots = []
+    for minute in range(0, 1440, 15):
+        candidate = start + timedelta(minutes=minute)
+        if candidate <= now:
+            continue
+        if appointment_allowed(offering.service_weekly_hours, offering.service_leave_dates,
+                               candidate, offering.duration_minutes):
+            slots.append({"start": candidate.isoformat(),
+                          "end": (candidate + timedelta(minutes=offering.duration_minutes)).isoformat()})
+    return {"mode": "hours" if slots else "closed", "slots": slots}

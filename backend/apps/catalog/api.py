@@ -151,6 +151,24 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = OfferingSerializer
 
+    @action(detail=True, methods=["get"])
+    def booking_times(self, request, pk=None):
+        from datetime import timedelta
+        from zoneinfo import ZoneInfo
+        from django.utils import timezone
+        from .service_schedule import suggested_appointments
+        offering = self.get_object()
+        if offering.division.kind != "service":
+            raise ValidationError("Choose a service offering.")
+        day = serializers.DateField().run_validation(request.query_params.get("date"))
+        today = timezone.now().astimezone(ZoneInfo("Asia/Dhaka")).date()
+        if not today <= day <= today + timedelta(days=90):
+            raise ValidationError("Choose a date within the next 90 days.")
+        result = suggested_appointments(offering, day)
+        result.update({"date": day.isoformat(), "timezone": "Asia/Dhaka",
+                       "duration_minutes": offering.duration_minutes, "requires_confirmation": True})
+        return Response(result, headers={"Cache-Control": "no-store"})
+
     def get_queryset(self):
         qs = (
             Offering.objects.filter(active=True, division__active=True)

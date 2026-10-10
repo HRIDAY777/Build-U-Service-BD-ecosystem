@@ -101,3 +101,61 @@ get_user_model().objects.filter(username='${username}').update(is_active=False)
 `);
   }
 });
+
+test("customer selects a duration-aware service time and refreshes changed hours", async ({
+  page,
+}) => {
+  const key = `qa_times_${Date.now()}`;
+  const fixture = localFixture(`
+from django.conf import settings
+from apps.catalog.models import Division,Offering
+assert settings.DEBUG
+division=Division.objects.get(slug='electrician')
+service=Offering.objects.create(name='DEMO QA Times',name_bn='ডেমো সময়',slug='${key}',sku='${key}',division=division,price=100,duration_minutes=90,service_weekly_hours={str(day):[{'open':'09:00','close':'12:00'}] for day in range(7)})
+print('SERVICE_ID='+str(service.pk))
+`);
+  const id = fixture.match(/SERVICE_ID=(\d+)/)![1];
+  const day = new Date(Date.now() + 86400000 * 10).toISOString().slice(0, 10);
+  try {
+    await page.goto(`/book/${id}`);
+    const input = page.locator('[name="scheduled_at"]');
+    await input.fill(`${day}T10:00`);
+    const times = page.locator('section[aria-label="Suggested booking times"]');
+    await times.getByRole("button", { name: /View day times/ }).click();
+    await expect(
+      times.getByRole("button", { name: "10:30–12:00", exact: true }),
+    ).toBeVisible();
+    await expect(
+      times.getByRole("button", { name: "10:45–12:15", exact: true }),
+    ).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    await times
+      .getByRole("button", { name: "09:15–10:45", exact: true })
+      .click();
+    await expect(input).toHaveValue(`${day}T09:15`);
+    localFixture(`
+from apps.catalog.models import Offering
+Offering.objects.filter(sku='${key}').update(service_leave_dates=['${day}'])
+`);
+    await times.getByRole("button", { name: /View day times/ }).click();
+    await expect(times.getByRole("status")).toContainText("No service times");
+    localFixture(`
+from apps.catalog.models import Offering
+Offering.objects.filter(sku='${key}').update(service_leave_dates=[],service_weekly_hours={})
+`);
+    await times.getByRole("button", { name: /View day times/ }).click();
+    await expect(times.getByRole("status")).toContainText(
+      "Schedule is unconfigured",
+    );
+  } finally {
+    localFixture(`
+from apps.catalog.models import Offering
+Offering.objects.filter(sku='${key}').update(active=False)
+`);
+  }
+});

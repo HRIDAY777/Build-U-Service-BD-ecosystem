@@ -103,3 +103,46 @@ class ScheduleTests(TestCase):
         self.assertEqual(calendar.status_code, 200, calendar.data)
         self.assertEqual(len(calendar.data["results"]), 1)
         self.assertEqual(self.client.get("/api/v1/bookings/calendar/?date=bad").status_code, 400)
+
+
+    def test_public_times_fit_duration_and_respect_closure_and_privacy(self):
+        self.service.service_weekly_hours = self.hours
+        self.service.save()
+        self.client.force_authenticate(None)
+        endpoint = f"/api/v1/offerings/{self.service.pk}/booking_times/?date={self.start.date().isoformat()}"
+        result = self.client.get(endpoint)
+        self.assertEqual(result.status_code, 200, result.data)
+        self.assertTrue(result.data["requires_confirmation"])
+        self.assertEqual(result.data["timezone"], "Asia/Dhaka")
+        starts = [slot["start"][11:16] for slot in result.data["slots"]]
+        self.assertEqual(starts, ["09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30"])
+        self.assertNotIn("provider", str(result.data))
+        self.service.service_leave_dates = [self.start.date().isoformat()]
+        self.service.save()
+        self.assertEqual(self.client.get(endpoint).data["mode"], "closed")
+        self.service.service_weekly_hours = {}
+        self.service.save()
+        self.assertEqual(self.client.get(endpoint).data["mode"], "closed")
+        self.service.service_leave_dates = []
+        self.service.save()
+        self.assertEqual(self.client.get(endpoint).data["mode"], "manual")
+        self.service.active = False
+        self.service.save()
+        self.assertEqual(self.client.get(endpoint).status_code, 404)
+
+    def test_suggestion_dates_and_nonservice_rejected(self):
+        self.client.force_authenticate(None)
+        endpoint = f"/api/v1/offerings/{self.service.pk}/booking_times/?date="
+        for day in ("bad", "2000-01-01", "2099-01-01"):
+            self.assertEqual(self.client.get(endpoint + day).status_code, 400)
+        division = Division.objects.create(slug="shop", name="Shop", kind="goods")
+        item = Offering.objects.create(division=division, name="Goods", slug="goods", sku="GOODS", price=100)
+        self.assertEqual(self.client.get(f"/api/v1/offerings/{item.pk}/booking_times/?date={self.start.date().isoformat()}").status_code, 400)
+
+    def test_overnight_suggestions_skip_elapsed_times(self):
+        from apps.catalog.service_schedule import suggested_appointments
+        self.service.service_weekly_hours = {"0": [{"open": "22:00", "close": "02:00"}]}
+        day = datetime(2030, 1, 8).date()
+        now = datetime(2030, 1, 8, 0, 0, tzinfo=ZoneInfo("Asia/Dhaka"))
+        result = suggested_appointments(self.service, day, now)
+        self.assertEqual([slot["start"][11:16] for slot in result["slots"]], ["00:15", "00:30"])

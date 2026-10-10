@@ -11,7 +11,7 @@
 | ৩. Corporate / CMS | Company logo, homepage, divisions, content pages, demo stock/district images | Complete editorial content for every requested corporate page, legal/business approval, full CMS publishing workflow |
 | ৪. Shop | Catalog, category/search/filter, variants/SKU/sale pricing, inventory, cart, COD checkout, wishlist/share/alerts, reviews, returns | Barcode/media gallery/video, collections, frequently bought together, recently viewed, recommendations and advanced promotions |
 | ৫. Food / restaurant | Shared food catalog, ordering, owner pause/resume, enforced Bangladesh weekly/overnight/all-day hours, minimum food subtotal, preparation snapshot, required/optional meal options and owner option management | Cuisine/nearby filters, branch menus, staff accounts and settlements |
-| ৬. Service booking | Electrician/mechanic/general-service booking, provider assignment, progress, service/provider weekly hours and leave, seven-day provider calendar, duration snapshots and overlap checks | Skills matching, customer slot suggestions/reservations, rescheduling, problem types/media, parts requests, complete service quotes/payment/refunds |
+| ৬. Service booking | Electrician/mechanic/general-service booking, provider assignment, progress, service/provider weekly hours and leave, seven-day provider calendar, duration snapshots, customer service-hour suggestions and overlap checks | Skills matching, provider-capacity-based suggestions/reservations, rescheduling, problem types/media, parts requests, complete service quotes/payment/refunds |
 | ৭. Pharmacy | Catalog/order and private prescription upload/human review | Verified pharmacist eligibility, retention/expiry rules, regulatory launch approval, full prescription browser verification |
 | ৮. Delivery / rider | Parcel quote/request, assignment/history, handover, manual COD reconciliation, rider availability/earnings/feedback | Live GPS, recipient proof/OTP, route optimization, complete dispatch exceptions and payout accounting |
 | ৯. Partner / provider | Applications, catalog/inventory operations, provider private jobs and availability | Onboarding documents/bank/agreement/expiry/verification, provider skills/hours/areas/job media/parts and settlement |
@@ -68,10 +68,13 @@
 
 ## পরের ধাপ: রেস্টুরেন্ট অর্ডারের নিয়ম
 
-রেস্টুরেন্ট পরিচালনার পর্বে owner controls, hours/minimum enforcement, public status এবং preparation estimate সম্পন্ন করা হয়েছে। Full backend suite: ৯০টি পাস; নতুন restaurant flow-সহ customer browser checks: ৪টি পাস; production build পাস। ২৪ ঘণ্টার সময়সূচিও অতিরিক্ত backend ও browser check-এ পাস করেছে। খাদ্যের add-ons/modifiers পরবর্তী পর্বে সম্পন্ন হয়েছে; booking calendar পরবর্তী পর্বে যোগ হয়েছে; customer slot suggestions ও capacity reservation এখনও বাকি।
+রেস্টুরেন্ট পরিচালনার পর্বে owner controls, hours/minimum enforcement, public status এবং preparation estimate সম্পন্ন করা হয়েছে। Full backend suite: ৯০টি পাস; নতুন restaurant flow-সহ customer browser checks: ৪টি পাস; production build পাস। ২৪ ঘণ্টার সময়সূচিও অতিরিক্ত backend ও browser check-এ পাস করেছে। খাদ্যের add-ons/modifiers পরবর্তী পর্বে সম্পন্ন হয়েছে; booking calendar পরবর্তী পর্বে যোগ হয়েছে; provider-capacity-based suggestions ও capacity reservation এখনও বাকি।
 
 
 খাবারের অপশন পর্ব: প্রয়োজনীয়/ঐচ্ছিক গ্রুপ, অতিরিক্ত মূল্য, মালিকের সম্পাদনা, ভিন্ন অপশনের আলাদা কার্ট লাইন, সার্ভারের যাচাই ও অর্ডারের স্থায়ী অপশন সংরক্ষণ সম্পন্ন। ৯৪টি backend এবং ৪টি সংশ্লিষ্ট browser test পাস; lint ও production build পাস। পুরো মূল চাহিদা এখনও ১০০% নয়।
 
 
 সার্ভিস সময়সূচির পর্ব: মালিকের সেবার সময়/বন্ধের দিন, প্রোভাইডারের সময়/ছুটি, ব্যক্তিগত সাত দিনের ক্যালেন্ডার, বাংলাদেশ সময় এবং বুকিংয়ের স্থায়ী duration যোগ হয়েছে। ৯৮টি backend ও ৫টি সংশ্লিষ্ট browser test পাস; lint, typecheck ও production build সফল। বিস্তারিত: `SERVICE_SCHEDULING.md`। Skills matching ও customer slot reservation এখনও বাকি।
+
+
+নির্বাচিত দিনের সময় বাছাই যোগ হয়েছে: ১৫ মিনিট অন্তর সেবার পুরো duration অনুযায়ী সময়, ছুটি ও overnight rules, পেরিয়ে যাওয়া সময় বাদ দেওয়া, ৯০ দিনের সীমা এবং ম্যানুয়াল fallback। ১০১টি backend test এবং ৫টি সংশ্লিষ্ট browser check পাস; lint ও production build সফল। Provider capacity reservation এখনও বাকি।
