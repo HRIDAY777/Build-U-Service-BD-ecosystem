@@ -38,3 +38,5 @@ Final local verification: full backend suite 111 tests passed; 8 project-specifi
 2026-10-10 document update: 112 backend tests passed, including private PDF access, invalid upload, typed-name matching and frozen acceptance evidence. Two project browser workflows, lint, typecheck, production build, Ruff and migration consistency passed. Local backend and frontend were restarted with the changes.
 
 Account statements also download as private CSV with BDT transaction totals and net receipts. Access follows the same owner/staff permissions; downloads are audited and spreadsheet formula prefixes in user-supplied text are escaped. CSV downloads do not confirm or execute transfers.
+
+Applications support paginated search by name, phone or agreement reference, combined with status and investor/client filters. Search never broadens owner visibility. Applying or resetting filters returns to page one; stale list responses cannot overwrite newer search results.

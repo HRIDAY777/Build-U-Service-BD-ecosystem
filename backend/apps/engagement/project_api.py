@@ -6,6 +6,7 @@ import unicodedata
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction, IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 from django.http import FileResponse, HttpResponse
 from rest_framework import serializers, viewsets, mixins
@@ -158,7 +159,24 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
     def get_queryset(self):
         qs = ProjectApplication.objects.select_related("project").prefetch_related("entries", "project__updates").order_by("-created_at")
         user = self.request.user
-        return qs if user.is_staff and user.has_perm("engagement.view_projectapplication") else qs.filter(customer=user)
+        qs = qs if user.is_staff and user.has_perm("engagement.view_projectapplication") else qs.filter(customer=user)
+        if self.action == "list":
+            status = self.request.query_params.get("status", "")
+            kind = self.request.query_params.get("kind", "")
+            search = self.request.query_params.get("search", "").strip()
+            if status:
+                if status not in dict(ProjectApplication._meta.get_field("status").choices):
+                    raise ValidationError({"status": "Select a valid status."})
+                qs = qs.filter(status=status)
+            if kind:
+                if kind not in ["investor", "client"]:
+                    raise ValidationError({"kind": "Select a valid application type."})
+                qs = qs.filter(kind=kind)
+            if len(search) > 180:
+                raise ValidationError({"search": "Use at most 180 characters."})
+            if search:
+                qs = qs.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(agreement_reference__icontains=search))
+        return qs
 
     @action(detail=True, methods=["get"], url_path="statement")
     def statement(self, request, pk=None):

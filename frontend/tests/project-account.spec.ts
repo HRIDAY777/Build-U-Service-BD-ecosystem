@@ -35,6 +35,13 @@ test("customer submits, reloads and cancels a private project application", asyn
     /Not started|এখনো শুরু হয়নি/,
   );
   await page.reload();
+  await page.locator('[name="search"]').fill("Demo Project Investor");
+  await page.getByRole("button", { name: /Find applications|আবেদন খুঁজুন/ }).click();
+  await expect(page.getByRole("button", { name: /Demo Project Investor/ })).toBeVisible();
+  await page.locator('[name="status"]').first().selectOption("active");
+  await page.getByRole("button", { name: /Find applications|আবেদন খুঁজুন/ }).click();
+  await expect(page.getByText(/No applications match|এই বাছাইয়ে কোনো আবেদন/)).toBeVisible();
+  await page.getByRole("button", { name: /Show all|সব দেখুন/ }).click();
   await page.getByRole("button", { name: /Demo Project Investor/ }).click();
   const downloaded = page.waitForEvent("download");
   await page.getByRole("link", { name: /Download statement|হিসাব ডাউনলোড/ }).click();

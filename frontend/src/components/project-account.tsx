@@ -111,6 +111,9 @@ export function ProjectAccount() {
     `৳${Number(value).toLocaleString(lang === "bn" ? "bn-BD" : "en-BD", { maximumFractionDigits: 2 })}`;
   const [items, setItems] = useState<Application[]>([]);
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ search: "", status: "", kind: "" });
+  const [count, setCount] = useState(0);
+  const loadSequence = useRef(0);
   const [next, setNext] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -133,20 +136,24 @@ export function ProjectAccount() {
   }, [user]);
   const requestKey = useRef<string>("");
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     setLoading(true);
     setError("");
     try {
       const data = await api<PageResult<Application>>(
-        `project-applications/?page=${page}`,
+        `project-applications/?${new URLSearchParams({ page: String(page), ...filters })}`,
       );
+      if (sequence !== loadSequence.current) return;
       setItems(data.results);
+      setCount(data.count);
       setNext(!!data.next);
     } catch (e) {
+      if (sequence !== loadSequence.current) return;
       setError(e instanceof Error ? e.message : "Unable to load applications");
     } finally {
-      setLoading(false);
+      if (sequence === loadSequence.current) setLoading(false);
     }
-  }, [page]);
+  }, [page, filters]);
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
@@ -383,6 +390,67 @@ export function ProjectAccount() {
                 ? t("আবেদন ব্যবস্থাপনা", "Application management")
                 : t("আমার আবেদন", "My applications")}
             </h2>
+            <form
+              className="project-plan-grid"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const data = new FormData(event.currentTarget);
+                setPage(1);
+                setFilters({
+                  search: String(data.get("search") || "").trim(),
+                  status: String(data.get("status") || ""),
+                  kind: String(data.get("filter_kind") || ""),
+                });
+              }}
+            >
+              <label className="field">
+                {t(
+                  "নাম, মোবাইল বা চুক্তির রেফারেন্স",
+                  "Name, phone or agreement reference",
+                )}
+                <input name="search" maxLength={180} type="search" />
+              </label>
+              <label className="field">
+                {t("আবেদনের অবস্থা", "Application status")}
+                <select name="status">
+                  <option value="">{t("সব অবস্থা", "All statuses")}</option>
+                  {Object.entries(statuses).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {t(label, key)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                {t("আবেদনের ধরন", "Application type")}
+                <select name="filter_kind">
+                  <option value="">{t("সব ধরন", "All types")}</option>
+                  <option value="investor">
+                    {t("বিনিয়োগকারী", "Investor")}
+                  </option>
+                  <option value="client">{t("গ্রাহক", "Client")}</option>
+                </select>
+              </label>
+              <button className="button" type="submit">
+                {t("আবেদন খুঁজুন", "Find applications")}
+              </button>
+              <button
+                className="button outline"
+                type="reset"
+                onClick={() => {
+                  setPage(1);
+                  setFilters({ search: "", status: "", kind: "" });
+                }}
+              >
+                {t("সব দেখুন", "Show all")}
+              </button>
+            </form>
+            {!loading && !error && (
+              <p role="status">
+                {t("পাওয়া আবেদন", "Matching applications")}:{" "}
+                {count.toLocaleString(lang === "bn" ? "bn-BD" : "en-BD")}
+              </p>
+            )}
             {loading && <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>}
             {error && (
               <p role="alert">
@@ -393,7 +461,12 @@ export function ProjectAccount() {
               </p>
             )}
             {!loading && !error && !items.length && (
-              <p>{t("এখনো কোনো আবেদন নেই।", "No applications yet.")}</p>
+              <p>
+                {t(
+                  "এই বাছাইয়ে কোনো আবেদন পাওয়া যায়নি।",
+                  "No applications match these filters.",
+                )}
+              </p>
             )}
             <div className="project-plan-grid">
               {items.map((a) => (
@@ -644,7 +717,10 @@ export function ProjectAccount() {
               <button className="button outline" onClick={() => window.print()}>
                 {t("হিসাব প্রিন্ট করুন", "Print statement")}
               </button>
-              <a className="button outline" href={`/api/v1/project-applications/${selected.id}/statement/`}>
+              <a
+                className="button outline"
+                href={`/api/v1/project-applications/${selected.id}/statement/`}
+              >
                 {t("হিসাব ডাউনলোড (CSV)", "Download statement (CSV)")}
               </a>
               {selected.is_owner &&

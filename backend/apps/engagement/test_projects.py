@@ -65,6 +65,22 @@ class ProjectAccountTests(TestCase):
             payload[field] = value
             self.assertEqual(self.client.post("/api/v1/project-applications/", payload, format="json").status_code, 400)
 
+    def test_filters_keep_private_scope_and_validate_input(self):
+        key = self.create()
+        ProjectApplication.objects.filter(pk=key).update(agreement_reference="SEARCH-REF")
+        self.client.force_authenticate(self.other)
+        self.create()
+        url = "/api/v1/project-applications/"
+        self.assertEqual(self.client.get(url, {"search": "SEARCH-REF"}).data["count"], 0)
+        self.client.force_authenticate(self.owner)
+        self.assertEqual(self.client.get(url, {"search": "SEARCH-REF", "status": "submitted", "kind": "investor"}).data["count"], 1)
+        self.assertEqual(self.client.get(url, {"kind": "client"}).data["count"], 0)
+        self.assertEqual(self.client.get(url, {"status": "active"}).data["count"], 0)
+        for query in [{"status": "invalid"}, {"kind": "invalid"}, {"search": "a" * 181}]:
+            self.assertEqual(self.client.get(url, query).status_code, 400)
+        self.client.force_authenticate(self.staff)
+        self.assertEqual(self.client.get(url).data["count"], 2)
+
     def test_every_package_matches_supplied_proposal(self):
         for pack, amount, term, total in [("starter", 10000, 4, 10800), ("basic", 25000, 6, 28000), ("premium", 50000, 12, 61000), ("regular", 100000, 40, 125000), ("growth", 100000, 40, 150000)]:
             payload = self.payload()
