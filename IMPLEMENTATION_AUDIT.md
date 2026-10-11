@@ -72,3 +72,5 @@ Priority: P0 blocks safe public launch; P1 core functionality; P2 advanced capab
 - Full updated backend suite: **125 passed** on SQLite. Ruff, migration drift, frontend lint/typecheck and production build passed. Complete local browser suite: **17 passed**. Final history privacy/no-store regression also passed after the full backend run. Evidence is recorded in `PROJECT_STATUS.md`.
 
 Account security follow-up: a self-scoped security event API/Preferences view is implemented with no-store headers and safe field/event whitelists. Audit entity/date lookup is indexed by migration `operations.0015`. Seven account tests, frontend checks/build and targeted browser verification are recorded separately; MFA and failed-attempt/device monitoring remain open.
+
+Partner follow-up: each active document now requires its own accepted decision before a new application approval. Required reviewer notes, timestamps, file-hash audit links and self-review/expiry/terminal guards are implemented (`catalog.0012`). Earlier approvals remain unchanged. Renewal/suspension and production file scanning remain separate gates.

@@ -14,7 +14,7 @@ class PartnerApplicationAdmin(ReadOnlyAdmin):
 
 @admin.register(PartnerDocument)
 class PartnerDocumentAdmin(ReadOnlyAdmin):
-    list_display = ["title", "application", "expires_on", "active"]
+    list_display = ["title", "application", "review_status", "reviewed_at", "expires_on", "active"]
     # Storage paths are not usable public links; downloads use the scoped API.
     exclude = ["file"]
 

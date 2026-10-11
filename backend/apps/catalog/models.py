@@ -38,6 +38,9 @@ class PartnerDocument(models.Model):
     sha256 = models.CharField(max_length=64)
     expires_on = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=True)
+    review_status = models.CharField(max_length=12, default="pending", choices=[("pending", "Pending"), ("accepted", "Accepted"), ("rejected", "Rejected")])
+    review_note = models.CharField(max_length=2000, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

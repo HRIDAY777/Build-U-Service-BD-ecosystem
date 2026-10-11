@@ -44,6 +44,11 @@ class PartnerOnboardingTests(TestCase):
     def review(self, status, **extra):
         return self.client.post(self.url + "review/", {"status": status, "review_note": "Manual review", **extra}, format="json")
 
+    def accept_documents(self):
+        for document in self.application.documents.filter(active=True):
+            response = self.client.post(self.url + f"documents/{document.pk}/review/", {"status": "accepted", "note": "Checked against business record"}, format="json")
+            self.assertEqual(response.status_code, 200, response.data)
+
     def test_private_scope_and_self_approval_denied(self):
         self.assertEqual(self.application.status, "submitted")
         self.assertEqual(self.review("reviewing").status_code, 403)
@@ -68,6 +73,8 @@ class PartnerOnboardingTests(TestCase):
         self.client.force_authenticate(self.admin)
         self.assertEqual(self.review("reviewing").status_code, 200)
         self.assertEqual(self.review("approved").status_code, 400)
+        self.assertEqual(self.review("approved", verification_reference="CHECK-1").status_code, 400)
+        self.accept_documents()
         response = self.review("approved", verification_reference="CHECK-1")
         self.assertEqual(response.status_code, 200, response.data)
         existing.refresh_from_db()
@@ -91,6 +98,7 @@ class PartnerOnboardingTests(TestCase):
         document.save()
         self.client.force_authenticate(self.admin)
         self.review("reviewing")
+        self.assertEqual(self.client.post(self.url + f"documents/{document_id}/review/", {"status": "accepted", "note": "Expired"}, format="json").status_code, 400)
         self.assertEqual(self.review("approved", verification_reference="CHECK-2").status_code, 400)
         self.review("needs_changes")
         self.client.force_authenticate(self.owner)
@@ -99,6 +107,7 @@ class PartnerOnboardingTests(TestCase):
         self.client.patch(self.url, {"details": "Replacement supplied"}, format="json")
         self.client.force_authenticate(self.admin)
         self.review("reviewing")
+        self.accept_documents()
         self.assertEqual(self.review("approved", verification_reference="CHECK-2").status_code, 200)
 
     def test_invalid_upload_and_cancel(self):
@@ -108,7 +117,31 @@ class PartnerOnboardingTests(TestCase):
         self.assertEqual(self.client.patch(self.url, {"area": "Changed"}, format="json").status_code, 403)
 
     def test_reviewer_cannot_review_own_application(self):
+        document = self.upload()
         self.application.owner = self.admin
         self.application.save()
         self.client.force_authenticate(self.admin)
         self.assertEqual(self.review("reviewing").status_code, 403)
+        self.application.status = "reviewing"
+        self.application.save()
+        self.assertEqual(self.client.post(self.url + f"documents/{document}/review/", {"status": "accepted", "note": "Self review"}, format="json").status_code, 403)
+
+    def test_document_review_scope_state_and_rejection(self):
+        document = self.upload()
+        url = self.url + f"documents/{document}/review/"
+        payload = {"status": "accepted", "note": "Checked"}
+        self.assertEqual(self.client.post(url, payload, format="json").status_code, 403)
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.post(url, payload, format="json").status_code, 400)
+        self.review("reviewing")
+        self.assertEqual(self.client.post(url, {"status": "rejected", "note": "Unreadable"}, format="json").status_code, 200)
+        self.assertEqual(self.review("approved", verification_reference="CHECK-3").status_code, 400)
+        self.assertEqual(self.client.post(url, {"status": "accepted", "note": ""}, format="json").status_code, 400)
+        self.assertEqual(self.client.post(url, payload, format="json").status_code, 200)
+        self.assertEqual(self.review("approved", verification_reference="CHECK-3").status_code, 200)
+        self.assertEqual(self.client.post(url, payload, format="json").status_code, 400)
+        self.client.force_authenticate(self.owner)
+        result = self.client.get(self.url).data["documents"][0]
+        self.assertEqual(result["review_status"], "accepted")
+        self.assertEqual(result["review_note"], "Checked")
+        self.assertIsNotNone(result["reviewed_at"])

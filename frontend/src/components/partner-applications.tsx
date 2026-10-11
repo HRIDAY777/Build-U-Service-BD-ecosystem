@@ -10,6 +10,9 @@ type Document = {
   title: string;
   expires_on: string | null;
   active: boolean;
+  review_status: "pending" | "accepted" | "rejected";
+  review_note: string;
+  reviewed_at: string | null;
 };
 type Application = {
   id: string;
@@ -260,7 +263,7 @@ function PartnerApplicationsBody() {
             )}
             <h3>{t("ব্যবসার নথি", "Business documents")}</h3>
             {item.documents.map((doc) => (
-              <p key={doc.id}>
+              <div key={doc.id} style={{ marginBottom: 16 }}>
                 <a
                   href={`/api/v1/partner-applications/${item.id}/documents/${doc.id}/download/`}
                 >
@@ -268,6 +271,75 @@ function PartnerApplicationsBody() {
                 </a>{" "}
                 {doc.expires_on && ` · ${doc.expires_on}`}{" "}
                 {!doc.active && t("(প্রত্যাহার করা)", "(Withdrawn)")}{" "}
+                <p>
+                  {doc.review_status === "accepted"
+                    ? t("নথি গ্রহণ করা হয়েছে", "Document accepted")
+                    : doc.review_status === "rejected"
+                      ? t("নথি গ্রহণ হয়নি", "Document rejected")
+                      : t("নথির যাচাই বাকি", "Document awaiting review")}
+                </p>
+                {doc.review_note && <p>{doc.review_note}</p>}
+                {doc.reviewed_at && (
+                  <p>
+                    {t("যাচাইয়ের সময়", "Reviewed at")}:{" "}
+                    {new Date(doc.reviewed_at).toLocaleString(
+                      lang === "bn" ? "bn-BD" : "en-GB",
+                      { timeZone: "Asia/Dhaka" },
+                    )}
+                  </p>
+                )}
+                {reviewer &&
+                  !item.is_owner &&
+                  item.status === "reviewing" &&
+                  doc.active && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void save(
+                          `partner-applications/${item.id}/documents/${doc.id}/review/`,
+                          Object.fromEntries(
+                            new FormData(e.currentTarget).entries(),
+                          ),
+                        );
+                      }}
+                    >
+                      <fieldset disabled={busy}>
+                        <label>
+                          {t("নথির সিদ্ধান্ত", "Document decision")}
+                          <select
+                            name="status"
+                            defaultValue={
+                              doc.review_status === "accepted"
+                                ? "accepted"
+                                : "rejected"
+                            }
+                          >
+                            <option value="accepted">
+                              {t("গ্রহণ করুন", "Accept")}
+                            </option>
+                            <option value="rejected">
+                              {t("গ্রহণ করবেন না", "Reject")}
+                            </option>
+                          </select>
+                        </label>
+                        <label>
+                          {t("নথি যাচাইয়ের মন্তব্য", "Document review note")}
+                          <textarea
+                            name="note"
+                            required
+                            maxLength={2000}
+                            defaultValue={doc.review_note}
+                          />
+                        </label>
+                        <button>
+                          {t(
+                            "নথির সিদ্ধান্ত সংরক্ষণ",
+                            "Save document decision",
+                          )}
+                        </button>
+                      </fieldset>
+                    </form>
+                  )}
                 {editable && doc.active && (
                   <button
                     disabled={busy}
@@ -280,7 +352,7 @@ function PartnerApplicationsBody() {
                     {t("প্রত্যাহার", "Withdraw")}
                   </button>
                 )}
-              </p>
+              </div>
             ))}
             {editable && (
               <form

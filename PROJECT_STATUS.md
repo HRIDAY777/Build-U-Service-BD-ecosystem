@@ -17,7 +17,7 @@ The initial phase 1 audit and selected phase 2/3 fixes are delivered. This does 
 
 Private project history is implemented and verified, including privacy, pagination, no-store headers, Bangladesh timestamps and refreshed cancellation events. Email or username sign-in is implemented with ambiguous-identity protection. Automation savepoints isolate failing rules and roll back partial notification effects; CI discovery and Compose configuration were improved. Most core commerce/service workflows already exist; major gaps are centralized subdomain identity, verified phone login, business verification, commission/settlement infrastructure, expanded AI/agents and production operations. Existing manual finance records are not payment execution.
 
-Next work: partner renewal/per-document decisions and staff MFA/automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
+Next work: partner renewal monitoring and staff MFA/automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
 
 ## Delivered milestone: account security history
 
@@ -29,7 +29,11 @@ Added bilingual `/partner-application`, private scoped PDF upload/download/withd
 
 Executed: full backend suite **132 passed** before the final self-review guard; the updated **five onboarding tests passed** after that guard. Ruff, migration drift, frontend lint/typecheck and production build passed. **Two targeted browser tests passed**: actual partner application/PDF/private download/reload/cancellation and email login/security history. Full prior 17-browser results remain historical; no PostgreSQL concurrency or legal verification is claimed.
 
-## External blockers (remaining)
+## Follow-up: individual partner document decisions
+
+Added accepted/rejected/pending document status, required reviewer notes/timestamps, audited decisions, expiry/self-review/terminal-state guards and an approval gate requiring every active document to be accepted. Bilingual reviewer controls and applicant decision display are implemented. Migration `catalog.0012` is applied locally; earlier approvals are preserved. Six onboarding tests, Ruff/drift, frontend lint/typecheck/build passed. Browser results are recorded in the changelog. Renewal monitoring, scanning and specialist licensing remain open.
+
+## Remaining external configuration
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 

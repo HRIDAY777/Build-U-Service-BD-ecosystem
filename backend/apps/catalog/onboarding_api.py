@@ -14,7 +14,7 @@ from .models import Division, Organization, PartnerApplication, PartnerDocument
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerDocument
-        fields = ["id", "title", "sha256", "expires_on", "active", "created_at"]
+        fields = ["id", "title", "sha256", "expires_on", "active", "review_status", "review_note", "reviewed_at", "created_at"]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -45,6 +45,11 @@ class ReviewInput(serializers.Serializer):
     status = serializers.ChoiceField(choices=["reviewing", "needs_changes", "approved", "rejected"])
     review_note = serializers.CharField(max_length=2000)
     verification_reference = serializers.CharField(max_length=160, required=False, default="")
+
+
+class DocumentReviewInput(serializers.Serializer):
+    status = serializers.ChoiceField(choices=["accepted", "rejected"])
+    note = serializers.CharField(max_length=2000)
 
 
 class PartnerApplicationViewSet(viewsets.ModelViewSet):
@@ -174,6 +179,8 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
                 raise ValidationError("Review the documents and provide a verification reference before approval.")
             if application.documents.filter(active=True, expires_on__lt=timezone.localdate()).exists():
                 raise ValidationError("An uploaded document has expired; request updated documents.")
+            if application.documents.filter(active=True).exclude(review_status="accepted").exists():
+                raise ValidationError("Every active document must be individually accepted before approval.")
             application.organization = Organization.objects.create(
                 owner=application.owner, division=application.division, name=application.business_name,
                 area=application.area, address=application.address, description=application.details, approved=True,
@@ -183,3 +190,27 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
         application.save()
         audit(request.user, "partner.reviewed", application.pk, status=target)
         return Response(self.get_serializer(application).data)
+
+    @action(detail=True, methods=["post"], url_path=r"documents/(?P<document_id>\d+)/review")
+    @transaction.atomic
+    def review_document(self, request, pk=None, document_id=None):
+        if not self.reviewer():
+            raise PermissionDenied()
+        application = self.locked()
+        if application.owner_id == request.user.pk:
+            raise PermissionDenied("Applicants cannot review their own documents.")
+        if application.status != "reviewing":
+            raise ValidationError("Start application review before reviewing documents.")
+        document = application.documents.filter(pk=document_id, active=True).first()
+        if not document:
+            raise ValidationError("Active document not found.")
+        data = DocumentReviewInput(data=request.data)
+        data.is_valid(raise_exception=True)
+        if data.validated_data["status"] == "accepted" and document.expires_on and document.expires_on < timezone.localdate():
+            raise ValidationError("An expired document cannot be accepted.")
+        document.review_status = data.validated_data["status"]
+        document.review_note = data.validated_data["note"]
+        document.reviewed_at = timezone.now()
+        document.save(update_fields=["review_status", "review_note", "reviewed_at"])
+        audit(request.user, "partner.document_reviewed", application.pk, document=document.pk, status=document.review_status, sha256=document.sha256, note=document.review_note)
+        return Response(DocumentSerializer(document).data)
