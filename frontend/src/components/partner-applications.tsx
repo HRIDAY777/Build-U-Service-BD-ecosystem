@@ -32,6 +32,7 @@ type Application = {
   status: string;
   review_note: string;
   organization: number | null;
+  renewal_of: string | null;
   documents: Document[];
 };
 const statuses: Record<string, [string, string]> = {
@@ -131,9 +132,15 @@ function PartnerApplicationsBody() {
         <label>
           {t("সেবার বিভাগ", "Business division")}
           <select name="division" required defaultValue={item?.division || ""}>
-            <option value="">{t("বাছুন", "Select")}</option>
+            <option value="" disabled={Boolean(item?.renewal_of)}>
+              {t("বাছুন", "Select")}
+            </option>
             {divisions.map((d) => (
-              <option key={d.id} value={d.id}>
+              <option
+                key={d.id}
+                value={d.id}
+                disabled={Boolean(item?.renewal_of) && d.id !== item?.division}
+              >
                 {lang === "bn" ? d.name_bn : d.name}
               </option>
             ))}
@@ -143,6 +150,7 @@ function PartnerApplicationsBody() {
           {t("ব্যবসার নাম", "Business name")}
           <input
             name="business_name"
+            readOnly={Boolean(item?.renewal_of)}
             required
             maxLength={160}
             defaultValue={item?.business_name}
@@ -161,6 +169,7 @@ function PartnerApplicationsBody() {
           {t("এলাকা", "Area")}
           <input
             name="area"
+            readOnly={Boolean(item?.renewal_of)}
             required
             maxLength={100}
             defaultValue={item?.area}
@@ -170,6 +179,7 @@ function PartnerApplicationsBody() {
           {t("সম্পূর্ণ ঠিকানা", "Full address")}
           <textarea
             name="address"
+            readOnly={Boolean(item?.renewal_of)}
             required
             maxLength={500}
             defaultValue={item?.address}
@@ -241,6 +251,9 @@ function PartnerApplicationsBody() {
             style={{ marginTop: 20 }}
           >
             <h2>{item.business_name}</h2>
+            {item.renewal_of && (
+              <p>{t("নথি নবায়নের আবেদন", "Document renewal application")}</p>
+            )}
             <p>{status ? status[lang === "bn" ? 0 : 1] : item.status}</p>
             <p>
               {item.address} · {item.phone}
@@ -251,6 +264,20 @@ function PartnerApplicationsBody() {
               <Link href="/portal">
                 {t("পার্টনার পোর্টাল খুলুন", "Open partner portal")}
               </Link>
+            )}
+            {item.is_owner && item.status === "approved" && (
+              <button
+                disabled={busy || loading}
+                onClick={() =>
+                  void save(`partner-applications/${item.id}/renew/`).then(
+                    (ok) => {
+                      if (ok) setPage(1);
+                    },
+                  )
+                }
+              >
+                {t("নবায়নের আবেদন খুলুন", "Open renewal application")}
+              </button>
             )}
             {editable && (
               <details>

@@ -15,7 +15,7 @@ See [the master-prompt phase audit](docs/MASTER_PROMPT_AUDIT.md) and [the featur
 - Public category browsing and category filtering within active divisions, with category selection reset when changing divisions.
 - Searchable, paginated stores/provider directory at `/stores`, with name/area/division filters and links to each approved business's catalog.
 - Shared customer accounts, session authentication, CSRF protection and permission checks.
-- Private bilingual partner applications and document review at `/partner-application`; see [workflow and remaining production gates](docs/PARTNER_APPLICATIONS.md).
+- Private bilingual partner applications, document review, expiry notices and separate renewal submissions at `/partner-application`; see [workflow and remaining production gates](docs/PARTNER_APPLICATIONS.md).
 - Password change, password recovery and single-use email verification flows.
 - Customer saved addresses with owner-only access and profile export.
 - Shared Bangladesh location picker for checkout, booking, parcel pickup/drop-off, saved addresses and events; search in Bangla/English and select division → district → upazila/thana → union/area. Selected geography is retained in the address line (event notes for venue requests).

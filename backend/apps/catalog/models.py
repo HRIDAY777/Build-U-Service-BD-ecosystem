@@ -22,7 +22,8 @@ class PartnerApplication(models.Model):
     ])
     review_note = models.CharField(max_length=2000, blank=True)
     verification_reference = models.CharField(max_length=160, blank=True)
-    organization = models.OneToOneField("Organization", null=True, blank=True, on_delete=models.PROTECT)
+    organization = models.ForeignKey("Organization", null=True, blank=True, on_delete=models.PROTECT)
+    renewal_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="renewals")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

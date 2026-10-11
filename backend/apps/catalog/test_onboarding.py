@@ -162,3 +162,52 @@ class PartnerOnboardingTests(TestCase):
         expiry = self.client.get(self.url).data["documents"][0]["expiry"]
         self.assertEqual(expiry["status"], "withdrawn")
         self.assertFalse(expiry["renewal_needed"])
+
+    def approved_source(self):
+        organization = Organization.objects.create(owner=self.owner, division=self.division, name="Existing business", area="Dhaka", address="Existing address", approved=True)
+        self.application.status = "approved"
+        self.application.organization = organization
+        self.application.save()
+        return organization
+
+    def test_renewal_reuses_business_and_keeps_original_frozen(self):
+        organization = self.approved_source()
+        original_id = self.application.pk
+        response = self.client.post(self.url + "renew/")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["renewal_of"], str(original_id))
+        self.assertEqual(response.data["documents"], [])
+        again = self.client.post(self.url + "renew/")
+        self.assertEqual(again.status_code, 200)
+        self.assertEqual(again.data["id"], response.data["id"])
+        self.application = PartnerApplication.objects.get(pk=response.data["id"])
+        self.url = f'/api/v1/partner-applications/{self.application.pk}/'
+        self.upload()
+        self.client.force_authenticate(self.admin)
+        self.review("reviewing")
+        self.assertEqual(self.review("approved", verification_reference="RENEW-1").status_code, 400)
+        self.accept_documents()
+        approved = self.review("approved", verification_reference="RENEW-1")
+        self.assertEqual(approved.status_code, 200, approved.data)
+        self.assertEqual(approved.data["organization"], organization.pk)
+        self.assertEqual(Organization.objects.count(), 1)
+        original = PartnerApplication.objects.get(pk=original_id)
+        self.assertEqual(original.status, "approved")
+        self.assertEqual(original.documents.count(), 0)
+        self.assertEqual(original.organization_id, organization.pk)
+
+    def test_renewal_scope_and_ineligible_business(self):
+        self.assertEqual(self.client.post(self.url + "renew/").status_code, 400)
+        organization = self.approved_source()
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.post(self.url + "renew/").status_code, 403)
+        self.client.force_authenticate(self.owner)
+        response = self.client.post(self.url + "renew/")
+        renewal_url = f'/api/v1/partner-applications/{response.data["id"]}/'
+        other_division = Division.objects.create(slug="shop", name="Shop", name_bn="Shop", kind="goods")
+        self.assertEqual(self.client.patch(renewal_url, {"division": other_division.pk}, format="json").status_code, 400)
+        self.assertEqual(self.client.post(renewal_url + "cancel/").status_code, 200)
+        self.assertEqual(self.client.post(self.url + "renew/").status_code, 201)
+        organization.approved = False
+        organization.save()
+        self.assertEqual(self.client.post(self.url + "renew/").status_code, 400)

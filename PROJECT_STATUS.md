@@ -37,7 +37,13 @@ Added accepted/rejected/pending document status, required reviewer notes/timesta
 
 Private document responses and the bilingual page now show expiry status and a 30-day renewal reminder, calculated from the Bangladesh local date. Seven onboarding tests passed, including missing dates, yesterday/today, 30/31-day boundaries and withdrawn documents. Frontend lint/typecheck and a controlled reviewer/mobile browser test passed. No migration needed. Automatic monitoring/notifications, approved-document renewal submission and business suspension remain unimplemented.
 
-## External services still required
+## Delivered milestone: partner renewal submissions
+
+Approved applicants can open a separate renewal with new private documents. Repeated requests reuse the same open renewal; approval requires individual document acceptance and reuses the existing organization. Business identity/division/address and historical approved records remain protected. Migration `catalog.0013` is applied locally without resetting data.
+
+Nine targeted onboarding tests and the full **137-test backend suite passed** on local SQLite. Ruff, migration drift, frontend lint/typecheck and production build passed. **Three targeted browser tests passed**: actual applicant/PDF/download/cancellation plus controlled document-review/mobile and renewal UI fixtures. The controlled fixtures do not certify a live staff session or PostgreSQL concurrency. Automatic notifications/monitoring, suspension policy, scanning and specialist licensing remain open.
+
+## External configuration still required
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 

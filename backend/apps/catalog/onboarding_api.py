@@ -26,6 +26,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    renewal_of = serializers.UUIDField(source="renewal_of_id", read_only=True, allow_null=True)
     is_owner = serializers.SerializerMethodField()
     documents = DocumentSerializer(many=True, read_only=True)
     division = serializers.PrimaryKeyRelatedField(queryset=Division.objects.filter(active=True))
@@ -34,8 +35,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerApplication
         fields = ["id", "is_owner", "division", "business_name", "phone", "area", "address", "details",
-                  "status", "review_note", "verification_reference", "organization", "documents", "created_at", "updated_at"]
-        read_only_fields = ["id", "status", "review_note", "verification_reference", "organization", "created_at", "updated_at"]
+                  "status", "review_note", "verification_reference", "organization", "renewal_of", "documents", "created_at", "updated_at"]
+        read_only_fields = ["id", "status", "review_note", "verification_reference", "organization", "renewal_of", "created_at", "updated_at"]
 
     def get_is_owner(self, instance):
         return instance.owner_id == self.context["request"].user.pk
@@ -95,6 +96,11 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
         self.editable(application)
         serializer = self.get_serializer(application, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        if application.renewal_of_id:
+            for field in ["division", "business_name", "area", "address"]:
+                value = serializer.validated_data.get(field, getattr(application, field))
+                if value != getattr(application, field):
+                    raise ValidationError("Renewal cannot change business identity; update the business profile separately.")
         serializer.save(status="submitted", review_note="", verification_reference="")
         audit(request.user, "partner.updated", application.pk)
         return Response(serializer.data)
@@ -102,6 +108,28 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def capabilities(self, request):
         return Response({"review": self.reviewer()})
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def renew(self, request, pk=None):
+        source = self.locked()
+        if source.owner_id != request.user.pk:
+            raise PermissionDenied("Only the business applicant may request renewal.")
+        if source.status != "approved" or not source.organization_id:
+            raise ValidationError("Only an approved business application can be renewed.")
+        organization = Organization.objects.select_for_update().get(pk=source.organization_id)
+        if organization.owner_id != request.user.pk or not organization.approved or not organization.division.active:
+            raise ValidationError("This business is not eligible for renewal; contact operations.")
+        existing = PartnerApplication.objects.filter(renewal_of__organization=organization, status__in=["submitted", "reviewing", "needs_changes"]).order_by("created_at").first()
+        if existing:
+            return Response(self.get_serializer(existing).data)
+        application = PartnerApplication.objects.create(
+            owner=request.user, division=organization.division, business_name=organization.name,
+            phone=source.phone, area=organization.area, address=organization.address,
+            details=organization.description, renewal_of=source,
+        )
+        audit(request.user, "partner.renewal_requested", application.pk, source=str(source.pk), organization=organization.pk)
+        return Response(self.get_serializer(application).data, status=201)
 
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -189,10 +217,17 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
                 raise ValidationError("An uploaded document has expired; request updated documents.")
             if application.documents.filter(active=True).exclude(review_status="accepted").exists():
                 raise ValidationError("Every active document must be individually accepted before approval.")
-            application.organization = Organization.objects.create(
-                owner=application.owner, division=application.division, name=application.business_name,
-                area=application.area, address=application.address, description=application.details, approved=True,
-            )
+            if application.renewal_of_id:
+                source = application.renewal_of
+                organization = Organization.objects.select_for_update().get(pk=source.organization_id)
+                if not organization.approved or organization.owner_id != application.owner_id or organization.division_id != application.division_id:
+                    raise ValidationError("The original business is no longer eligible for renewal.")
+                application.organization = organization
+            else:
+                application.organization = Organization.objects.create(
+                    owner=application.owner, division=application.division, name=application.business_name,
+                    area=application.area, address=application.address, description=application.details, approved=True,
+                )
         for key, value in data.validated_data.items():
             setattr(application, key, value)
         application.save()

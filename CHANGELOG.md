@@ -32,6 +32,10 @@ Authenticated self-scoped event history, Preferences refresh/pagination, no-stor
 
 Added private expiry summaries and bilingual renewal notices for documents expiring within 30 days. Missing expiry and withdrawn files are handled explicitly; previous approvals remain unchanged. Seven targeted backend tests, lint/typecheck and the controlled reviewer/mobile browser test passed. No automatic renewal, notifications or suspension is claimed.
 
-## Earlier feature history
+## 11 October 2026 — partner document renewal submissions
+
+Added approved-applicant renewal requests, open-renewal reuse, protected source records and guarded approval to the existing business. Renewals use new individually reviewed documents and cannot change business identity or restore a suspended/transferred organization. Migration `catalog.0013` preserves existing records. Nine onboarding tests, full backend 137 tests, Ruff/drift/lint/typecheck/build and three targeted browser tests passed (two controlled fixtures and one real applicant workflow). Production monitoring/scanning and specialist approvals remain open.
+
+## Earlier feature records
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.
