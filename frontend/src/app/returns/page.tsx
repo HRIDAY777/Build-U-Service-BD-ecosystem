@@ -76,7 +76,9 @@ export default function ReturnsPage() {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>Returns / পণ্য ফেরত</h1>
+        <h1>
+          <UiText text={"Returns / পণ্য ফেরত"} />
+        </h1>
         <Link className="button" href="/login">
           <UiText text={"Sign in"} />
         </Link>
@@ -84,7 +86,9 @@ export default function ReturnsPage() {
     );
   return (
     <div className="page-wrap">
-      <h1>Returns / পণ্য ফেরত</h1>
+      <h1>
+        <UiText text={"Returns / পণ্য ফেরত"} />
+      </h1>
       <p>
         <UiText
           text={
@@ -94,7 +98,7 @@ export default function ReturnsPage() {
       </p>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       <form className="form-panel" onSubmit={submit}>
@@ -140,7 +144,7 @@ export default function ReturnsPage() {
           </button>
         </div>
         <label className="field">
-          Reason / কারণ
+          <UiText text={"Reason / কারণ"} />
           <textarea name="reason" required maxLength={2000} />
         </label>
         <button className="button" disabled={busy || loading || !orders.length}>
@@ -167,7 +171,9 @@ export default function ReturnsPage() {
             <UiText text={"Order"} />
             {item.order}
           </h3>
-          <span className="status">{item.status}</span>
+          <span className="status">
+            <UiText text={item.status} />
+          </span>
           <p>{item.reason}</p>
           {item.review_note && <p>{item.review_note}</p>}
           {user.is_staff && (next[item.status] || []).length > 0 && (

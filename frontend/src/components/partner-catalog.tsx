@@ -66,8 +66,16 @@ export function PartnerCatalog() {
           }
         />
       </p>
-      {error && <p className="error">{error}</p>}
-      {loading && <p role="status">তালিকা লোড হচ্ছে / Loading catalog…</p>}
+      {error && (
+        <p className="error">
+          <UiText text={error} />
+        </p>
+      )}
+      {loading && (
+        <p role="status">
+          <UiText text={"তালিকা লোড হচ্ছে / Loading catalog…"} />
+        </p>
+      )}
       {!loading && !items.length && (
         <p>
           <UiText text={"No catalog items are assigned to your business."} />
@@ -84,7 +92,7 @@ export function PartnerCatalog() {
               <input name="name" defaultValue={item.name} required />
             </label>
             <label className="field">
-              বাংলা নাম
+              <UiText text={"বাংলা নাম"} />
               <input name="name_bn" defaultValue={item.name_bn} required />
             </label>
             <label className="field">
@@ -146,15 +154,18 @@ export function PartnerCatalog() {
           disabled={loading || busy || page === 1}
           onClick={() => setPage((value) => value - 1)}
         >
-          আগের পৃষ্ঠা / Previous page
+          <UiText text={"আগের পৃষ্ঠা / Previous page"} />
         </button>
-        <span>পৃষ্ঠা / Page {page}</span>
+        <span>
+          <UiText text={"পৃষ্ঠা / Page"} />
+          {page}
+        </span>
         <button
           type="button"
           disabled={loading || busy || !next}
           onClick={() => setPage((value) => value + 1)}
         >
-          পরের পৃষ্ঠা / Next page
+          <UiText text={"পরের পৃষ্ঠা / Next page"} />
         </button>
       </nav>
     </>

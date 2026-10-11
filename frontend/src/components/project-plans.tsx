@@ -1,4 +1,5 @@
 "use client";
+import { UiText } from "@/components/ui-text";
 
 import { FormEvent, useState } from "react";
 import { api } from "@/lib/api";
@@ -105,7 +106,9 @@ export function ProjectPlans() {
 
   return (
     <div className="page-wrap project-plans">
-      <span className="eyebrow">U SERVICE · PROJECTS</span>
+      <span className="eyebrow">
+        <UiText text={"U SERVICE · PROJECTS"} />
+      </span>
       <h1>
         {t(
           "প্রজেক্ট ও প্রস্তাবিত বিনিয়োগ পরিকল্পনা",

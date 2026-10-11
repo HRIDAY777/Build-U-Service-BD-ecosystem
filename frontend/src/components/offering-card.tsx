@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import {
   Plus,
@@ -92,7 +94,11 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
         </span>
         {o.sku?.startsWith("DEMO-") && offeringPhoto(o) && (
           <small className="photo-demo-label">
-            {lang === "bn" ? "দৃষ্টান্তমূলক ছবি" : "Illustrative photo"}
+            {lang === "bn" ? (
+              <UiText text={"দৃষ্টান্তমূলক ছবি"} />
+            ) : (
+              <UiText text={"Illustrative photo"} />
+            )}
           </small>
         )}
       </Link>
@@ -103,7 +109,11 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
             <button
               className="wishlist-button"
               type="button"
-              aria-label={`Save ${o.name} to wishlist`}
+              aria-label={
+                lang === "bn"
+                  ? `${o.name_bn || o.name} পছন্দের তালিকায় রাখুন`
+                  : `Save ${o.name} to wishlist`
+              }
               onClick={async () => {
                 try {
                   await api("wishlist/", "POST", { offering: o.id });
@@ -130,21 +140,35 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
           {service ? (
             <span>
               {o.duration_minutes}{" "}
-              {lang === "bn" ? "মিনিটের ভিজিট" : "minute visit"}
+              {lang === "bn" ? (
+                <UiText text={"মিনিটের ভিজিট"} />
+              ) : (
+                <UiText text={"minute visit"} />
+              )}
             </span>
           ) : (
             <span>
-              {o.stock
-                ? lang === "bn"
-                  ? "মজুত আছে"
-                  : "In stock"
-                : lang === "bn"
-                  ? "এখন মজুত নেই"
-                  : "Out of stock"}
+              {o.stock ? (
+                lang === "bn" ? (
+                  <UiText text={"মজুত আছে"} />
+                ) : (
+                  <UiText text={"In stock"} />
+                )
+              ) : lang === "bn" ? (
+                <UiText text={"এখন মজুত নেই"} />
+              ) : (
+                <UiText text={"Out of stock"} />
+              )}
             </span>
           )}
           {!!(o.variants?.length || o.food_option_groups?.length) && (
-            <span>{lang === "bn" ? "অপশন বেছে নিন" : "Options available"}</span>
+            <span>
+              {lang === "bn" ? (
+                <UiText text={"অপশন বেছে নিন"} />
+              ) : (
+                <UiText text={"Options available"} />
+              )}
+            </span>
           )}
         </div>
         <div className="offering-bottom">
@@ -162,14 +186,26 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
               </del>
             )}
             <small>
-              {service ? (lang === "bn" ? " / সেবা" : " / service") : ""}
+              {service ? (
+                lang === "bn" ? (
+                  <UiText text={" / সেবা"} />
+                ) : (
+                  <UiText text={" / service"} />
+                )
+              ) : (
+                ""
+              )}
             </small>
           </strong>
           {service ? (
             <Link
               className="round-button"
               href={`/book/${o.id}`}
-              aria-label={`Book ${o.name}`}
+              aria-label={
+                lang === "bn"
+                  ? `${o.name_bn || o.name} বুক করুন`
+                  : `Book ${o.name}`
+              }
             >
               <ArrowUpRight size={20} />
             </Link>
@@ -177,7 +213,11 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
             <Link
               className="round-button"
               href={`/catalog/${o.id}`}
-              aria-label={`Choose options for ${o.name}`}
+              aria-label={
+                lang === "bn"
+                  ? `${o.name_bn || o.name} এর বিকল্প বাছুন`
+                  : `Choose options for ${o.name}`
+              }
             >
               <ArrowUpRight size={20} />
             </Link>
@@ -186,7 +226,11 @@ export function OfferingCard({ offering: o }: { offering: Offering }) {
               className="round-button"
               onClick={() => add(o)}
               disabled={!o.stock}
-              aria-label={`Add ${o.name} to bag`}
+              aria-label={
+                lang === "bn"
+                  ? `${o.name_bn || o.name} ব্যাগে যোগ করুন`
+                  : `Add ${o.name} to bag`
+              }
             >
               <Plus size={20} />
             </button>

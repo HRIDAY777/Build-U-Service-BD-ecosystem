@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import { notFound } from "next/navigation";
 import { serverGet } from "@/lib/api";
 import { Text } from "@/components/provider";
@@ -27,7 +28,9 @@ export default async function Content({
   if (!page) notFound();
   return (
     <div className="page-wrap">
-      <span className="eyebrow">U SERVICE BD</span>
+      <span className="eyebrow">
+        <UiText text={"U SERVICE BD"} />
+      </span>
       <h1>
         <Text bn={page.title_bn} en={page.title} />
       </h1>

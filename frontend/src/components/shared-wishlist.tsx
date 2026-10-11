@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, Offering, PageResult } from "@/lib/api";
@@ -30,16 +32,22 @@ export function SharedWishlist({ token }: { token: string }) {
   }, [token, page]);
   return (
     <main className="page-wrap">
-      <span className="eyebrow">U SERVICE BD</span>
-      <h1>শেয়ার করা পছন্দের তালিকা</h1>
+      <span className="eyebrow">
+        <UiText text={"U SERVICE BD"} />
+      </span>
+      <h1>
+        <UiText text={"শেয়ার করা পছন্দের তালিকা"} />
+      </h1>
       {error ? (
         <p role="alert" className="error">
-          {error}
+          <UiText text={error} />
         </p>
       ) : result ? (
         <>
           {!result.count && (
-            <p>এই তালিকায় এখন কোনো প্রকাশিত পণ্য বা সেবা নেই।</p>
+            <p>
+              <UiText text={"এই তালিকায় এখন কোনো প্রকাশিত পণ্য বা সেবা নেই।"} />
+            </p>
           )}
           <div className="offering-grid">
             {result.results.map((o) => (
@@ -52,23 +60,28 @@ export function SharedWishlist({ token }: { token: string }) {
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
             >
-              আগের পৃষ্ঠা
+              <UiText text={"আগের পৃষ্ঠা"} />
             </button>
-            <span>পৃষ্ঠা {page}</span>
+            <span>
+              <UiText text={"পৃষ্ঠা"} />
+              {page}
+            </span>
             <button
               className="button secondary"
               disabled={!result.next}
               onClick={() => setPage((p) => p + 1)}
             >
-              পরের পৃষ্ঠা
+              <UiText text={"পরের পৃষ্ঠা"} />
             </button>
           </div>
         </>
       ) : (
-        <p role="status">তালিকা লোড হচ্ছে…</p>
+        <p role="status">
+          <UiText text={"তালিকা লোড হচ্ছে…"} />
+        </p>
       )}
       <Link href="/catalog" className="text-link">
-        ক্যাটালগ দেখুন
+        <UiText text={"ক্যাটালগ দেখুন"} />
       </Link>
     </main>
   );

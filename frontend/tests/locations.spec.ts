@@ -7,25 +7,23 @@ test("Bangladesh locations cascade, search in Bangla, and isolate pickup from dr
   const pickup = page.locator(".location-picker").first();
   const dropoff = page.locator(".location-picker").nth(1);
   const division = pickup.getByRole("combobox", {
-    name: "বিভাগ / Division",
+    name: "বিভাগ",
     exact: true,
   });
   await expect(division).toBeEnabled();
   await division.click();
   await expect(pickup.getByRole("option")).toHaveCount(8);
   await division.fill("চট্টগ্রাম");
-  await pickup
-    .getByRole("option", { name: "চট্টগ্রাম / Chattagram", exact: true })
-    .click();
+  await pickup.getByRole("option", { name: "চট্টগ্রাম", exact: true }).click();
   const district = pickup.getByRole("combobox", {
-    name: "জেলা / District",
+    name: "জেলা",
     exact: true,
   });
   await district.fill("Comilla");
   await district.press("ArrowDown");
   await district.press("Enter");
   const districtPhoto = pickup.locator(".district-photo img");
-  await expect(districtPhoto).toHaveAttribute("alt", /Comilla/);
+  await expect(districtPhoto).toHaveAttribute("alt", /কুমিল্লা/);
   await districtPhoto.scrollIntoViewIfNeeded();
   await expect
     .poll(() =>
@@ -33,17 +31,17 @@ test("Bangladesh locations cascade, search in Bangla, and isolate pickup from dr
     )
     .toBeGreaterThan(0);
   const upazila = pickup.getByRole("combobox", {
-    name: "উপজেলা / থানা / Upazila or thana",
+    name: "উপজেলা · থানা",
     exact: true,
   });
   await upazila.fill("Barura");
-  await pickup.getByRole("option", { name: /Barura/ }).click();
+  await pickup.getByRole("option", { name: /বরুড়া/ }).click();
   const union = pickup.getByRole("combobox", {
-    name: "ইউনিয়ন / পৌর এলাকা / Union or area",
+    name: "ইউনিয়ন · পৌর এলাকা",
     exact: true,
   });
   await union.fill("আড্ডা");
-  await pickup.getByRole("option", { name: /Adda/ }).click();
+  await pickup.getByRole("option", { name: /আড্ডা/ }).click();
   await pickup.getByRole("textbox", { name: /গ্রাম/ }).fill("আমার গ্রাম");
   await expect(page.locator('[name="pickup_geo_address"]')).toHaveValue(
     /আমার গ্রাম.*আড্ডা.*বরুড়া.*কুমিল্লা.*চট্টগ্রাম/,
@@ -52,13 +50,11 @@ test("Bangladesh locations cascade, search in Bangla, and isolate pickup from dr
   await expect(page.locator('[name="pickup_area"] option')).toHaveCount(1);
   await expect(page.locator('[name="pickup_area"]')).toHaveValue("");
   await expect(
-    dropoff.getByRole("combobox", { name: "জেলা / District", exact: true }),
+    dropoff.getByRole("combobox", { name: "জেলা", exact: true }),
   ).toBeDisabled();
   await expect(page.locator('[name="dropoff_geo_address"]')).toHaveValue("");
   await division.fill("Dhaka");
-  await pickup
-    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
-    .click();
+  await pickup.getByRole("option", { name: "ঢাকা", exact: true }).click();
   await expect(district).toHaveValue("");
   await expect(upazila).toBeDisabled();
   await expect(union).toBeDisabled();
@@ -67,15 +63,13 @@ test("Bangladesh locations cascade, search in Bangla, and isolate pickup from dr
     /আড্ডা/,
   );
   await district.fill("Shariatpur");
-  await pickup.getByRole("option", { name: /Shariatpur/ }).click();
+  await pickup.getByRole("option", { name: /শরীয়তপুর/ }).click();
   await expect(page.locator('[name="pickup_area"] option')).toHaveCount(1);
   await expect(page.getByText(/বাছাই করা ঠিকানা ঠিক আছে/)).toBeVisible();
   await district.fill("Dhaka");
-  await pickup
-    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
-    .click();
+  await pickup.getByRole("option", { name: "ঢাকা", exact: true }).click();
   await upazila.fill("Dhanmondi");
-  await pickup.getByRole("option", { name: /Dhanmondi/ }).click();
+  await pickup.getByRole("option", { name: /ধানমন্ডি/ }).click();
   await expect(page.locator('[name="pickup_area"]')).toHaveValue("Dhanmondi");
   await page.setViewportSize({ width: 390, height: 844 });
   await division.click();

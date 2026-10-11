@@ -8,6 +8,7 @@ import {
 } from "react";
 import { api, User, Offering, ProductVariant, FoodOption } from "@/lib/api";
 import { CartItem, cartLineKey } from "@/lib/cart";
+import { translateUi } from "@/lib/translations";
 type Context = {
   lang: "bn" | "en";
   setLang: (v: "bn" | "en") => void;
@@ -158,7 +159,7 @@ export function Provider({ children }: { children: ReactNode }) {
       {children}
       {message && (
         <div className="toast" role="status">
-          {message}
+          {translateUi(message, lang)}
         </div>
       )}
     </AppContext.Provider>

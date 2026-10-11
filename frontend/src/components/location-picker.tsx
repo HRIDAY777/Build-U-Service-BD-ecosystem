@@ -1,7 +1,11 @@
 "use client";
+import { TranslatedInput } from "@/components/translated-elements";
+
+import { UiText } from "@/components/ui-text";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Text } from "./provider";
+import { Text, useApp } from "./provider";
+import { translateUi } from "@/lib/translations";
 import { DistrictPhoto } from "./district-photo";
 
 type Place = {
@@ -28,7 +32,8 @@ function geography() {
       });
   return cached;
 }
-const label = (place: Place) => `${place.bnName} / ${place.name}`;
+const label = (place: Place, lang: "bn" | "en") =>
+  lang === "bn" ? place.bnName : place.name;
 
 function PlaceSelect({
   title,
@@ -43,6 +48,7 @@ function PlaceSelect({
   onChange: (place: Place | null) => void;
   disabled: boolean;
 }) {
+  const { lang } = useApp();
   const id = useId();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -60,8 +66,10 @@ function PlaceSelect({
   }
   return (
     <div className="field location-select">
-      <label htmlFor={id}>{title}</label>
-      <input
+      <label htmlFor={id}>
+        <UiText text={title} />
+      </label>
+      <TranslatedInput
         id={id}
         role="combobox"
         aria-expanded={open}
@@ -74,7 +82,7 @@ function PlaceSelect({
         }
         autoComplete="off"
         disabled={disabled}
-        value={value ? label(value) : query}
+        value={value ? label(value, lang) : query}
         placeholder="খুঁজুন বা তালিকা থেকে বাছুন / Search or select"
         maxLength={100}
         onFocus={() => {
@@ -118,7 +126,7 @@ function PlaceSelect({
           id={`${id}-list`}
           className="location-options"
           role="listbox"
-          aria-label={title}
+          aria-label={translateUi(title, lang)}
         >
           {matches.map((place, index) => (
             <button
@@ -131,11 +139,15 @@ function PlaceSelect({
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => choose(place)}
             >
-              {label(place)}
+              {label(place, lang)}
             </button>
           ))}
           {!matches.length && (
-            <p>নাম পাওয়া যায়নি—নিচে লিখুন / Not listed? Enter below.</p>
+            <p>
+              <UiText
+                text={"নাম পাওয়া যায়নি—নিচে লিখুন / Not listed? Enter below."}
+              />
+            </p>
           )}
         </div>
       )}
@@ -158,6 +170,7 @@ export function LocationPicker({
     localities: string[];
   }) => void;
 }) {
+  const { lang } = useApp();
   const root = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<Geography | null>(null);
   const [error, setError] = useState(false);
@@ -226,11 +239,18 @@ export function LocationPicker({
       </h4>
       {error ? (
         <p role="alert">
-          এলাকার তালিকা আসেনি। সম্পূর্ণ ঠিকানা লিখুন। / Location list
-          unavailable; enter the full address.
+          <UiText
+            text={
+              "এলাকার তালিকা আসেনি। সম্পূর্ণ ঠিকানা লিখুন। / Location list unavailable; enter the full address."
+            }
+          />
         </p>
       ) : (
-        !data && <p>এলাকার নাম লোড হচ্ছে… / Loading locations…</p>
+        !data && (
+          <p>
+            <UiText text={"এলাকার নাম লোড হচ্ছে… / Loading locations…"} />
+          </p>
+        )
       )}
       <div className="form-grid">
         <PlaceSelect
@@ -284,7 +304,7 @@ export function LocationPicker({
             bn="গ্রাম / মহল্লার নাম (তালিকায় না থাকলে লিখুন)"
             en="Village / neighbourhood (enter if not listed)"
           />
-          <input
+          <TranslatedInput
             value={village}
             maxLength={120}
             placeholder="শুধু গ্রাম বা মহল্লার নাম / Village or neighbourhood only"
@@ -300,7 +320,19 @@ export function LocationPicker({
           value={district?.name || defaultDistrict}
         />
       )}
-      {selected && <p>{selected}</p>}
+      {selected && (
+        <p>
+          {[
+            village.trim(),
+            union && label(union, lang),
+            upazila && label(upazila, lang),
+            district && label(district, lang),
+            division && label(division, lang),
+          ]
+            .filter(Boolean)
+            .join(", ")}
+        </p>
+      )}
       <DistrictPhoto districtId={district?.id} />
       <small>
         <Text
@@ -337,6 +369,7 @@ export function LocalityInput({
   defaultValue?: string;
   required?: boolean;
 }) {
+  const { lang } = useApp();
   const id = useId();
   const [data, setData] = useState<Geography | null>(null);
   useEffect(() => {
@@ -354,15 +387,15 @@ export function LocalityInput({
     data?.divisions
       .flatMap((division) =>
         (division.districts || []).flatMap((district) => [
-          { place: district, context: division.bnName },
+          { place: district, context: label(division, lang) },
           ...(district.upazilas || []).flatMap((upazila) => [
             {
               place: upazila,
-              context: `${district.bnName} · ${division.bnName}`,
+              context: `${label(district, lang)} · ${label(division, lang)}`,
             },
             ...(upazila.areas || []).map((area) => ({
               place: area,
-              context: `${upazila.bnName}, ${district.bnName}`,
+              context: `${label(upazila, lang)}, ${label(district, lang)}`,
             })),
           ]),
         ]),
@@ -375,7 +408,7 @@ export function LocalityInput({
       ) || [];
   return (
     <>
-      <input
+      <TranslatedInput
         name={name}
         list={id}
         maxLength={100}
@@ -387,7 +420,7 @@ export function LocalityInput({
       <datalist id={id}>
         {places.map(({ place, context }, index) => (
           <option key={`${place.id}-${index}`} value={place.name}>
-            {place.bnName} · {context}
+            {label(place, lang)} · {context}
           </option>
         ))}
       </datalist>

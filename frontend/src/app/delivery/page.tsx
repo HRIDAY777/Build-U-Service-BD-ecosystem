@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import { DeliveryForm } from "@/components/forms";
 import { Photo } from "@/components/photo";
 import { Text } from "@/components/provider";
@@ -16,7 +17,9 @@ export default function Delivery() {
           />
         </div>
         <div className="delivery-brand-copy">
-          <span className="eyebrow">U SERVICE · DELIVERY</span>
+          <span className="eyebrow">
+            <UiText text={"U SERVICE · DELIVERY"} />
+          </span>
           <h1>
             <Text
               bn="আপনার পার্সেল, আমাদের যত্নে।"
@@ -39,7 +42,7 @@ export default function Delivery() {
       </section>
       <DeliveryForm />
       <Link className="button secondary" href="/rider">
-        রাইডার ড্যাশবোর্ড / Rider dashboard
+        <UiText text={"রাইডার ড্যাশবোর্ড / Rider dashboard"} />
       </Link>
       <DeliveryList />
     </div>

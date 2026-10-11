@@ -1,4 +1,5 @@
 "use client";
+import { UiText } from "@/components/ui-text";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
@@ -84,7 +85,7 @@ export function ProjectHistory({ applicationId }: { applicationId: string }) {
         <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>
       ) : error ? (
         <p role="alert">
-          {error}{" "}
+          <UiText text={error} />{" "}
           <button type="button" onClick={() => void load()}>
             {t("আবার চেষ্টা", "Retry")}
           </button>
@@ -98,8 +99,12 @@ export function ProjectHistory({ applicationId }: { applicationId: string }) {
             {events.map((event) => (
               <li key={event.id}>
                 <strong>
-                  {labels[event.action]?.[lang === "bn" ? 0 : 1] ||
-                    event.action}
+                  <UiText
+                    text={
+                      labels[event.action]?.[lang === "bn" ? 0 : 1] ||
+                      event.action
+                    }
+                  />
                 </strong>
                 {event.status && (
                   <>

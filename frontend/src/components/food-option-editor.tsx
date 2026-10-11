@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useState } from "react";
 import { api } from "@/lib/api";
 type Choice = {
@@ -57,21 +59,31 @@ export function FoodOptionEditor({ id }: { id: number }) {
         disabled={busy}
         onClick={load}
       >
-        খাবারের অপশন পরিচালনা / Manage food options
+        <UiText text={"খাবারের অপশন পরিচালনা / Manage food options"} />
       </button>
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p role="status">
+          <UiText text={message} />
+        </p>
+      )}
       {groups && (
         <>
           <p>
-            প্রতিটি অপশনের মূল্য খাবারের মূল্যের সাথে যোগ হবে। / Option prices
-            are added to the meal price.
+            <UiText
+              text={
+                "প্রতিটি অপশনের মূল্য খাবারের মূল্যের সাথে যোগ হবে। / Option prices are added to the meal price."
+              }
+            />
           </p>
           {groups.map((group, index) => (
             <fieldset key={group.id ?? `new-${index}`} disabled={busy}>
-              <legend>অপশন গ্রুপ / Option group {index + 1}</legend>
+              <legend>
+                <UiText text={"অপশন গ্রুপ / Option group"} />
+                {index + 1}
+              </legend>
               <div className="form-grid">
                 <label className="field">
-                  English name
+                  <UiText text={"English name"} />
                   <input
                     value={group.name}
                     maxLength={100}
@@ -79,7 +91,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                   />
                 </label>
                 <label className="field">
-                  বাংলা নাম
+                  <UiText text={"বাংলা নাম"} />
                   <input
                     value={group.name_bn}
                     maxLength={100}
@@ -87,7 +99,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                   />
                 </label>
                 <label className="field">
-                  কমপক্ষে বাছাই / Minimum
+                  <UiText text={"কমপক্ষে বাছাই / Minimum"} />
                   <input
                     type="number"
                     min={0}
@@ -99,7 +111,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                   />
                 </label>
                 <label className="field">
-                  সর্বোচ্চ বাছাই / Maximum
+                  <UiText text={"সর্বোচ্চ বাছাই / Maximum"} />
                   <input
                     type="number"
                     min={1}
@@ -116,13 +128,13 @@ export function FoodOptionEditor({ id }: { id: number }) {
                     checked={group.active}
                     onChange={(e) => edit(index, { active: e.target.checked })}
                   />
-                  চালু / Active
+                  <UiText text={"চালু / Active"} />
                 </label>
               </div>
               {group.options.map((option, n) => (
                 <div className="form-grid" key={option.id ?? `new-${n}`}>
                   <label className="field">
-                    Option name
+                    <UiText text={"Option name"} />
                     <input
                       value={option.name}
                       maxLength={100}
@@ -136,7 +148,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                     />
                   </label>
                   <label className="field">
-                    অপশনের বাংলা নাম
+                    <UiText text={"অপশনের বাংলা নাম"} />
                     <input
                       value={option.name_bn}
                       maxLength={100}
@@ -150,7 +162,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                     />
                   </label>
                   <label className="field">
-                    অতিরিক্ত মূল্য / Extra price (৳)
+                    <UiText text={"অতিরিক্ত মূল্য / Extra price (৳)"} />
                     <input
                       type="number"
                       min={0}
@@ -177,7 +189,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                         })
                       }
                     />
-                    চালু / Active
+                    <UiText text={"চালু / Active"} />
                   </label>
                 </div>
               ))}
@@ -193,7 +205,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
                   })
                 }
               >
-                অপশন যোগ করুন / Add option
+                <UiText text={"অপশন যোগ করুন / Add option"} />
               </button>
             </fieldset>
           ))}
@@ -214,7 +226,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
               ])
             }
           >
-            গ্রুপ যোগ করুন / Add group
+            <UiText text={"গ্রুপ যোগ করুন / Add group"} />
           </button>
           <button
             className="button"
@@ -222,7 +234,7 @@ export function FoodOptionEditor({ id }: { id: number }) {
             disabled={busy}
             onClick={save}
           >
-            সংরক্ষণ / Save options
+            <UiText text={"সংরক্ষণ / Save options"} />
           </button>
         </>
       )}

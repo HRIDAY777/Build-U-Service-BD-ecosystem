@@ -174,33 +174,50 @@ function ServicePackageTable({
       <span className="eyebrow">
         <UiText text={"SERVICE BY SERVICE"} />
       </span>
-      <h2 id="service-package-title">প্রতিটি সেবার আলাদা প্যাকেজ</h2>
+      <h2 id="service-package-title">
+        <UiText text={"প্রতিটি সেবার আলাদা প্যাকেজ"} />
+      </h2>
       <p className="page-intro">
-        যে সেবাটি দরকার, শুধু সেটির প্যাকেজ নিন। একাধিক সেবা একসাথে নিলে টিম
-        কম্বাইন্ড কোটেশন দেবে।
+        <UiText
+          text={
+            "যে সেবাটি দরকার, শুধু সেটির প্যাকেজ নিন। একাধিক সেবা একসাথে নিলে টিম কম্বাইন্ড কোটেশন দেবে।"
+          }
+        />
       </p>
       <div className="service-package-list">
         {servicePackageGroups.map(([service, bn, prices, benefits]) => (
           <article className="service-package-group" key={service}>
             <div className="service-package-heading">
-              <h3>{bn}</h3>
-              <span>{service}</span>
+              <h3>
+                <Text bn={bn} en={service} />
+              </h3>
+              <span>
+                <UiText text="Choose your package" />
+              </span>
             </div>
             <div className="service-tier-grid">
               {tierNames.map((tier, index) => (
                 <div className={`service-tier tier-${index}`} key={tier}>
-                  <span className="eyebrow">{tier}</span>
-                  <strong>{prices[index]}</strong>
-                  <p>{benefits[index]}</p>
+                  <span className="eyebrow">
+                    <UiText text={tier} />
+                  </span>
+                  <strong>
+                    <UiText text={prices[index]} />
+                  </strong>
+                  <p>
+                    <UiText text={benefits[index]} />
+                  </p>
                   <button
                     type="button"
                     className="button secondary"
                     aria-pressed={selection.tiers?.[service] === tierIds[index]}
                     onClick={() => onSelect(service, tierIds[index])}
                   >
-                    {selection.tiers?.[service] === tierIds[index]
-                      ? "বাছাই করা হয়েছে"
-                      : "বাছুন"}
+                    {selection.tiers?.[service] === tierIds[index] ? (
+                      <UiText text={"বাছাই করা হয়েছে"} />
+                    ) : (
+                      <UiText text={"বাছুন"} />
+                    )}
                   </button>
                 </div>
               ))}
@@ -209,8 +226,11 @@ function ServicePackageTable({
         ))}
       </div>
       <p className="event-package-note">
-        মূল্যগুলো ডেমো প্রাথমিক মূল্য। অতিথির সংখ্যা, তারিখ, এলাকা ও চূড়ান্ত
-        সেবার পরিমাণ দেখে টিম নিশ্চিত কোটেশন দেবে।
+        <UiText
+          text={
+            "মূল্যগুলো ডেমো প্রাথমিক মূল্য। অতিথির সংখ্যা, তারিখ, এলাকা ও চূড়ান্ত সেবার পরিমাণ দেখে টিম নিশ্চিত কোটেশন দেবে।"
+          }
+        />
       </p>
     </section>
   );
@@ -230,22 +250,36 @@ function EventPackages({
           <span className="eyebrow">
             <UiText text={"U EVENTS COLLECTION"} />
           </span>
-          <h2 id="event-packages-title">আপনার আয়োজনের জন্য প্যাকেজ বাছুন</h2>
+          <h2 id="event-packages-title">
+            <UiText text={"আপনার আয়োজনের জন্য প্যাকেজ বাছুন"} />
+          </h2>
         </div>
-        <span className="subtle">প্রাথমিক বাজেট · কাস্টম কোটেশন দেওয়া হবে</span>
+        <span className="subtle">
+          <UiText text={"প্রাথমিক বাজেট · কাস্টম কোটেশন দেওয়া হবে"} />
+        </span>
       </div>
       <div className="event-package-grid">
         {eventPackages.map((pkg, index) => (
           <article className={`event-package-card ${pkg.tone}`} key={pkg.name}>
             <Photo src={pkg.image} alt={`${pkg.name} / ${pkg.en}`} />
             <div className="event-package-body">
-              <span className="eyebrow">{pkg.en}</span>
-              <h3>{pkg.name}</h3>
-              <p className="event-package-price">{pkg.price}</p>
-              <p>{pkg.guests}</p>
+              <span className="eyebrow">
+                <UiText text="U EVENTS" />
+              </span>
+              <h3>
+                <Text bn={pkg.name} en={pkg.en} />
+              </h3>
+              <p className="event-package-price">
+                <UiText text={pkg.price} />
+              </p>
+              <p>
+                <UiText text={pkg.guests} />
+              </p>
               <ul>
                 {pkg.includes.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>
+                    <UiText text={item} />
+                  </li>
                 ))}
               </ul>
               <button
@@ -254,17 +288,22 @@ function EventPackages({
                 aria-pressed={selection.bundle === bundleIds[index]}
                 onClick={() => onSelect(bundleIds[index])}
               >
-                {selection.bundle === bundleIds[index]
-                  ? "বাছাই করা হয়েছে"
-                  : "এই প্যাকেজ নিয়ে শুরু করুন"}
+                {selection.bundle === bundleIds[index] ? (
+                  <UiText text={"বাছাই করা হয়েছে"} />
+                ) : (
+                  <UiText text={"এই প্যাকেজ নিয়ে শুরু করুন"} />
+                )}
               </button>
             </div>
           </article>
         ))}
       </div>
       <p className="event-package-note">
-        অতিথির সংখ্যা, এলাকা, তারিখ ও সেবার ধরন অনুযায়ী টিম চূড়ান্ত মূল্য
-        জানাবে। ছবিগুলো পরিকল্পনার অনুপ্রেরণার জন্য।
+        <UiText
+          text={
+            "অতিথির সংখ্যা, এলাকা, তারিখ ও সেবার ধরন অনুযায়ী টিম চূড়ান্ত মূল্য জানাবে। ছবিগুলো পরিকল্পনার অনুপ্রেরণার জন্য।"
+          }
+        />
       </p>
     </section>
   );
@@ -396,7 +435,7 @@ export default function EventsPage() {
             eager
           />
           <span className="photo-demo-label">
-            স্টক ছবি · পরিকল্পনার অনুপ্রেরণা
+            <UiText text={"স্টক ছবি · পরিকল্পনার অনুপ্রেরণা"} />
           </span>
         </div>
         <EventPackages selection={selection} onSelect={selectBundle} />
@@ -425,12 +464,14 @@ export default function EventsPage() {
           eager
         />
         <span className="photo-demo-label">
-          স্টক ছবি · পরিকল্পনার অনুপ্রেরণা
+          <UiText text={"স্টক ছবি · পরিকল্পনার অনুপ্রেরণা"} />
         </span>
       </div>
       <EventPackages selection={selection} onSelect={selectBundle} />
       <ServicePackageTable selection={selection} onSelect={selectTier} />
-      <span className="eyebrow">U EVENTS</span>
+      <span className="eyebrow">
+        <UiText text={"U EVENTS"} />
+      </span>
       <h1>
         <Text bn="বিয়ে ও ইভেন্ট ম্যানেজমেন্ট" en="Wedding & event management" />
       </h1>
@@ -443,12 +484,14 @@ export default function EventsPage() {
       </p>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {(selection.bundle || Object.keys(selection.tiers || {}).length > 0) && (
         <div className="notice" role="status">
-          <strong>নির্বাচিত প্যাকেজ / Selected package</strong>
+          <strong>
+            <UiText text={"নির্বাচিত প্যাকেজ / Selected package"} />
+          </strong>
           {selection.bundle && (
             <p>{eventPackages[bundleIds.indexOf(selection.bundle)]?.name}</p>
           )}
@@ -462,11 +505,14 @@ export default function EventsPage() {
             className="button secondary"
             onClick={() => selectPackage({})}
           >
-            প্যাকেজ সরান / Clear packages
+            <UiText text={"প্যাকেজ সরান / Clear packages"} />
           </button>
           <p>
-            ডেমো মূল্য চূড়ান্ত নয়। টিমের নিশ্চিত কোটেশন গ্রহণের পর আয়োজন নিশ্চিত
-            হবে।
+            <UiText
+              text={
+                "ডেমো মূল্য চূড়ান্ত নয়। টিমের নিশ্চিত কোটেশন গ্রহণের পর আয়োজন নিশ্চিত হবে।"
+              }
+            />
           </p>
         </div>
       )}
@@ -633,7 +679,7 @@ export default function EventsPage() {
                 }
               }}
             >
-              View history / ইতিহাস দেখুন
+              <UiText text={"View history / ইতিহাস দেখুন"} />
             </button>
             {history[event.id] && (
               <ul>
@@ -669,7 +715,8 @@ export default function EventsPage() {
             )}
             {event.quoted_budget && (
               <p className="notice">
-                Quoted budget: ৳{event.quoted_budget}
+                <UiText text={"Quoted budget: ৳"} />
+                {event.quoted_budget}
                 {event.staff_notes && (
                   <>
                     <br />
@@ -694,7 +741,7 @@ export default function EventsPage() {
                   }
                 }}
               >
-                Accept quote / কোট গ্রহণ করুন
+                <UiText text={"Accept quote / কোট গ্রহণ করুন"} />
               </button>
             )}
             {(["requested", "reviewing", "quoted"] as string[]).includes(

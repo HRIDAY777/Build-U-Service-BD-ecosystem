@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
@@ -60,28 +62,40 @@ export function RiderDashboard() {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>রাইডার / Rider</h1>
+        <h1>
+          <UiText text={"রাইডার / Rider"} />
+        </h1>
         <Link className="button" href="/login">
-          লগইন / Sign in
+          <UiText text={"লগইন / Sign in"} />
         </Link>
       </div>
     );
   if (!user.roles.includes("Rider"))
     return (
       <div className="page-wrap">
-        <h1>রাইডার হিসেবে যুক্ত হোন</h1>
-        <p>অ্যাডমিনের অনুমোদিত Rider অ্যাকাউন্ট দিয়ে এই অংশ ব্যবহার করা যায়।</p>
+        <h1>
+          <UiText text={"রাইডার হিসেবে যুক্ত হোন"} />
+        </h1>
+        <p>
+          <UiText
+            text={
+              "অ্যাডমিনের অনুমোদিত Rider অ্যাকাউন্ট দিয়ে এই অংশ ব্যবহার করা যায়।"
+            }
+          />
+        </p>
         <Link className="button" href="/contact?interest=rider">
-          আবেদন / Apply
+          <UiText text={"আবেদন / Apply"} />
         </Link>
       </div>
     );
   return (
     <div className="page-wrap">
-      <h1>রাইডার ড্যাশবোর্ড / Rider dashboard</h1>
+      <h1>
+        <UiText text={"রাইডার ড্যাশবোর্ড / Rider dashboard"} />
+      </h1>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {profile ? (
@@ -89,52 +103,69 @@ export function RiderDashboard() {
           <h2>{profile.name}</h2>
           <div className="stat-grid">
             <article className="record">
-              চলমান কাজ / Active<strong>{profile.active_jobs}</strong>
+              <UiText text={"চলমান কাজ / Active"} />
+              <strong>{profile.active_jobs}</strong>
             </article>
             <article className="record">
-              সম্পন্ন / Completed<strong>{profile.completed_jobs}</strong>
+              <UiText text={"সম্পন্ন / Completed"} />
+              <strong>{profile.completed_jobs}</strong>
             </article>
             <article className="record">
-              জমা যাচাই বাকি COD<strong>৳{profile.pending_cod}</strong>
+              <UiText text={"জমা যাচাই বাকি COD"} />
+              <strong>৳{profile.pending_cod}</strong>
             </article>
             <article className="record">
-              নথিভুক্ত আয় / Recorded earnings
+              <UiText text={"নথিভুক্ত আয় / Recorded earnings"} />
               <strong>৳{profile.recorded_earnings}</strong>
             </article>
           </div>
           <p>
-            আয়: অ্যাডমিনের নির্ধারিত প্রতি-ডেলিভারি হার কাজ বরাদ্দের সময় সংরক্ষণ
-            করা হয়; শুধু সম্পন্ন কাজ গণনা করা হয়। এটি টাকা পরিশোধের রেকর্ড নয়।
-            হার নির্ধারিত না থাকলে ৳০ দেখাবে।
+            <UiText
+              text={
+                "আয়: অ্যাডমিনের নির্ধারিত প্রতি-ডেলিভারি হার কাজ বরাদ্দের সময় সংরক্ষণ করা হয়; শুধু সম্পন্ন কাজ গণনা করা হয়। এটি টাকা পরিশোধের রেকর্ড নয়। হার নির্ধারিত না থাকলে ৳০ দেখাবে।"
+              }
+            />
           </p>
           <form className="form-panel" onSubmit={update}>
             <article className="record">
-              <h2>কাজের সারাংশ / Performance</h2>
+              <h2>
+                <UiText text={"কাজের সারাংশ / Performance"} />
+              </h2>
               <p>
-                গ্রাহক রেটিং:{" "}
-                {profile.average_rating === null
-                  ? "এখনও নেই / No ratings yet"
-                  : `${profile.average_rating.toFixed(2)}/5`}{" "}
-                · {profile.rating_count}টি মূল্যায়ন
+                <UiText text={"গ্রাহক রেটিং:"} />{" "}
+                {profile.average_rating === null ? (
+                  <UiText text={"এখনও নেই / No ratings yet"} />
+                ) : (
+                  `${profile.average_rating.toFixed(2)}/5`
+                )}{" "}
+                · {profile.rating_count}
+                <UiText text={"টি মূল্যায়ন"} />
               </p>
               <p>
-                ব্যর্থ: {profile.failed_jobs} · ফেরত: {profile.returned_jobs}
+                <UiText text={"ব্যর্থ:"} />
+                {profile.failed_jobs}
+                <UiText text={"· ফেরত:"} />
+                {profile.returned_jobs}
               </p>
               <Link className="text-link" href="/support">
-                সাপোর্ট / Rider support
+                <UiText text={"সাপোর্ট / Rider support"} />
               </Link>
             </article>
-            <h2>কাজের প্রাপ্যতা / Availability</h2>
+            <h2>
+              <UiText text={"কাজের প্রাপ্যতা / Availability"} />
+            </h2>
             <label>
               <input
                 name="available"
                 type="checkbox"
                 defaultChecked={profile.available}
               />{" "}
-              নতুন কাজ নিতে প্রস্তুত / Available for new assignments
+              <UiText
+                text={"নতুন কাজ নিতে প্রস্তুত / Available for new assignments"}
+              />
             </label>
             <label className="field">
-              যানবাহন / Vehicle
+              <UiText text={"যানবাহন / Vehicle"} />
               <input
                 name="vehicle"
                 maxLength={80}
@@ -142,16 +173,16 @@ export function RiderDashboard() {
               />
             </label>
             <button className="button" disabled={busy}>
-              সংরক্ষণ / Save availability
+              <UiText text={"সংরক্ষণ / Save availability"} />
             </button>
           </form>
           <button className="button secondary" onClick={() => void load()}>
-            হিসাব রিফ্রেশ / Refresh summary
+            <UiText text={"হিসাব রিফ্রেশ / Refresh summary"} />
           </button>
         </>
       ) : (
         <button className="button secondary" onClick={() => void load()}>
-          লোড / Retry
+          <UiText text={"লোড / Retry"} />
         </button>
       )}
       <DeliveryList />

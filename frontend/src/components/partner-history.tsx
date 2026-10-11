@@ -1,4 +1,5 @@
 "use client";
+import { UiText } from "@/components/ui-text";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
@@ -37,7 +38,11 @@ export function PartnerHistory({ applicationId }: { applicationId: string }) {
   return (
     <details onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary>
-        {lang === "bn" ? "আবেদনের ইতিহাস" : "Application history"}
+        {lang === "bn" ? (
+          <UiText text={"আবেদনের ইতিহাস"} />
+        ) : (
+          <UiText text={"Application history"} />
+        )}
       </summary>
       {open && <HistoryEvents applicationId={applicationId} />}
     </details>
@@ -85,7 +90,9 @@ function HistoryEvents({ applicationId }: { applicationId: string }) {
       {loading ? (
         <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>
       ) : error ? (
-        <p role="alert">{error}</p>
+        <p role="alert">
+          <UiText text={error} />
+        </p>
       ) : (
         <>
           {!events.length && (
@@ -94,7 +101,12 @@ function HistoryEvents({ applicationId }: { applicationId: string }) {
           <ol>
             {events.map((event) => (
               <li key={event.id}>
-                {labels[event.action]?.[lang === "bn" ? 0 : 1] || event.action}
+                <UiText
+                  text={
+                    labels[event.action]?.[lang === "bn" ? 0 : 1] ||
+                    event.action
+                  }
+                />
                 {event.status &&
                   ` · ${lang === "bn" ? statuses[event.status] || event.status : event.status}`}
                 <p>

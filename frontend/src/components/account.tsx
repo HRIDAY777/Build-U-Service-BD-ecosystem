@@ -1,4 +1,6 @@
 "use client";
+import { TranslatedInput } from "@/components/translated-elements";
+
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -216,7 +218,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
             />
           </p>
           <Link href="/login" className="button">
-            লগইন / Sign in
+            <UiText text={"লগইন / Sign in"} />
           </Link>
         </div>
       </div>
@@ -226,12 +228,18 @@ export function Account({ operations = false }: { operations?: boolean }) {
       <div className="record-head">
         <div>
           <span className="eyebrow">
-            {operations ? "OPERATIONS WORKSPACE" : "YOUR U SERVICE"}
+            {operations ? (
+              <UiText text={"OPERATIONS WORKSPACE"} />
+            ) : (
+              <UiText text={"YOUR U SERVICE"} />
+            )}
           </span>
           <h1>
-            {operations
-              ? "Operations"
-              : `স্বাগতম, ${user.first_name || user.username}`}
+            {operations ? (
+              <UiText text={"Operations"} />
+            ) : (
+              `${lang === "bn" ? "স্বাগতম" : "Welcome"}, ${user.first_name || user.username}`
+            )}
           </h1>
         </div>
         <button
@@ -308,7 +316,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
       </div>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {tab === "events" && (
@@ -327,51 +335,76 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 <div>
                   <h3>{event.title}</h3>
                   <p>
-                    {event.event_type} · {event.event_date} ·{" "}
-                    {event.guest_count}
+                    <UiText
+                      text={
+                        event.event_type.charAt(0).toUpperCase() +
+                        event.event_type.slice(1)
+                      }
+                    />{" "}
+                    · {event.event_date} · {event.guest_count}
                     <UiText text={"guests"} />
                     <br />
                     {event.venue}, {event.area}
                   </p>
                 </div>
                 <span className="status">
-                  {event.status.replaceAll("_", " ")}
+                  <UiText text={event.status} />
                 </span>
               </div>
-              <p>{event.services.join(" · ") || "Planning consultation"}</p>
+              <p>
+                {event.services.length ? (
+                  event.services.map((service, index) => (
+                    <span key={service}>
+                      {index > 0 && " · "}
+                      <UiText text={service} />
+                    </span>
+                  ))
+                ) : (
+                  <UiText text="Planning consultation" />
+                )}
+              </p>
               {event.package_selection?.bundle && (
                 <p>
-                  প্যাকেজ / Package:{" "}
-                  {
-                    (
-                      {
-                        essential: "সাদামাটা আয়োজন / Essential gathering",
-                        celebration: "উৎসব আয়োজন / Celebration",
-                        wedding:
-                          "সম্পূর্ণ বিবাহ পরিকল্পনা / Full wedding planning",
-                      } as Record<string, string>
-                    )[event.package_selection.bundle]
-                  }
+                  <UiText text={"প্যাকেজ / Package:"} />{" "}
+                  <UiText
+                    text={
+                      (
+                        {
+                          essential: "সাদামাটা আয়োজন / Essential gathering",
+                          celebration: "উৎসব আয়োজন / Celebration",
+                          wedding:
+                            "সম্পূর্ণ বিবাহ পরিকল্পনা / Full wedding planning",
+                        } as Record<string, string>
+                      )[event.package_selection.bundle] || ""
+                    }
+                  />
                 </p>
               )}
               {Object.entries(event.package_selection?.tiers || {}).map(
                 ([service, tier]) => (
                   <p key={service}>
-                    {service}:{" "}
-                    {
-                      (
-                        {
-                          general: "সাধারণ / General",
-                          silver: "সিলভার / Silver",
-                          gold: "গোল্ডেন / Golden",
-                          ultra_gold: "আল্ট্রা গোল্ডেন / Ultra Golden",
-                        } as Record<string, string>
-                      )[tier]
-                    }
+                    <UiText text={service} />:{" "}
+                    <UiText
+                      text={
+                        (
+                          {
+                            general: "সাধারণ / General",
+                            silver: "সিলভার / Silver",
+                            gold: "গোল্ডেন / Golden",
+                            ultra_gold: "আল্ট্রা গোল্ডেন / Ultra Golden",
+                          } as Record<string, string>
+                        )[tier] || ""
+                      }
+                    />
                   </p>
                 ),
               )}
-              {event.budget !== null && <p>Customer budget: ৳{event.budget}</p>}
+              {event.budget !== null && (
+                <p>
+                  <UiText text={"Customer budget: ৳"} />
+                  {event.budget}
+                </p>
+              )}
               {event.notes && (
                 <p>
                   <UiText text={"Planning notes:"} />
@@ -380,7 +413,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
               )}
               {event.quoted_budget && (
                 <p className="notice">
-                  Quoted budget: ৳{event.quoted_budget}
+                  <UiText text={"Quoted budget: ৳"} />
+                  {event.quoted_budget}
                   {event.staff_notes && (
                     <>
                       <br />
@@ -441,7 +475,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   </option>
                   {(eventNextStates[event.status] || []).map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      <UiText text={status} />
                     </option>
                   ))}
                 </select>
@@ -462,7 +496,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
               <div className="empty">
                 <p>
                   <UiText text={"No"} />
-                  {tab} yet.
+                  {tab}
+                  <UiText text={"yet."} />
                 </p>
                 <Link
                   className="button"
@@ -492,7 +527,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     </p>
                   </div>
                   <span className="status">
-                    {r.status.replaceAll("_", " ")}
+                    <UiText text={r.status} />
                   </span>
                 </div>
                 <p>
@@ -510,14 +545,22 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 )}
                 {r.duration_minutes != null && (
                   <p>
-                    কাজের সময় / Duration: {r.duration_minutes} মিনিট / minutes ·
-                    বাংলাদেশ সময় / Bangladesh time
+                    <UiText text={"কাজের সময় / Duration:"} />
+                    {r.duration_minutes}
+                    <UiText
+                      text={"মিনিট / minutes · বাংলাদেশ সময় / Bangladesh time"}
+                    />
                   </p>
                 )}
                 {r.preparation_minutes != null && (
                   <p>
-                    খাবার প্রস্তুতির আনুমানিক সময় / Estimated food preparation:{" "}
-                    {r.preparation_minutes} মিনিট / minutes
+                    <UiText
+                      text={
+                        "খাবার প্রস্তুতির আনুমানিক সময় / Estimated food preparation:"
+                      }
+                    />{" "}
+                    {r.preparation_minutes}
+                    <UiText text={"মিনিট / minutes"} />
                   </p>
                 )}
                 <div className="record-actions">
@@ -526,7 +569,9 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       className="button secondary"
                       href={`/delivery/${r.id}`}
                     >
-                      বিস্তারিত ও পরিচালনা / Delivery details
+                      <UiText
+                        text={"বিস্তারিত ও পরিচালনা / Delivery details"}
+                      />
                     </Link>
                   )}
                   {!operations &&
@@ -645,7 +690,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       {tab === "bookings" ? (
                         <ProviderPicker />
                       ) : (
-                        <input
+                        <TranslatedInput
                           name="worker"
                           type="number"
                           min="1"
@@ -738,7 +783,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         );
                       }}
                     >
-                      <input
+                      <TranslatedInput
                         name="reference"
                         required
                         placeholder="Cash deposit reference"
@@ -817,7 +862,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 load();
               }}
             >
-              Mark all as read / সবগুলো পড়া হয়েছে
+              <UiText text={"Mark all as read / সবগুলো পড়া হয়েছে"} />
             </button>
           )}
           {!notifications.length && (
@@ -889,9 +934,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
               <UiText text={"Your privacy choices"} />
             </h2>
             <p className="notice">
-              {user.email_verified
-                ? "Email verified"
-                : "Your email is not verified yet."}
+              {user.email_verified ? (
+                <UiText text={"Email verified"} />
+              ) : (
+                <UiText text={"Your email is not verified yet."} />
+              )}
             </p>
             {!user.email_verified && (
               <button
@@ -1049,7 +1096,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   <span>
                     <UiText text={"Label"} />
                   </span>
-                  <input
+                  <TranslatedInput
                     name="label"
                     required
                     maxLength={60}
@@ -1078,7 +1125,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   <span>
                     <UiText text={"Phone"} />
                   </span>
-                  <input
+                  <TranslatedInput
                     name="phone"
                     required
                     pattern="\+?[0-9]{10,15}"
@@ -1138,7 +1185,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </label>
               </div>
               <button className="button">
-                {editingAddress ? "Update address" : "Save address"}
+                {editingAddress ? (
+                  <UiText text={"Update address"} />
+                ) : (
+                  <UiText text={"Save address"} />
+                )}
               </button>
               {editingAddress && (
                 <button

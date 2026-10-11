@@ -96,14 +96,19 @@ export function DeliveryList() {
   if (!user) return null;
   return (
     <section className="section">
-      <h2>পার্সেল ট্র্যাকিং / Parcel tracking</h2>
+      <h2>
+        <UiText text={"পার্সেল ট্র্যাকিং / Parcel tracking"} />
+      </h2>
       <p>
-        আপনার অনুমতি অনুযায়ী বুকিংগুলো দেখানো হচ্ছে। অবস্থানটি সর্বশেষ
-        স্ট্যাটাস; এটি লাইভ GPS নয়।
+        <UiText
+          text={
+            "আপনার অনুমতি অনুযায়ী বুকিংগুলো দেখানো হচ্ছে। অবস্থানটি সর্বশেষ স্ট্যাটাস; এটি লাইভ GPS নয়।"
+          }
+        />
       </p>
       <form className="search-row" action="/delivery/track">
         <label className="field">
-          বুকিং রেফারেন্স / Booking reference
+          <UiText text={"বুকিং রেফারেন্স / Booking reference"} />
           <input
             name="reference"
             required
@@ -111,11 +116,13 @@ export function DeliveryList() {
             maxLength={36}
           />
         </label>
-        <button className="button">ট্র্যাক করুন / Track</button>
+        <button className="button">
+          <UiText text={"ট্র্যাক করুন / Track"} />
+        </button>
       </form>
       <div className="record-actions">
         <label className="field">
-          স্ট্যাটাস / Status
+          <UiText text={"স্ট্যাটাস / Status"} />
           <select
             value={status}
             onChange={(e) => {
@@ -123,10 +130,12 @@ export function DeliveryList() {
               setPage(1);
             }}
           >
-            <option value="">সব / All</option>
+            <option value="">
+              <UiText text={"সব / All"} />
+            </option>
             {Object.entries(labels).map(([value, label]) => (
               <option key={value} value={value}>
-                {label}
+                <UiText text={label} />
               </option>
             ))}
           </select>
@@ -136,22 +145,29 @@ export function DeliveryList() {
           disabled={loading}
           onClick={() => void load()}
         >
-          রিফ্রেশ / Refresh
+          <UiText text={"রিফ্রেশ / Refresh"} />
         </button>
       </div>
       {error && (
         <p role="alert" className="error">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {loading ? (
-        <p role="status">লোড হচ্ছে / Loading…</p>
+        <p role="status">
+          <UiText text={"লোড হচ্ছে / Loading…"} />
+        </p>
       ) : (
         result && (
           <>
-            <p>{result.count}টি বুকিং / bookings</p>
+            <p>
+              {result.count}
+              <UiText text={"টি বুকিং / bookings"} />
+            </p>
             {!result.results.length && (
-              <p>কোনো বুকিং নেই / No matching bookings.</p>
+              <p>
+                <UiText text={"কোনো বুকিং নেই / No matching bookings."} />
+              </p>
             )}
             {result.results.map((parcel) => (
               <article className="record" key={parcel.id}>
@@ -161,14 +177,16 @@ export function DeliveryList() {
                   </Link>
                 </h3>
                 <p className="status">
-                  {labels[parcel.status] || parcel.status}
+                  <UiText text={labels[parcel.status] || parcel.status} />
                 </p>
                 <p>
                   {parcel.pickup.area} → {parcel.dropoff.area} · ৳{parcel.fee}
                 </p>
                 <p className="delivery-reference">{parcel.id}</p>
                 <Link className="text-link" href={`/delivery/${parcel.id}`}>
-                  বিস্তারিত ও ট্র্যাকিং / Details and tracking
+                  <UiText
+                    text={"বিস্তারিত ও ট্র্যাকিং / Details and tracking"}
+                  />
                 </Link>
               </article>
             ))}
@@ -178,7 +196,7 @@ export function DeliveryList() {
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
               >
-                আগের / Previous
+                <UiText text={"আগের / Previous"} />
               </button>
               <span>
                 <UiText text={"Page"} />
@@ -189,7 +207,7 @@ export function DeliveryList() {
                 disabled={!result.next}
                 onClick={() => setPage(page + 1)}
               >
-                পরের / Next
+                <UiText text={"পরের / Next"} />
               </button>
             </div>
           </>
@@ -272,65 +290,100 @@ export function DeliveryTracking({ id }: { id: string }) {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>পার্সেল ট্র্যাকিং</h1>
-        <p>ব্যক্তিগত বুকিং দেখতে লগইন করুন।</p>
+        <h1>
+          <UiText text={"পার্সেল ট্র্যাকিং"} />
+        </h1>
+        <p>
+          <UiText text={"ব্যক্তিগত বুকিং দেখতে লগইন করুন।"} />
+        </p>
         <Link className="button" href="/login">
-          লগইন / Sign in
+          <UiText text={"লগইন / Sign in"} />
         </Link>
       </div>
     );
   return (
     <div className="page-wrap delivery-tracking-page">
       <Link href="/delivery" className="text-link">
-        ← ডেলিভারি / Deliveries
+        <UiText text={"← ডেলিভারি / Deliveries"} />
       </Link>
-      <h1>পার্সেল ট্র্যাকিং / Parcel tracking</h1>
+      <h1>
+        <UiText text={"পার্সেল ট্র্যাকিং / Parcel tracking"} />
+      </h1>
       {error && (
         <p role="alert" className="error">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {!parcel ? (
         <button className="button secondary" onClick={() => void load()}>
-          লোড / Retry
+          <UiText text={"লোড / Retry"} />
         </button>
       ) : (
         <>
           <article className="record">
             <h2>{parcel.description}</h2>
-            <p className="delivery-reference">রেফারেন্স: {parcel.id}</p>
-            <p className="status">{labels[parcel.status]}</p>
-            <p>বুকিং: {new Date(parcel.created_at).toLocaleString()}</p>
+            <p className="delivery-reference">
+              <UiText text={"রেফারেন্স:"} />
+              {parcel.id}
+            </p>
+            <p className="status">
+              <UiText text={labels[parcel.status]} />
+            </p>
             <p>
-              ওজন / Weight: {parcel.weight_kg} kg · {parcel.package_type}
+              <UiText text={"বুকিং:"} />
+              {new Date(parcel.created_at).toLocaleString()}
+            </p>
+            <p>
+              <UiText text={"ওজন / Weight:"} />
+              {parcel.weight_kg}
+              <UiText text={"kg ·"} />
+              {parcel.package_type}
               {" · "}
-              {parcel.quantity}টি পার্সেল
-              {parcel.fragile ? " · ভঙ্গুর / Fragile" : ""}
+              {parcel.quantity}
+              <UiText text={"টি পার্সেল"} />
+              {parcel.fragile ? <UiText text={" · ভঙ্গুর / Fragile"} /> : ""}
             </p>
             <p>
-              <strong>সার্ভিস চার্জ / Service fee: ৳{parcel.fee}</strong>
+              <strong>
+                <UiText text={"সার্ভিস চার্জ / Service fee: ৳"} />
+                {parcel.fee}
+              </strong>
             </p>
             <p>
-              বুকিং রেকর্ডটি অর্থ পরিশোধের রসিদ নয়। অনলাইন পেমেন্ট যুক্ত নয়।
+              <UiText
+                text={
+                  "বুকিং রেকর্ডটি অর্থ পরিশোধের রসিদ নয়। অনলাইন পেমেন্ট যুক্ত নয়।"
+                }
+              />
             </p>
             <p>
-              পার্সেল COD: ৳{parcel.cod_amount} · সংগ্রহের রেকর্ড: ৳
+              <UiText text={"পার্সেল COD: ৳"} />
+              {parcel.cod_amount}
+              <UiText text={"· সংগ্রহের রেকর্ড: ৳"} />
               {parcel.cod_collected}
               <br />
-              হিসাব যাচাই:{" "}
-              {parcel.cash_reconciled_at
-                ? new Date(parcel.cash_reconciled_at).toLocaleString()
-                : "এখনও হয়নি / Not reconciled"}
+              <UiText text={"হিসাব যাচাই:"} />{" "}
+              {parcel.cash_reconciled_at ? (
+                new Date(parcel.cash_reconciled_at).toLocaleString()
+              ) : (
+                <UiText text={"এখনও হয়নি / Not reconciled"} />
+              )}
               <br />
-              এটি প্রেরককে টাকা পাঠানোর প্রমাণ নয়।
+              <UiText text={"এটি প্রেরককে টাকা পাঠানোর প্রমাণ নয়।"} />
             </p>
             {parcel.pickup_at && (
               <p>
-                পছন্দের পিকআপ সময়: {new Date(parcel.pickup_at).toLocaleString()}{" "}
-                · অপারেশন টিমের নিশ্চিতকরণ প্রয়োজন
+                <UiText text={"পছন্দের পিকআপ সময়:"} />
+                {new Date(parcel.pickup_at).toLocaleString()}{" "}
+                <UiText text={"· অপারেশন টিমের নিশ্চিতকরণ প্রয়োজন"} />
               </p>
             )}
-            {parcel.instructions && <p>নির্দেশনা: {parcel.instructions}</p>}
+            {parcel.instructions && (
+              <p>
+                <UiText text={"নির্দেশনা:"} />
+                {parcel.instructions}
+              </p>
+            )}
             <div className="form-grid">
               {[
                 ["পিকআপ / Pickup", parcel.pickup],
@@ -339,7 +392,9 @@ export function DeliveryTracking({ id }: { id: string }) {
                 const a = address as Address;
                 return (
                   <section key={title as string}>
-                    <h3>{title as string}</h3>
+                    <h3>
+                      <UiText text={title as string} />
+                    </h3>
                     <p>
                       {a.recipient}
                       <br />
@@ -361,19 +416,20 @@ export function DeliveryTracking({ id }: { id: string }) {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      ম্যাপে ঠিকানা / Open address in maps
+                      <UiText text={"ম্যাপে ঠিকানা / Open address in maps"} />
                     </a>
                   </section>
                 );
               })}
             </div>
             <p>
-              রাইডার:{" "}
+              <UiText text={"রাইডার:"} />{" "}
               {parcel.rider_name || "এখনও নির্ধারিত হয়নি / Not assigned"}
             </p>
             {parcel.received_by && (
               <p>
-                গ্রহণ করেছেন: {parcel.received_by}
+                <UiText text={"গ্রহণ করেছেন:"} />
+                {parcel.received_by}
                 <br />
                 {parcel.completed_at &&
                   new Date(parcel.completed_at).toLocaleString()}
@@ -382,7 +438,10 @@ export function DeliveryTracking({ id }: { id: string }) {
               </p>
             )}
             {parcel.failure_reason && (
-              <p>ব্যর্থতার কারণ: {parcel.failure_reason}</p>
+              <p>
+                <UiText text={"ব্যর্থতার কারণ:"} />
+                {parcel.failure_reason}
+              </p>
             )}
             <div className="record-actions">
               <button
@@ -390,7 +449,7 @@ export function DeliveryTracking({ id }: { id: string }) {
                 disabled={busy}
                 onClick={() => void load()}
               >
-                রিফ্রেশ / Refresh status
+                <UiText text={"রিফ্রেশ / Refresh status"} />
               </button>
               <a
                 className="button secondary"
@@ -398,16 +457,18 @@ export function DeliveryTracking({ id }: { id: string }) {
                 target="_blank"
                 rel="noreferrer"
               >
-                বুকিং রসিদ / Booking receipt
+                <UiText text={"বুকিং রসিদ / Booking receipt"} />
               </a>
               <Link className="button secondary" href="/support">
-                সহায়তা / Support
+                <UiText text={"সহায়তা / Support"} />
               </Link>
             </div>
           </article>
           {parcel.feedback && (
             <article className="record">
-              <h2>ডেলিভারির মূল্যায়ন / Delivery feedback</h2>
+              <h2>
+                <UiText text={"ডেলিভারির মূল্যায়ন / Delivery feedback"} />
+              </h2>
               <p>{parcel.feedback.rating}/5</p>
               <p>{parcel.feedback.comment}</p>
             </article>
@@ -423,11 +484,15 @@ export function DeliveryTracking({ id }: { id: string }) {
                 );
               }}
             >
-              <h2>ডেলিভারির মূল্যায়ন / Rate your delivery</h2>
+              <h2>
+                <UiText text={"ডেলিভারির মূল্যায়ন / Rate your delivery"} />
+              </h2>
               <label className="field">
-                রেটিং / Rating
+                <UiText text={"রেটিং / Rating"} />
                 <select name="rating" required defaultValue="">
-                  <option value="">বেছে নিন / Select</option>
+                  <option value="">
+                    <UiText text={"বেছে নিন / Select"} />
+                  </option>
                   {[5, 4, 3, 2, 1].map((value) => (
                     <option value={value} key={value}>
                       {value}/5
@@ -436,7 +501,7 @@ export function DeliveryTracking({ id }: { id: string }) {
                 </select>
               </label>
               <label className="field">
-                মন্তব্য / Comment
+                <UiText text={"মন্তব্য / Comment"} />
                 <textarea name="comment" maxLength={1000} />
               </label>
               <button className="button" disabled={busy}>
@@ -455,11 +520,15 @@ export function DeliveryTracking({ id }: { id: string }) {
                 );
               }}
             >
-              <h2>রাইডার নির্ধারণ / Assign rider</h2>
+              <h2>
+                <UiText text={"রাইডার নির্ধারণ / Assign rider"} />
+              </h2>
               <label className="field">
-                সক্রিয় রাইডার / Active rider
+                <UiText text={"সক্রিয় রাইডার / Active rider"} />
                 <select name="worker" required defaultValue="">
-                  <option value="">বেছে নিন / Select</option>
+                  <option value="">
+                    <UiText text={"বেছে নিন / Select"} />
+                  </option>
                   {riders.map((r) => (
                     <option value={r.id} key={r.id}>
                       {r.name}
@@ -469,8 +538,11 @@ export function DeliveryTracking({ id }: { id: string }) {
               </label>
               {!riders.length && (
                 <p>
-                  এই পাতায় সক্রিয় রাইডার নেই। অ্যাডমিন থেকে ব্যবহারকারীকে Rider
-                  গ্রুপে যুক্ত করুন।
+                  <UiText
+                    text={
+                      "এই পাতায় সক্রিয় রাইডার নেই। অ্যাডমিন থেকে ব্যবহারকারীকে Rider গ্রুপে যুক্ত করুন।"
+                    }
+                  />
                 </p>
               )}
               <div className="record-actions">
@@ -505,9 +577,11 @@ export function DeliveryTracking({ id }: { id: string }) {
                 );
               }}
             >
-              <h2>কাজ প্রত্যাখ্যান / Reject new assignment</h2>
+              <h2>
+                <UiText text={"কাজ প্রত্যাখ্যান / Reject new assignment"} />
+              </h2>
               <label className="field">
-                কারণ / Reason
+                <UiText text={"কারণ / Reason"} />
                 <textarea name="reason" required maxLength={500} />
               </label>
               <button className="button secondary" disabled={busy}>
@@ -526,13 +600,15 @@ export function DeliveryTracking({ id }: { id: string }) {
                 );
               }}
             >
-              <h2>COD জমার হিসাব / Reconcile COD deposit</h2>
+              <h2>
+                <UiText text={"COD জমার হিসাব / Reconcile COD deposit"} />
+              </h2>
               <label className="field">
-                জমার রেফারেন্স / Deposit reference
+                <UiText text={"জমার রেফারেন্স / Deposit reference"} />
                 <input name="reference" required maxLength={100} />
               </label>
               <label className="field">
-                জমার পরিমাণ / Amount
+                <UiText text={"জমার পরিমাণ / Amount"} />
                 <input
                   name="amount"
                   type="number"
@@ -543,8 +619,11 @@ export function DeliveryTracking({ id }: { id: string }) {
                 />
               </label>
               <p>
-                শুধু বাস্তবে জমা পাওয়া COD-এর হিসাব নিশ্চিত করুন। প্রেরককে টাকা
-                পাঠানো এখানে রেকর্ড হচ্ছে না।
+                <UiText
+                  text={
+                    "শুধু বাস্তবে জমা পাওয়া COD-এর হিসাব নিশ্চিত করুন। প্রেরককে টাকা পাঠানো এখানে রেকর্ড হচ্ছে না।"
+                  }
+                />
               </p>
               <button className="button" disabled={busy}>
                 <UiText text={"Confirm cash deposit"} />
@@ -561,17 +640,19 @@ export function DeliveryTracking({ id }: { id: string }) {
                   disabled={busy}
                   onClick={() => void act("transition", { status })}
                 >
-                  {labels[status]}
+                  <UiText text={labels[status]} />
                 </button>
               ))}
           </div>
           {parcel.available_actions.includes("delivered") && (
             <form className="form-panel" onSubmit={update}>
-              <h2>ডেলিভারি সম্পন্ন / Complete delivery</h2>
+              <h2>
+                <UiText text={"ডেলিভারি সম্পন্ন / Complete delivery"} />
+              </h2>
               <input name="status" type="hidden" value="delivered" />
               {Number(parcel.cod_amount) > 0 ? (
                 <label className="field">
-                  সংগ্রহ করা পার্সেল COD / Collected COD (৳)
+                  <UiText text={"সংগ্রহ করা পার্সেল COD / Collected COD (৳)"} />
                   <input
                     name="cod_collected"
                     type="number"
@@ -585,11 +666,11 @@ export function DeliveryTracking({ id }: { id: string }) {
                 <input name="cod_collected" type="hidden" value="0" />
               )}
               <label className="field">
-                যিনি গ্রহণ করেছেন / Received by
+                <UiText text={"যিনি গ্রহণ করেছেন / Received by"} />
                 <input name="received_by" required maxLength={120} />
               </label>
               <label className="field">
-                ডেলিভারি নোট / Delivery note
+                <UiText text={"ডেলিভারি নোট / Delivery note"} />
                 <textarea name="delivery_note" maxLength={1000} />
               </label>
               <button className="button" disabled={busy}>
@@ -599,10 +680,12 @@ export function DeliveryTracking({ id }: { id: string }) {
           )}
           {parcel.available_actions.includes("failed") && (
             <form className="form-panel" onSubmit={update}>
-              <h2>ডেলিভারি ব্যর্থ / Report failed delivery</h2>
+              <h2>
+                <UiText text={"ডেলিভারি ব্যর্থ / Report failed delivery"} />
+              </h2>
               <input name="status" type="hidden" value="failed" />
               <label className="field">
-                কারণ / Reason
+                <UiText text={"কারণ / Reason"} />
                 <textarea name="failure_reason" required maxLength={1000} />
               </label>
               <button className="button secondary" disabled={busy}>
@@ -611,13 +694,19 @@ export function DeliveryTracking({ id }: { id: string }) {
             </form>
           )}
           <section className="record">
-            <h2>স্ট্যাটাসের ইতিহাস / Status history</h2>
-            <p>সর্বশেষ অপারেশন আপডেট; লাইভ GPS অবস্থান নয়।</p>
+            <h2>
+              <UiText text={"স্ট্যাটাসের ইতিহাস / Status history"} />
+            </h2>
+            <p>
+              <UiText text={"সর্বশেষ অপারেশন আপডেট; লাইভ GPS অবস্থান নয়।"} />
+            </p>
             <ol>
               {history.map((event, index) => (
                 <li key={index}>
-                  <strong>{labels[event.after] || event.after}</strong> ·{" "}
-                  {new Date(event.created_at).toLocaleString()}
+                  <strong>
+                    <UiText text={labels[event.after] || event.after} />
+                  </strong>{" "}
+                  · {new Date(event.created_at).toLocaleString()}
                 </li>
               ))}
             </ol>

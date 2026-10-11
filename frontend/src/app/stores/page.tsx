@@ -67,10 +67,12 @@ export default async function Stores({
         <label className="field">
           <Text bn="ব্যবসার বিভাগ" en="Business division" />
           <select name="division" defaultValue={params.division || ""}>
-            <option value="">All / সব</option>
+            <option value="">
+              <UiText text={"All / সব"} />
+            </option>
             {divisions?.results.map((division) => (
               <option key={division.id} value={division.slug}>
-                {division.name_bn} / {division.name}
+                <Text bn={division.name_bn} en={division.name} />
               </option>
             ))}
           </select>
@@ -88,7 +90,11 @@ export default async function Stores({
         </p>
       ) : (
         !businesses.results.length && (
-          <p>No matching businesses / কোনো প্রতিষ্ঠান পাওয়া যায়নি।</p>
+          <p>
+            <UiText
+              text={"No matching businesses / কোনো প্রতিষ্ঠান পাওয়া যায়নি।"}
+            />
+          </p>
         )
       )}
       {businesses?.results.map((business) => (
@@ -99,7 +105,9 @@ export default async function Stores({
                 src={divisionPhotos[business.division_slug]}
                 alt={`${business.division_name_bn} সেবার দৃষ্টান্তমূলক ছবি`}
               />
-              <span className="photo-demo-label">সেবার দৃষ্টান্তমূলক ছবি</span>
+              <span className="photo-demo-label">
+                <UiText text={"সেবার দৃষ্টান্তমূলক ছবি"} />
+              </span>
             </div>
           )}
           <div>
@@ -117,14 +125,20 @@ export default async function Stores({
             </p>
             <p>
               <Text bn="ঠিকানা: " en="Address: " />
-              {business.address || "ঠিকানা দেওয়া হয়নি / Address not provided"}
+              <UiText
+                text={
+                  business.address || "ঠিকানা দেওয়া হয়নি / Address not provided"
+                }
+              />
             </p>
-            <p>{business.description}</p>
+            <p>
+              <UiText text={business.description} />
+            </p>
             <RestaurantInfo restaurant={business} />
             {business.opening_hours && (
               <p>
                 <Text bn="সময়সূচি: " en="Hours: " />
-                {business.opening_hours}
+                <UiText text={business.opening_hours} />
               </p>
             )}
             <Link

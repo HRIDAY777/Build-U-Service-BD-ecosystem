@@ -1,4 +1,9 @@
 "use client";
+import {
+  TranslatedInput,
+  TranslatedButton,
+} from "@/components/translated-elements";
+
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -96,7 +101,7 @@ export function Home({
           </p>
           <form className="hero-search" onSubmit={search}>
             <Search size={22} />
-            <input
+            <TranslatedInput
               aria-label="Search services"
               placeholder={
                 lang === "bn"
@@ -106,9 +111,9 @@ export function Home({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <button type="submit" aria-label="Search">
+            <TranslatedButton type="submit" aria-label="Search">
               <ArrowRight size={22} />
-            </button>
+            </TranslatedButton>
           </form>
           <div className="hero-tags">
             <span>
@@ -162,9 +167,11 @@ export function Home({
               alt="কটন ব্যাগ / Cotton tote bag"
             />
             <span className="mosaic-stamp">
-              প্রতিদিনের গল্প
+              <UiText text={"প্রতিদিনের গল্প"} />
               <br />
-              <strong>এক জায়গায়।</strong>
+              <strong>
+                <UiText text={"এক জায়গায়।"} />
+              </strong>
             </span>
           </div>
           <div className="floating-card food-float">
@@ -225,8 +232,11 @@ export function Home({
       </section>
       {!online && (
         <div className="notice">
-          সার্ভারের সাথে সংযোগ পাওয়া যায়নি। / The service is temporarily
-          unavailable. Please try again shortly.
+          <UiText
+            text={
+              "সার্ভারের সাথে সংযোগ পাওয়া যায়নি। / The service is temporarily unavailable. Please try again shortly."
+            }
+          />
         </div>
       )}
       <section className="section">
@@ -295,7 +305,7 @@ export function Home({
             alt="বাংলাদেশের একটি বিয়ের অনুষ্ঠান / Wedding ceremony in Bangladesh"
           />
           <span className="photo-demo-label">
-            পরিকল্পনার অনুপ্রেরণা · স্টক ছবি
+            <UiText text={"পরিকল্পনার অনুপ্রেরণা · স্টক ছবি"} />
           </span>
         </div>
         <div className="occasion-copy">
@@ -349,10 +359,10 @@ export function Home({
                 <div className="provider-photo">
                   <Photo
                     src={divisionPhotos[business.division_slug] || ""}
-                    alt={`${business.name} — সেবার দৃষ্টান্তমূলক ছবি`}
+                    alt={`${business.name} — ${lang === "bn" ? "সেবার দৃষ্টান্তমূলক ছবি" : "illustrative service photo"}`}
                   />
                   <span className="photo-demo-label">
-                    স্টক ছবি · ডেমো প্রিভিউ
+                    <UiText text={"স্টক ছবি · ডেমো প্রিভিউ"} />
                   </span>
                 </div>
                 <div>
@@ -360,7 +370,9 @@ export function Home({
                   <p>
                     <MapPin size={14} /> {business.area}
                   </p>
-                  <small>{business.address}</small>
+                  <small>
+                    <UiText text={business.address} />
+                  </small>
                 </div>
               </Link>
             ))}

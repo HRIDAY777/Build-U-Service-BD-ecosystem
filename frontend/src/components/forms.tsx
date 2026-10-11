@@ -1,4 +1,6 @@
 "use client";
+import { TranslatedInput } from "@/components/translated-elements";
+
 import { BookingTimes } from "./booking-times";
 import { UiText } from "@/components/ui-text";
 
@@ -99,7 +101,9 @@ export function AddressFields({
   }, [division]);
   return (
     <>
-      <h3>{title}</h3>
+      <h3>
+        <UiText text={title} />
+      </h3>
       <div className="form-grid">
         <LocationPicker
           prefix={prefix}
@@ -118,7 +122,7 @@ export function AddressFields({
         </label>
         <label className="field">
           <Text bn="মোবাইল নম্বর" en="Phone number" />
-          <input
+          <TranslatedInput
             name={prefix + "phone"}
             required
             pattern="\+?[0-9]{10,15}"
@@ -144,26 +148,44 @@ export function AddressFields({
             }
           >
             <option value="">
-              {location.district && !matchingAreas.length
-                ? "এই জেলায় সেবার জোন নেই / No service zone in this district"
-                : "সেবার জোন বেছে নিন / Select service zone"}
+              {location.district && !matchingAreas.length ? (
+                <UiText
+                  text={
+                    "এই জেলায় সেবার জোন নেই / No service zone in this district"
+                  }
+                />
+              ) : (
+                <UiText text={"সেবার জোন বেছে নিন / Select service zone"} />
+              )}
             </option>
             {matchingAreas.map((a) => (
               <option key={a.id} value={a.name}>
-                {a.name_bn} / {a.name}
+                <Text bn={a.name_bn} en={a.name} />
               </option>
             ))}
           </select>
           <small>
-            {inferredArea || matchingAreas.length === 1
-              ? "আপনার ঠিকানা থেকে জোন বসানো হয়েছে। / Zone matched from your address."
-              : "এটি নতুন ঠিকানা নয়; ডেলিভারি/সেবার চার্জের জোন। / This selects service coverage and pricing, not another address."}
+            {inferredArea || matchingAreas.length === 1 ? (
+              <UiText
+                text={
+                  "আপনার ঠিকানা থেকে জোন বসানো হয়েছে। / Zone matched from your address."
+                }
+              />
+            ) : (
+              <UiText
+                text={
+                  "এটি নতুন ঠিকানা নয়; ডেলিভারি/সেবার চার্জের জোন। / This selects service coverage and pricing, not another address."
+                }
+              />
+            )}
           </small>
           {location.district && !matchingAreas.length && !failed && (
             <p className="error" role="status">
-              বাছাই করা ঠিকানা ঠিক আছে, তবে এই জেলায় সেবার জোন এখনো চালু করা
-              হয়নি। ঢাকার কোনো এলাকা দিয়ে এই ঠিকানার বুকিং করা যাবে না। / This
-              district has no configured service coverage yet.
+              <UiText
+                text={
+                  "বাছাই করা ঠিকানা ঠিক আছে, তবে এই জেলায় সেবার জোন এখনো চালু করা হয়নি। ঢাকার কোনো এলাকা দিয়ে এই ঠিকানার বুকিং করা যাবে না। / This district has no configured service coverage yet."
+                }
+              />
             </p>
           )}
         </label>
@@ -172,7 +194,7 @@ export function AddressFields({
             bn="বাড়ি / হোল্ডিং, রাস্তা ও ল্যান্ডমার্ক"
             en="House / holding, street and landmark"
           />
-          <input
+          <TranslatedInput
             name={prefix + "line"}
             required
             maxLength={500}
@@ -180,8 +202,11 @@ export function AddressFields({
             placeholder="যেমন: বাড়ি ১২, মসজিদের পাশে / House 12, beside the mosque"
           />
           <small>
-            উপরে বাছাই করা গ্রাম, ইউনিয়ন, থানা ও জেলা নিজে যুক্ত হবে; এখানে আবার
-            লিখবেন না। / Selected locality details are added automatically.
+            <UiText
+              text={
+                "উপরে বাছাই করা গ্রাম, ইউনিয়ন, থানা ও জেলা নিজে যুক্ত হবে; এখানে আবার লিখবেন না। / Selected locality details are added automatically."
+              }
+            />
           </small>
         </label>
       </div>
@@ -245,7 +270,7 @@ export function LoginForm() {
           {register && (
             <>
               <label className="field">
-                নাম / Full name
+                <UiText text={"নাম / Full name"} />
                 <input
                   name="first_name"
                   required
@@ -254,7 +279,7 @@ export function LoginForm() {
                 />
               </label>
               <label className="field">
-                ইমেইল / Email
+                <UiText text={"ইমেইল / Email"} />
                 <input
                   name="email"
                   type="email"
@@ -263,7 +288,7 @@ export function LoginForm() {
                 />
               </label>
               <label className="field">
-                মোবাইল / Phone
+                <UiText text={"মোবাইল / Phone"} />
                 <input
                   name="phone"
                   type="tel"
@@ -287,7 +312,7 @@ export function LoginForm() {
             />
           </label>
           <label className="field">
-            পাসওয়ার্ড / Password
+            <UiText text={"পাসওয়ার্ড / Password"} />
             <input
               name="password"
               type="password"
@@ -308,7 +333,7 @@ export function LoginForm() {
           )}
           {error && (
             <p className="error" role="alert">
-              {error}
+              <UiText text={error} />
             </p>
           )}
           <button className="button" disabled={busy}>
@@ -344,7 +369,7 @@ export function LoginForm() {
         {!register && (
           <p className="switch-auth">
             <Link className="text-link" href="/reset-password">
-              Forgot password? / পাসওয়ার্ড ভুলে গেছেন?
+              <UiText text={"Forgot password? / পাসওয়ার্ড ভুলে গেছেন?"} />
             </Link>
           </p>
         )}
@@ -387,7 +412,8 @@ export function OfferingDetail({ item }: { item: Offering }) {
         className="text-link"
         href={`/catalog?division=${item.division_slug}`}
       >
-        ← Back to {item.division_slug}
+        <UiText text={"← Back to"} />
+        {item.division_slug}
       </Link>
       <div className="detail-grid" style={{ marginTop: 30 }}>
         <div className={`offering-image card-${item.division_slug}`}>
@@ -402,7 +428,7 @@ export function OfferingDetail({ item }: { item: Offering }) {
           )}
           {item.sku?.startsWith("DEMO-") && (
             <small className="photo-demo-label">
-              দৃষ্টান্তমূলক ছবি / Demo imagery
+              <UiText text={"দৃষ্টান্তমূলক ছবি / Demo imagery"} />
             </small>
           )}
         </div>
@@ -433,7 +459,7 @@ export function OfferingDetail({ item }: { item: Offering }) {
                 <UiText text={"minutes"} />
               </p>
               <Link className="button" href={`/book/${item.id}`}>
-                সময় বেছে নিন / Book service
+                <UiText text={"সময় বেছে নিন / Book service"} />
               </Link>
             </>
           ) : (
@@ -521,9 +547,11 @@ export function OfferingDetail({ item }: { item: Offering }) {
                 }
                 onClick={() => add(item, selectedVariant, foodOptions)}
               >
-                {(selectedVariant?.stock ?? item.stock)
-                  ? "ব্যাগে যোগ করুন / Add to bag"
-                  : "Out of stock"}
+                {(selectedVariant?.stock ?? item.stock) ? (
+                  <UiText text={"ব্যাগে যোগ করুন / Add to bag"} />
+                ) : (
+                  <UiText text={"Out of stock"} />
+                )}
               </button>
             </>
           )}
@@ -653,7 +681,7 @@ export function CheckoutForm() {
           <Text bn="আপনার ব্যাগ খালি" en="A little room for your everyday" />
         </h1>
         <Link href="/catalog" className="button">
-          সেবা দেখুন / Explore
+          <UiText text={"সেবা দেখুন / Explore"} />
         </Link>
       </div>
     );
@@ -674,7 +702,7 @@ export function CheckoutForm() {
         >
           {savedAddresses.length > 0 && (
             <label className="field">
-              Saved address / সংরক্ষিত ঠিকানা
+              <UiText text={"Saved address / সংরক্ষিত ঠিকানা"} />
               <select
                 defaultValue=""
                 onChange={(e) => {
@@ -715,15 +743,19 @@ export function CheckoutForm() {
           {user && (
             <label className="check-row">
               <input name="save_address" type="checkbox" />
-              Save this address for next time / পরেরবারের জন্য ঠিকানা সংরক্ষণ
+              <UiText
+                text={
+                  "Save this address for next time / পরেরবারের জন্য ঠিকানা সংরক্ষণ"
+                }
+              />
             </label>
           )}
           <label className="field">
-            কুপন / Coupon
+            <UiText text={"কুপন / Coupon"} />
             <input name="coupon" maxLength={40} />
           </label>
           <label className="field">
-            নোট / Notes
+            <UiText text={"নোট / Notes"} />
             <textarea name="notes" maxLength={1000} />
           </label>
           <p className="notice">
@@ -738,9 +770,11 @@ export function CheckoutForm() {
             <select name="payment_method">
               {methods.map((m) => (
                 <option key={m} value={m}>
-                  {m === "cod"
-                    ? "Cash on delivery"
-                    : "SSLCOMMERZ online payment"}
+                  {m === "cod" ? (
+                    <UiText text={"Cash on delivery"} />
+                  ) : (
+                    <UiText text={"SSLCOMMERZ online payment"} />
+                  )}
                 </option>
               ))}
             </select>
@@ -748,11 +782,18 @@ export function CheckoutForm() {
           {quote && (
             <div className="notice">
               <p>
-                Subtotal: ৳{quote.subtotal} · Discount: ৳{quote.discount}
+                <UiText text={"Subtotal: ৳"} />
+                {quote.subtotal}
+                <UiText text={"· Discount: ৳"} />
+                {quote.discount}
                 <br />
-                Delivery: ৳{quote.delivery_fee}
+                <UiText text={"Delivery: ৳"} />
+                {quote.delivery_fee}
               </p>
-              <strong>Total to pay: ৳{quote.total}</strong>
+              <strong>
+                <UiText text={"Total to pay: ৳"} />
+                {quote.total}
+              </strong>
               {quote.preparation_minutes != null && (
                 <p>
                   <Text
@@ -770,25 +811,29 @@ export function CheckoutForm() {
           )}
           {error && (
             <p className="error" role="alert">
-              {error}
+              <UiText text={error} />
             </p>
           )}
           {user ? (
             <button className="button" disabled={busy || !requestKey}>
-              {busy
-                ? "Please wait…"
-                : quote
-                  ? "অর্ডার নিশ্চিত করুন / Confirm order"
-                  : "মোট মূল্য দেখুন / Review total"}
+              {busy ? (
+                <UiText text={"Please wait…"} />
+              ) : quote ? (
+                <UiText text={"অর্ডার নিশ্চিত করুন / Confirm order"} />
+              ) : (
+                <UiText text={"মোট মূল্য দেখুন / Review total"} />
+              )}
             </button>
           ) : (
             <Link className="button" href="/login">
-              লগইন করে এগিয়ে যান / Sign in to continue
+              <UiText text={"লগইন করে এগিয়ে যান / Sign in to continue"} />
             </Link>
           )}
         </form>
         <aside className="form-panel">
-          <h2>আপনার ব্যাগ / Your bag</h2>
+          <h2>
+            <UiText text={"আপনার ব্যাগ / Your bag"} />
+          </h2>
           {cart.map((i) => (
             <div className="cart-line" key={cartLineKey(i)}>
               <div>
@@ -897,12 +942,15 @@ export function BookingForm({ item }: { item: Offering }) {
       </p>
       {(item.service_leave_dates || []).length > 0 && (
         <p>
-          বন্ধের তারিখ / Closed dates: {item.service_leave_dates.join(", ")}
+          <UiText text={"বন্ধের তারিখ / Closed dates:"} />
+          {item.service_leave_dates.join(", ")}
         </p>
       )}
       {Object.keys(item.service_weekly_hours || {}).length > 0 && (
         <div className="notice">
-          <strong>বুকিংয়ের সময় / Booking hours (Bangladesh)</strong>
+          <strong>
+            <UiText text={"বুকিংয়ের সময় / Booking hours (Bangladesh)"} />
+          </strong>
           {[
             "সোমবার",
             "মঙ্গলবার",
@@ -923,7 +971,7 @@ export function BookingForm({ item }: { item: Offering }) {
       )}
       <form className="form-panel" onSubmit={submit}>
         <label className="field">
-          তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)
+          <UiText text={"তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)"} />
           <input
             type="datetime-local"
             name="scheduled_at"
@@ -948,17 +996,21 @@ export function BookingForm({ item }: { item: Offering }) {
         </p>
         <AddressFields />
         <label className="field">
-          সমস্যার বিবরণ / Describe the issue
+          <UiText text={"সমস্যার বিবরণ / Describe the issue"} />
           <textarea name="notes" maxLength={2000} />
         </label>
         {error && (
           <p role="alert" className="error">
-            {error}
+            <UiText text={error} />
           </p>
         )}
         {user ? (
           <button className="button" disabled={busy}>
-            {busy ? "Booking…" : "বুকিং করুন / Request booking"}
+            {busy ? (
+              <UiText text={"Booking…"} />
+            ) : (
+              <UiText text={"বুকিং করুন / Request booking"} />
+            )}
           </button>
         ) : (
           <Link className="button" href="/login">
@@ -1036,13 +1088,18 @@ export function DeliveryForm() {
   }
   return (
     <>
-      <span className="eyebrow">U DELIVERY</span>
+      <span className="eyebrow">
+        <UiText text={"U DELIVERY"} />
+      </span>
       <h2>
         <Text bn="আপনার পার্সেল, যত্নের সাথে" en="From your door to theirs" />
       </h2>
       <p className="page-intro">
-        Request a parcel delivery within available service areas. Base area fee
-        plus ৳20 per kg above 1 kg; maximum 20 kg.
+        <UiText
+          text={
+            "Request a parcel delivery within available service areas. Base area fee plus ৳20 per kg above 1 kg; maximum 20 kg."
+          }
+        />
       </p>
       <form
         className="form-panel"
@@ -1066,7 +1123,7 @@ export function DeliveryForm() {
           division="delivery"
         />
         <label className="field">
-          পিকআপ নির্দেশনা / Pickup instructions
+          <UiText text={"পিকআপ নির্দেশনা / Pickup instructions"} />
           <textarea name="pickup_instructions" maxLength={500} />
         </label>
         <AddressFields
@@ -1075,25 +1132,35 @@ export function DeliveryForm() {
           division="delivery"
         />
         <label className="field">
-          গন্তব্যের নির্দেশনা / Drop-off instructions
+          <UiText text={"গন্তব্যের নির্দেশনা / Drop-off instructions"} />
           <textarea name="dropoff_instructions" maxLength={500} />
         </label>
         <label className="field">
-          পার্সেলের বিবরণ / Package description
+          <UiText text={"পার্সেলের বিবরণ / Package description"} />
           <input name="description" required maxLength={500} />
         </label>
         <label className="field">
-          পার্সেলের ধরন / Package type
+          <UiText text={"পার্সেলের ধরন / Package type"} />
           <select name="package_type" defaultValue="general">
-            <option value="general">সাধারণ / General</option>
-            <option value="documents">ডকুমেন্ট / Documents</option>
-            <option value="clothing">পোশাক / Clothing</option>
-            <option value="electronics">ইলেকট্রনিকস / Electronics</option>
-            <option value="other">অন্যান্য / Other</option>
+            <option value="general">
+              <UiText text={"সাধারণ / General"} />
+            </option>
+            <option value="documents">
+              <UiText text={"ডকুমেন্ট / Documents"} />
+            </option>
+            <option value="clothing">
+              <UiText text={"পোশাক / Clothing"} />
+            </option>
+            <option value="electronics">
+              <UiText text={"ইলেকট্রনিকস / Electronics"} />
+            </option>
+            <option value="other">
+              <UiText text={"অন্যান্য / Other"} />
+            </option>
           </select>
         </label>
         <label className="field">
-          পার্সেলের সংখ্যা / Quantity
+          <UiText text={"পার্সেলের সংখ্যা / Quantity"} />
           <input
             type="number"
             name="quantity"
@@ -1105,7 +1172,9 @@ export function DeliveryForm() {
           />
         </label>
         <label className="field">
-          প্রাপকের কাছ থেকে সংগ্রহযোগ্য মূল্য / Parcel COD (৳)
+          <UiText
+            text={"প্রাপকের কাছ থেকে সংগ্রহযোগ্য মূল্য / Parcel COD (৳)"}
+          />
           <input
             type="number"
             name="cod_amount"
@@ -1116,42 +1185,57 @@ export function DeliveryForm() {
             required
           />
           <small>
-            পার্সেলের মূল্য; ডেলিভারি চার্জ আলাদা। প্রেরককে স্বয়ংক্রিয় পেমেন্ট
-            পাঠানো হয় না।
+            <UiText
+              text={
+                "পার্সেলের মূল্য; ডেলিভারি চার্জ আলাদা। প্রেরককে স্বয়ংক্রিয় পেমেন্ট পাঠানো হয় না।"
+              }
+            />
           </small>
         </label>
         <label className="field">
-          পিকআপের পছন্দের সময় / Preferred pickup time (optional)
+          <UiText
+            text={"পিকআপের পছন্দের সময় / Preferred pickup time (optional)"}
+          />
           <input type="datetime-local" name="pickup_at" />
         </label>
         <label>
-          <input type="checkbox" name="fragile" /> ভঙ্গুর পার্সেল / Handle with
-          care
+          <input type="checkbox" name="fragile" />
+          <UiText text={"ভঙ্গুর পার্সেল / Handle with care"} />
         </label>
         <label className="field">
-          বিশেষ নির্দেশনা / Instructions
+          <UiText text={"বিশেষ নির্দেশনা / Instructions"} />
           <textarea name="instructions" maxLength={1000} />
         </label>
         <p>
-          বিপজ্জনক, অবৈধ বা নিষিদ্ধ পণ্য পাঠাবেন না। পিকআপের সময় অপারেশন টিম
-          নিশ্চিত করবে। COD থাকলে রাইডার হস্তান্তরের সময় সংগ্রহের রেকর্ড দেবেন।
-          বীমা অন্তর্ভুক্ত নয়।
+          <UiText
+            text={
+              "বিপজ্জনক, অবৈধ বা নিষিদ্ধ পণ্য পাঠাবেন না। পিকআপের সময় অপারেশন টিম নিশ্চিত করবে। COD থাকলে রাইডার হস্তান্তরের সময় সংগ্রহের রেকর্ড দেবেন। বীমা অন্তর্ভুক্ত নয়।"
+            }
+          />
         </p>
         {quote && (
           <div className="notice" role="status">
-            বেস চার্জ / Base: ৳{quote.base_fee}
+            <UiText text={"বেস চার্জ / Base: ৳"} />
+            {quote.base_fee}
             <br />
-            অতিরিক্ত ওজন / Extra weight: ৳{quote.weight_fee}
+            <UiText text={"অতিরিক্ত ওজন / Extra weight: ৳"} />
+            {quote.weight_fee}
             <br />
-            <strong>ডেলিভারি চার্জ / Delivery fee: ৳{quote.fee}</strong>
+            <strong>
+              <UiText text={"ডেলিভারি চার্জ / Delivery fee: ৳"} />
+              {quote.fee}
+            </strong>
             <p>
-              এটি সার্ভিস চার্জ; অনলাইনে টাকা কাটা হচ্ছে না। তথ্য বদলালে আবার
-              চার্জ দেখুন।
+              <UiText
+                text={
+                  "এটি সার্ভিস চার্জ; অনলাইনে টাকা কাটা হচ্ছে না। তথ্য বদলালে আবার চার্জ দেখুন।"
+                }
+              />
             </p>
           </div>
         )}
         <label className="field">
-          সব পার্সেলের মোট ওজন / Total weight (kg)
+          <UiText text={"সব পার্সেলের মোট ওজন / Total weight (kg)"} />
           <input
             name="weight_kg"
             type="number"
@@ -1164,16 +1248,18 @@ export function DeliveryForm() {
         </label>
         {error && (
           <p className="error" role="alert">
-            {error}
+            <UiText text={error} />
           </p>
         )}
         {user ? (
           <button className="button" disabled={busy}>
-            {busy
-              ? "Submitting…"
-              : quote
-                ? "ডেলিভারি নিশ্চিত করুন / Confirm delivery"
-                : "চার্জ দেখুন / Review delivery fee"}
+            {busy ? (
+              <UiText text={"Submitting…"} />
+            ) : quote ? (
+              <UiText text={"ডেলিভারি নিশ্চিত করুন / Confirm delivery"} />
+            ) : (
+              <UiText text={"চার্জ দেখুন / Review delivery fee"} />
+            )}
           </button>
         ) : (
           <Link className="button" href="/login">
@@ -1225,24 +1311,28 @@ export function ContactForm() {
       </p>
       {sent ? (
         <div className="notice" role="status">
-          আপনার বার্তা জমা হয়েছে। / Your message has been saved for our team.
+          <UiText
+            text={
+              "আপনার বার্তা জমা হয়েছে। / Your message has been saved for our team."
+            }
+          />
         </div>
       ) : (
         <form className="form-panel" onSubmit={submit}>
           <label className="field">
-            নাম / Name
+            <UiText text={"নাম / Name"} />
             <input name="name" required maxLength={120} />
           </label>
           <label className="field">
-            ইমেইল / Email
+            <UiText text={"ইমেইল / Email"} />
             <input name="email" type="email" required />
           </label>
           <label className="field">
-            মোবাইল / Phone
+            <UiText text={"মোবাইল / Phone"} />
             <input name="phone" type="tel" maxLength={20} />
           </label>
           <label className="field">
-            আগ্রহের বিষয় / Interest
+            <UiText text={"আগ্রহের বিষয় / Interest"} />
             <select
               name="interest"
               value={interest}
@@ -1266,16 +1356,20 @@ export function ContactForm() {
             </select>
           </label>
           <label className="field">
-            বার্তা / Message
+            <UiText text={"বার্তা / Message"} />
             <textarea name="message" required maxLength={4000} />
           </label>
           {error && (
             <p className="error" role="alert">
-              {error}
+              <UiText text={error} />
             </p>
           )}
           <button className="button" disabled={busy}>
-            {busy ? "Sending…" : "বার্তা পাঠান / Send message"}
+            {busy ? (
+              <UiText text={"Sending…"} />
+            ) : (
+              <UiText text={"বার্তা পাঠান / Send message"} />
+            )}
           </button>
         </form>
       )}

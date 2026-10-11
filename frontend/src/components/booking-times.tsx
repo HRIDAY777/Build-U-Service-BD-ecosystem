@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useState } from "react";
 import { api } from "@/lib/api";
 type Times = {
@@ -42,36 +44,47 @@ export function BookingTimes({
         disabled={!day || busy}
         onClick={load}
       >
-        {busy
-          ? "সময় খোঁজা হচ্ছে… / Loading…"
-          : "দিনের সময় দেখুন / View day times"}
+        {busy ? (
+          <UiText text={"সময় খোঁজা হচ্ছে… / Loading…"} />
+        ) : (
+          <UiText text={"দিনের সময় দেখুন / View day times"} />
+        )}
       </button>
       <p>
-        তারিখ বেছে সময়সূচি দেখুন। টিম প্রোভাইডারের সময় নিশ্চিত করবে। / Choose a
-        date to review service hours; the team confirms provider availability.
+        <UiText
+          text={
+            "তারিখ বেছে সময়সূচি দেখুন। টিম প্রোভাইডারের সময় নিশ্চিত করবে। / Choose a date to review service hours; the team confirms provider availability."
+          }
+        />
       </p>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {times?.mode === "manual" && (
         <p role="status">
-          এই সেবার সময়সূচি এখনও নির্ধারিত নয়। পছন্দের সময় দিয়ে অনুরোধ করুন। /
-          Schedule is unconfigured; request your preferred time.
+          <UiText
+            text={
+              "এই সেবার সময়সূচি এখনও নির্ধারিত নয়। পছন্দের সময় দিয়ে অনুরোধ করুন। / Schedule is unconfigured; request your preferred time."
+            }
+          />
         </p>
       )}
       {times?.mode === "closed" && (
         <p role="status">
-          এই দিনে সেবার সময় পাওয়া যাচ্ছে না। অন্য দিন বাছুন। / No service times
-          on this date. Choose another day.
+          <UiText
+            text={
+              "এই দিনে সেবার সময় পাওয়া যাচ্ছে না। অন্য দিন বাছুন। / No service times on this date. Choose another day."
+            }
+          />
         </p>
       )}
       {times?.mode === "hours" && (
         <>
           <p>
-            {times.duration_minutes} মিনিট / minutes · বাংলাদেশ সময় / Bangladesh
-            time
+            {times.duration_minutes}
+            <UiText text={"মিনিট / minutes · বাংলাদেশ সময় / Bangladesh time"} />
           </p>
           <div
             style={{

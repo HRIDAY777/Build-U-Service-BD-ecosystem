@@ -1,3 +1,4 @@
+import { TranslatedInput } from "@/components/translated-elements";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { serverGet, PageResult, Division, Offering } from "@/lib/api";
@@ -57,7 +58,9 @@ export default async function Catalog({
       : null;
   return (
     <div className="page-wrap">
-      <span className="eyebrow">U SERVICE BD · DISCOVER</span>
+      <span className="eyebrow">
+        <UiText text={"U SERVICE BD · DISCOVER"} />
+      </span>
       <h1>
         <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Your everyday starts here" />
       </h1>
@@ -97,7 +100,7 @@ export default async function Catalog({
       <form className="form-panel catalog-filters" action="/catalog">
         <label className="field">
           <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
-          <input
+          <TranslatedInput
             name="q"
             defaultValue={params.q}
             placeholder="খুঁজুন / Search"
@@ -107,10 +110,15 @@ export default async function Catalog({
         <label className="field">
           <Text bn="ক্যাটাগরি" en="Category" />
           <select name="category" defaultValue={params.category || ""}>
-            <option value="">All categories / সব ক্যাটাগরি</option>
+            <option value="">
+              <UiText text={"All categories / সব ক্যাটাগরি"} />
+            </option>
             {categories?.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name_bn || category.name} / {category.name}
+                <Text
+                  bn={category.name_bn || category.name}
+                  en={category.name}
+                />
               </option>
             ))}
           </select>
@@ -140,13 +148,21 @@ export default async function Catalog({
         <label className="field">
           <Text bn="সাজান" en="Sort by" />
           <select name="sort" defaultValue={params.sort || "default"}>
-            <option value="default">Default / স্বাভাবিক</option>
-            <option value="price_asc">Price: low to high / কম থেকে বেশি</option>
-            <option value="price_desc">
-              Price: high to low / বেশি থেকে কম
+            <option value="default">
+              <UiText text={"Default / স্বাভাবিক"} />
             </option>
-            <option value="name">Name / নাম</option>
-            <option value="updated">Recently updated / সম্প্রতি আপডেট</option>
+            <option value="price_asc">
+              <UiText text={"Price: low to high / কম থেকে বেশি"} />
+            </option>
+            <option value="price_desc">
+              <UiText text={"Price: high to low / বেশি থেকে কম"} />
+            </option>
+            <option value="name">
+              <UiText text={"Name / নাম"} />
+            </option>
+            <option value="updated">
+              <UiText text={"Recently updated / সম্প্রতি আপডেট"} />
+            </option>
           </select>
         </label>
         <label>
@@ -211,9 +227,17 @@ export default async function Catalog({
         {!items?.results.length && (
           <div className="empty">
             <p>
-              {items
-                ? "কোনো ফলাফল পাওয়া যায়নি। / No matching results."
-                : "দামের সীমা ও ফিল্টার পরীক্ষা করুন, অথবা কিছুক্ষণ পর চেষ্টা করুন। / Check the price range and filters, or try again shortly."}
+              {items ? (
+                <UiText
+                  text={"কোনো ফলাফল পাওয়া যায়নি। / No matching results."}
+                />
+              ) : (
+                <UiText
+                  text={
+                    "দামের সীমা ও ফিল্টার পরীক্ষা করুন, অথবা কিছুক্ষণ পর চেষ্টা করুন। / Check the price range and filters, or try again shortly."
+                  }
+                />
+              )}
             </p>
             <Link className="button secondary" href="/catalog">
               <UiText text={"View all"} />

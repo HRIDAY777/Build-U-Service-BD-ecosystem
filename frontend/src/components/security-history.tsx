@@ -1,4 +1,5 @@
 "use client";
+import { UiText } from "@/components/ui-text";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
@@ -81,7 +82,9 @@ export function SecurityHistory() {
       {loading ? (
         <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>
       ) : error ? (
-        <p role="alert">{error}</p>
+        <p role="alert">
+          <UiText text={error} />
+        </p>
       ) : (
         <>
           {!events.length && (
@@ -91,8 +94,12 @@ export function SecurityHistory() {
             {events.map((event) => (
               <li key={event.id}>
                 <strong>
-                  {labels[event.action]?.[lang === "bn" ? 0 : 1] ||
-                    event.action}
+                  <UiText
+                    text={
+                      labels[event.action]?.[lang === "bn" ? 0 : 1] ||
+                      event.action
+                    }
+                  />
                 </strong>
                 <p>
                   <time dateTime={event.created_at}>

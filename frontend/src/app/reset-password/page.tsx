@@ -11,7 +11,7 @@ export default function ResetPassword() {
     <Suspense
       fallback={
         <div className="auth-wrap" role="status">
-          লোড হচ্ছে / Loading…
+          <UiText text={"লোড হচ্ছে / Loading…"} />
         </div>
       }
     >
@@ -91,12 +91,12 @@ function ResetPasswordForm() {
         <form onSubmit={submit}>
           {request ? (
             <label className="field">
-              ইমেইল / Email
+              <UiText text={"ইমেইল / Email"} />
               <input name="email" type="email" required autoComplete="email" />
             </label>
           ) : (
             <label className="field">
-              নতুন পাসওয়ার্ড / New password
+              <UiText text={"নতুন পাসওয়ার্ড / New password"} />
               <input
                 name="new_password"
                 type="password"
@@ -108,15 +108,17 @@ function ResetPasswordForm() {
           )}
           {error && (
             <p className="error" role="alert">
-              {error}
+              <UiText text={error} />
             </p>
           )}
           <button className="button" disabled={busy}>
-            {busy
-              ? "Please wait…"
-              : request
-                ? "Send reset link"
-                : "Update password"}
+            {busy ? (
+              <UiText text={"Please wait…"} />
+            ) : request ? (
+              <UiText text={"Send reset link"} />
+            ) : (
+              <UiText text={"Update password"} />
+            )}
           </button>
         </form>
         <p className="switch-auth">

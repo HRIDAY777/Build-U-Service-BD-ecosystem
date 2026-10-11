@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { useApp } from "./provider";
+import { translateUi } from "@/lib/translations";
 
 export function Photo({
   src,
@@ -13,6 +15,8 @@ export function Photo({
   className?: string;
   eager?: boolean;
 }) {
+  const { lang } = useApp();
+  alt = translateUi(alt, lang);
   const [failed, setFailed] = useState("");
   if (!src || failed === src)
     return <span className={`photo-unavailable ${className}`}>{alt}</span>;

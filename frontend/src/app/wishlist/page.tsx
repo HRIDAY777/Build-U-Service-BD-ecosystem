@@ -1,4 +1,6 @@
 "use client";
+import { TranslatedInput } from "@/components/translated-elements";
+
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -17,7 +19,7 @@ type WishlistItem = {
 };
 
 export default function WishlistPage() {
-  const { user, toast, add } = useApp();
+  const { user, toast, add, lang } = useApp();
   const [stored, setStored] = useState<{
     owner: number;
     items: WishlistItem[];
@@ -111,7 +113,7 @@ export default function WishlistPage() {
       </h1>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       <div className="search-row">
@@ -137,7 +139,7 @@ export default function WishlistPage() {
             }
           }}
         >
-          তালিকা শেয়ার করুন
+          <UiText text={"তালিকা শেয়ার করুন"} />
         </button>
         <button
           className="button secondary"
@@ -155,26 +157,32 @@ export default function WishlistPage() {
             }
           }}
         >
-          শেয়ার লিংক বন্ধ করুন
+          <UiText text={"শেয়ার লিংক বন্ধ করুন"} />
         </button>
       </div>
       {shareUrl && (
         <label className="field">
-          এই লিংক যাকে দেবেন, তিনি তালিকার পণ্যগুলো দেখতে পারবেন।
+          <UiText
+            text={"এই লিংক যাকে দেবেন, তিনি তালিকার পণ্যগুলো দেখতে পারবেন।"}
+          />
           <input readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
           <a className="text-link" href={shareUrl}>
-            শেয়ার পেজ দেখুন
+            <UiText text={"শেয়ার পেজ দেখুন"} />
           </a>
         </label>
       )}
       <p className="subtle">
-        দাম কমা ও স্টক ফেরার খবর অ্যাকাউন্টের নোটিফিকেশনে দেখুন।{" "}
-        <Link href="/account">অ্যাকাউন্ট খুলুন</Link>
+        <UiText
+          text={"দাম কমা ও স্টক ফেরার খবর অ্যাকাউন্টের নোটিফিকেশনে দেখুন।"}
+        />{" "}
+        <Link href="/account">
+          <UiText text={"অ্যাকাউন্ট খুলুন"} />
+        </Link>
       </p>
       <div className="wishlist-toolbar">
         <label className="field">
           <Text bn="তালিকায় খুঁজুন" en="Search saved items" />
-          <input
+          <TranslatedInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="পণ্য, সেবা বা দোকানের নাম"
@@ -186,7 +194,9 @@ export default function WishlistPage() {
             value={division}
             onChange={(e) => setDivision(e.target.value)}
           >
-            <option value="">সব বিভাগ</option>
+            <option value="">
+              <UiText text={"সব বিভাগ"} />
+            </option>
             <option value="shop">
               <UiText text={"Shop"} />
             </option>
@@ -210,28 +220,44 @@ export default function WishlistPage() {
         <label className="field">
           <Text bn="সাজান" en="Sort" />
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="saved">সাম্প্রতিক সংরক্ষণ</option>
-            <option value="name">নাম</option>
-            <option value="price">কম দাম আগে</option>
+            <option value="saved">
+              <UiText text={"সাম্প্রতিক সংরক্ষণ"} />
+            </option>
+            <option value="name">
+              <UiText text={"নাম"} />
+            </option>
+            <option value="price">
+              <UiText text={"কম দাম আগে"} />
+            </option>
           </select>
         </label>
       </div>
       {stored?.owner !== user.id && !error && (
-        <p role="status">তালিকা লোড হচ্ছে…</p>
+        <p role="status">
+          <UiText text={"তালিকা লোড হচ্ছে…"} />
+        </p>
       )}
       {stored?.owner === user.id && !items.length && (
         <div className="empty wishlist-empty">
-          <h2>আপনার পছন্দের তালিকা এখনও খালি</h2>
+          <h2>
+            <UiText text={"আপনার পছন্দের তালিকা এখনও খালি"} />
+          </h2>
           <p>
-            ক্যাটালগে হৃদয় চিহ্নে ক্লিক করে পণ্য বা সেবা এখানে সংরক্ষণ করুন।
+            <UiText
+              text={
+                "ক্যাটালগে হৃদয় চিহ্নে ক্লিক করে পণ্য বা সেবা এখানে সংরক্ষণ করুন।"
+              }
+            />
           </p>
           <Link href="/catalog" className="button">
-            ক্যাটালগ দেখুন
+            <UiText text={"ক্যাটালগ দেখুন"} />
           </Link>
         </div>
       )}
       {items.length > 0 && !visible.length && (
-        <p className="subtle">এই ফিল্টারে কোনো সংরক্ষিত আইটেম পাওয়া যায়নি।</p>
+        <p className="subtle">
+          <UiText text={"এই ফিল্টারে কোনো সংরক্ষিত আইটেম পাওয়া যায়নি।"} />
+        </p>
       )}
       <div className="offering-grid">
         {visible.map((item) => (
@@ -239,10 +265,19 @@ export default function WishlistPage() {
             {offeringPhoto(item.offering_detail) && (
               <Photo
                 src={offeringPhoto(item.offering_detail)}
-                alt={item.offering_detail.name}
+                alt={
+                  lang === "bn"
+                    ? item.offering_detail.name_bn || item.offering_detail.name
+                    : item.offering_detail.name
+                }
               />
             )}
-            <h3>{item.offering_detail.name}</h3>
+            <h3>
+              <Text
+                bn={item.offering_detail.name_bn || item.offering_detail.name}
+                en={item.offering_detail.name}
+              />
+            </h3>
             <p>
               {item.offering_detail.merchant} · ৳
               {Number(
@@ -252,11 +287,13 @@ export default function WishlistPage() {
               ·{" "}
               {["electrician", "mechanic", "services"].includes(
                 item.offering_detail.division_slug,
-              )
-                ? "সেবা বুকিং"
-                : item.offering_detail.stock
-                  ? "স্টকে আছে"
-                  : "স্টক শেষ"}
+              ) ? (
+                <UiText text={"সেবা বুকিং"} />
+              ) : item.offering_detail.stock ? (
+                <UiText text={"স্টকে আছে"} />
+              ) : (
+                <UiText text={"স্টক শেষ"} />
+              )}
             </p>
             <div className="wishlist-alerts">
               <label>
@@ -266,7 +303,7 @@ export default function WishlistPage() {
                   disabled={busy === item.id}
                   onChange={() => void setAlert(item, "price_alert")}
                 />{" "}
-                দাম কমলে জানাবেন
+                <UiText text={"দাম কমলে জানাবেন"} />
               </label>
               <label>
                 <input
@@ -275,7 +312,7 @@ export default function WishlistPage() {
                   disabled={busy === item.id}
                   onChange={() => void setAlert(item, "restock_alert")}
                 />{" "}
-                স্টক এলে জানাবেন
+                <UiText text={"স্টক এলে জানাবেন"} />
               </label>
             </div>
             <Link
@@ -299,14 +336,15 @@ export default function WishlistPage() {
                 }
               }}
             >
-              শেয়ার
+              <UiText text={"শেয়ার"} />
             </button>{" "}
-            {item.offering_detail.variants?.length || item.offering_detail.food_option_groups?.length ? (
+            {item.offering_detail.variants?.length ||
+            item.offering_detail.food_option_groups?.length ? (
               <Link
                 className="button"
                 href={`/catalog/${item.offering_detail.id}`}
               >
-                সাইজ / অপশন বাছুন
+                <UiText text={"সাইজ / অপশন বাছুন"} />
               </Link>
             ) : (
               !["electrician", "mechanic", "services"].includes(
@@ -319,7 +357,7 @@ export default function WishlistPage() {
                     add(item.offering_detail);
                   }}
                 >
-                  ব্যাগে যোগ করুন
+                  <UiText text={"ব্যাগে যোগ করুন"} />
                 </button>
               )
             )}{" "}

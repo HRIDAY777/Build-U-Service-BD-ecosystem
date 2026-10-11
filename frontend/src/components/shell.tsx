@@ -1,4 +1,6 @@
 "use client";
+import { TranslatedButton } from "@/components/translated-elements";
+
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -37,7 +39,7 @@ export function Header() {
         </Link>
         <nav
           className={open ? "nav open" : "nav"}
-          aria-label="Main navigation"
+          aria-label={lang === "bn" ? "প্রধান মেনু" : "Main navigation"}
           onClick={() => setOpen(false)}
         >
           <Link href="/catalog">
@@ -60,17 +62,21 @@ export function Header() {
           </Link>
         </nav>
         <div className="header-actions">
-          <button
+          <TranslatedButton
             className="lang-switch"
             onClick={() => setLang(lang === "bn" ? "en" : "bn")}
             aria-label="Change language"
           >
-            {lang === "bn" ? "EN" : "বাংলা"}
-          </button>
+            {lang === "bn" ? <UiText text={"EN"} /> : <UiText text={"বাংলা"} />}
+          </TranslatedButton>
           <Link
             href="/checkout"
             className="icon-button"
-            aria-label={`Shopping bag, ${cart.reduce((s, i) => s + i.quantity, 0)} items`}
+            aria-label={
+              lang === "bn"
+                ? `কেনাকাটার ব্যাগ, ${cart.reduce((s, i) => s + i.quantity, 0)}টি পণ্য`
+                : `Shopping bag, ${cart.reduce((s, i) => s + i.quantity, 0)} items`
+            }
           >
             <ShoppingBag size={21} />
             {cart.length > 0 && (
@@ -89,13 +95,13 @@ export function Header() {
               )}
             </span>
           </Link>
-          <button
+          <TranslatedButton
             className="mobile-menu icon-button"
             aria-label="Toggle navigation"
             onClick={() => setOpen(!open)}
           >
             {open ? <X /> : <Menu />}
-          </button>
+          </TranslatedButton>
         </div>
       </header>
     </>
@@ -116,7 +122,8 @@ export function Footer() {
             />
           </p>
           <span className="location">
-            <MapPin size={16} /> Bangladesh · BDT ৳
+            <MapPin size={16} />
+            <UiText text={"Bangladesh · BDT ৳"} />
           </span>
         </div>
         <div>
@@ -167,8 +174,12 @@ export function Footer() {
           <Link href="/portal">
             <UiText text={"Operations portal"} />
           </Link>
-          <Link href="/provider">প্রোভাইডার পোর্টাল</Link>
-          <Link href="/rider">রাইডার পোর্টাল</Link>
+          <Link href="/provider">
+            <UiText text={"প্রোভাইডার পোর্টাল"} />
+          </Link>
+          <Link href="/rider">
+            <UiText text={"রাইডার পোর্টাল"} />
+          </Link>
         </div>
         <div>
           <h3>
@@ -177,12 +188,24 @@ export function Footer() {
           <Link href="/account">
             <UiText text={"Your account"} />
           </Link>
-          <Link href="/returns">Returns / পণ্য ফেরত</Link>
-          <Link href="/loyalty">Loyalty points / লয়্যালটি পয়েন্ট</Link>
-          <Link href="/reviews">Your reviews / আপনার রিভিউ</Link>
-          <Link href="/stores">Stores & providers / প্রতিষ্ঠানসমূহ</Link>
-          <Link href="/support">Support / সহায়তা</Link>
-          <Link href="/photo-credits">ছবির উৎস / Photo credits</Link>
+          <Link href="/returns">
+            <UiText text={"Returns / পণ্য ফেরত"} />
+          </Link>
+          <Link href="/loyalty">
+            <UiText text={"Loyalty points / লয়্যালটি পয়েন্ট"} />
+          </Link>
+          <Link href="/reviews">
+            <UiText text={"Your reviews / আপনার রিভিউ"} />
+          </Link>
+          <Link href="/stores">
+            <UiText text={"Stores & providers / প্রতিষ্ঠানসমূহ"} />
+          </Link>
+          <Link href="/support">
+            <UiText text={"Support / সহায়তা"} />
+          </Link>
+          <Link href="/photo-credits">
+            <UiText text={"ছবির উৎস / Photo credits"} />
+          </Link>
           <Link href="/contact">
             <UiText text={"Contact & support"} />
           </Link>
@@ -195,7 +218,10 @@ export function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} U Service BD Limited</span>
+        <span>
+          © {new Date().getFullYear()}
+          <UiText text={"U Service BD Limited"} />
+        </span>
         <span>
           <Text
             bn="বাংলাদেশের জন্য, ভালোবাসা নিয়ে।"

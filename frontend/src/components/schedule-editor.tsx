@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useState } from "react";
 import { api } from "@/lib/api";
 
@@ -74,22 +76,32 @@ export function ScheduleEditor({
         disabled={busy}
         onClick={load}
       >
-        সময় ও ছুটি পরিচালনা / Manage schedule
+        <UiText text={"সময় ও ছুটি পরিচালনা / Manage schedule"} />
       </button>
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p role="status">
+          <UiText text={message} />
+        </p>
+      )}
       {schedule && (
         <fieldset disabled={busy}>
-          <legend>বাংলাদেশ সময় / Bangladesh time (Asia/Dhaka)</legend>
+          <legend>
+            <UiText text={"বাংলাদেশ সময় / Bangladesh time (Asia/Dhaka)"} />
+          </legend>
           <p>
-            সময়সূচি চালু থাকলে ফাঁকা দিন বন্ধ থাকবে। সময়সূচি না থাকলে সময়
-            ম্যানুয়ালি নিশ্চিত করতে হবে। / Empty days are closed when enabled.
-            Unconfigured times require manual confirmation.
+            <UiText
+              text={
+                "সময়সূচি চালু থাকলে ফাঁকা দিন বন্ধ থাকবে। সময়সূচি না থাকলে সময় ম্যানুয়ালি নিশ্চিত করতে হবে। / Empty days are closed when enabled. Unconfigured times require manual confirmation."
+              }
+            />
           </p>
           {provider && (
             <p>
-              নতুন নিয়োগে সময় ও ছুটির নিয়ম প্রযোজ্য। আগে নেওয়া কাজ বদলাতে
-              সমন্বয়কারীর সাথে যোগাযোগ করুন। / Existing assignments remain
-              scheduled; contact coordination to change them.
+              <UiText
+                text={
+                  "নতুন নিয়োগে সময় ও ছুটির নিয়ম প্রযোজ্য। আগে নেওয়া কাজ বদলাতে সমন্বয়কারীর সাথে যোগাযোগ করুন। / Existing assignments remain scheduled; contact coordination to change them."
+                }
+              />
             </p>
           )}
           <label>
@@ -105,11 +117,13 @@ export function ScheduleEditor({
                   setSchedule({ ...schedule, weekly_hours: { "0": [] } });
               }}
             />
-            সাপ্তাহিক সময়সূচি ব্যবহার করুন / Use weekly hours
+            <UiText
+              text={"সাপ্তাহিক সময়সূচি ব্যবহার করুন / Use weekly hours"}
+            />
           </label>
           {!provider && (
             <label className="field">
-              কাজের সময় (মিনিট) / Duration (minutes)
+              <UiText text={"কাজের সময় (মিনিট) / Duration (minutes)"} />
               <input
                 type="number"
                 min={1}
@@ -127,11 +141,13 @@ export function ScheduleEditor({
           {enabled &&
             days.map((day, index) => (
               <fieldset key={day}>
-                <legend>{day}</legend>
+                <legend>
+                  <UiText text={day} />
+                </legend>
                 {(schedule.weekly_hours[String(index)] || []).map((slot, n) => (
                   <div className="form-grid" key={n}>
                     <label className="field">
-                      শুরুর সময় / Start
+                      <UiText text={"শুরুর সময় / Start"} />
                       <input
                         type="time"
                         value={slot.open}
@@ -146,7 +162,7 @@ export function ScheduleEditor({
                       />
                     </label>
                     <label className="field">
-                      শেষের সময় / End
+                      <UiText text={"শেষের সময় / End"} />
                       <input
                         type="time"
                         disabled={slot.close === "24:00"}
@@ -179,7 +195,7 @@ export function ScheduleEditor({
                           )
                         }
                       />
-                      দিনের শেষ পর্যন্ত / Until midnight
+                      <UiText text={"দিনের শেষ পর্যন্ত / Until midnight"} />
                     </label>
                     <button
                       type="button"
@@ -192,7 +208,7 @@ export function ScheduleEditor({
                         )
                       }
                     >
-                      সরান / Remove
+                      <UiText text={"সরান / Remove"} />
                     </button>
                   </div>
                 ))}
@@ -208,16 +224,19 @@ export function ScheduleEditor({
                     ])
                   }
                 >
-                  সময় যোগ করুন / Add hours
+                  <UiText text={"সময় যোগ করুন / Add hours"} />
                 </button>
               </fieldset>
             ))}
           <p>
-            শেষের সময় শুরুর আগে হলে পরের দিন পর্যন্ত গণনা হবে। / Earlier end
-            times continue into the next day.
+            <UiText
+              text={
+                "শেষের সময় শুরুর আগে হলে পরের দিন পর্যন্ত গণনা হবে। / Earlier end times continue into the next day."
+              }
+            />
           </p>
           <label className="field">
-            ছুটির তারিখ / Leave date
+            <UiText text={"ছুটির তারিখ / Leave date"} />
             <input
               type="date"
               value={date}
@@ -239,7 +258,7 @@ export function ScheduleEditor({
               setDate("");
             }}
           >
-            ছুটি যোগ করুন / Add leave
+            <UiText text={"ছুটি যোগ করুন / Add leave"} />
           </button>
           <ul>
             {schedule.leave_dates.map((day) => (
@@ -256,13 +275,13 @@ export function ScheduleEditor({
                     })
                   }
                 >
-                  সরান / Remove
+                  <UiText text={"সরান / Remove"} />
                 </button>
               </li>
             ))}
           </ul>
           <button type="button" className="button" onClick={save}>
-            সময়সূচি সংরক্ষণ / Save schedule
+            <UiText text={"সময়সূচি সংরক্ষণ / Save schedule"} />
           </button>
         </fieldset>
       )}

@@ -1,4 +1,64 @@
+import { englishUi } from "./english-ui";
+
 export const bangla: Record<string, string> = {
+  "Redeeming…": "পুরস্কার নেওয়া হচ্ছে…",
+  Redeem: "পুরস্কার নিন",
+  "Awaiting fulfilment": "প্রদানের অপেক্ষায়",
+  "Send reset link": "পাসওয়ার্ড পরিবর্তনের লিংক পাঠান",
+  "Submitting…": "পাঠানো হচ্ছে…",
+  "Submit review": "মূল্যায়ন জমা দিন",
+  "OPERATIONS WORKSPACE": "অপারেশন পরিচালনা",
+  "YOUR U SERVICE": "আপনার ইউ সার্ভিস",
+  "Email verified": "ইমেইল যাচাই হয়েছে",
+  "Your email is not verified yet.": "আপনার ইমেইল এখনও যাচাই হয়নি।",
+  "Update address": "ঠিকানা হালনাগাদ করুন",
+  "Save address": "ঠিকানা সংরক্ষণ করুন",
+  "Out of stock": "স্টক নেই",
+  "Cash on delivery": "ডেলিভারির সময় নগদ পরিশোধ",
+  "SSLCOMMERZ online payment": "এসএসএলকমার্জ অনলাইন পেমেন্ট",
+  "Times use Bangladesh time (Asia/Dhaka). The team confirms your appointment.":
+    "সময় বাংলাদেশের সময় অনুযায়ী দেখানো হয়। টিম আপনার বুকিং নিশ্চিত করবে।",
+  "Booking…": "বুকিং হচ্ছে…",
+  "Illustrative photo": "দৃষ্টান্তমূলক ছবি",
+  "minute visit": "মিনিটের ভিজিট",
+  "In stock": "মজুত আছে",
+  "Options available": "অপশন আছে",
+  "/ service": "/ সেবা",
+  "Application history": "আবেদনের ইতিহাস",
+  "Choose your package": "আপনার প্যাকেজ বাছুন",
+  "U SERVICE BD · DISCOVER": "ইউ সার্ভিস বিডি · খুঁজে দেখুন",
+  "U SERVICE · DELIVERY": "ইউ সার্ভিস · ডেলিভারি",
+  "U EVENTS": "ইউ ইভেন্টস",
+  "U DELIVERY": "ইউ ডেলিভারি",
+  "U SERVICE · PROJECTS": "ইউ সার্ভিস · প্রজেক্ট",
+  "U SERVICE BD": "ইউ সার্ভিস বিডি",
+  "U Service BD Limited": "ইউ সার্ভিস বিডি লিমিটেড",
+  "Quoted budget: ৳": "কোটেশনের বাজেট: ৳",
+  "Customer budget: ৳": "গ্রাহকের বাজেট: ৳",
+  "Stock photography": "দৃষ্টান্তমূলক ছবি",
+  "Used under the": "ব্যবহারের অনুমতি:",
+  "Pexels licence": "পেক্সেলস লাইসেন্স",
+  ". Display cropping may differ from the original photograph.":
+    "। প্রদর্শিত ছবির কাটিং মূল ছবি থেকে ভিন্ন হতে পারে।",
+  "— photographer and original source": "— আলোকচিত্রী ও মূল উৎস",
+  "Original photograph": "মূল ছবি",
+  "Displayed as a cropped preview; source file retained.":
+    "কাটিং করা প্রিভিউ দেখানো হয়েছে; মূল ছবিটি সংরক্ষিত।",
+  "PLACES, PEOPLE & EVERYDAY STORIES": "জায়গা, মানুষ ও প্রতিদিনের গল্প",
+  "Option name": "অপশনের নাম",
+  "← Back to": "← ফিরে যান:",
+  "Subtotal: ৳": "পণ্যের মোট মূল্য: ৳",
+  "· Discount: ৳": "· ছাড়: ৳",
+  "Delivery: ৳": "ডেলিভারি: ৳",
+  "Total to pay: ৳": "সর্বমোট: ৳",
+  "Bangladesh · BDT ৳": "বাংলাদেশ · টাকা ৳",
+  "kg ·": "কেজি ·",
+  "yet.": "এখনও।",
+  "Request a parcel delivery within available service areas. Base area fee plus ৳20 per kg above 1 kg; maximum 20 kg.":
+    "চালু সেবার এলাকায় পার্সেল পাঠান। এলাকার বেস চার্জের সঙ্গে ১ কেজির বেশি প্রতি কেজিতে ৳২০; সর্বোচ্চ ওজন ২০ কেজি।",
+  "minutes · Bangladesh time": "মিনিট · বাংলাদেশ সময়",
+  "Bangladesh time (Asia/Dhaka)": "বাংলাদেশ সময় (এশিয়া/ঢাকা)",
+  "Choose size or option": "সাইজ বা অপশন বাছুন",
   "Please wait…": "অপেক্ষা করুন…",
   "অ্যাকাউন্ট তৈরি করুন / Create account": "অ্যাকাউন্ট তৈরি করুন",
   "লগইন / Sign in": "লগইন",
@@ -296,6 +356,38 @@ export const bangla: Record<string, string> = {
   "U EVENTS · YOUR SPECIAL DAYS": "ইউ ইভেন্টস · আপনার বিশেষ দিন",
 };
 
-export function translateUi(text: string, lang: "bn" | "en") {
-  return lang === "bn" ? bangla[text] || text : text;
+const englishFromBangla = Object.fromEntries(
+  Object.entries(bangla)
+    .filter(([key]) => !/[\u0985-\u09e3]/u.test(key))
+    .map(([en, bn]) => [bn, en]),
+);
+const banglaFromEnglish = Object.fromEntries(
+  Object.entries(englishUi)
+    .filter(([bn]) => !bn.includes(" / "))
+    .map(([bn, en]) => [en, bn]),
+);
+
+export function translateUi(text: string, lang: "bn" | "en"): string {
+  const value = text.replace(/\s+/g, " ").trim();
+  const en = englishUi[value] || englishFromBangla[value];
+  if (lang === "en" && en) return en;
+  if (lang === "bn" && bangla[value]) return bangla[value];
+  if (lang === "bn" && value.startsWith("বাছাই করা ঠিকানা ঠিক আছে"))
+    return value.split(" / ")[0];
+  if (value.includes(" / ") && /[\u0985-\u09e3]/u.test(value)) {
+    const parts = value.split(" / ");
+    const matching = parts.filter(
+      (part) => /[\u0985-\u09e3]/u.test(part) === (lang === "bn"),
+    );
+    if (matching.length && matching.length < parts.length)
+      return matching.join(" · ");
+  }
+  if (lang === "bn") return banglaFromEnglish[value] || value;
+  return value
+    .replace(/[০-৯]/g, (digit) =>
+      String(digit.charCodeAt(0) - "০".charCodeAt(0)),
+    )
+    .replace(/\/জন/g, "/person")
+    .replace(/ জন/g, " guests")
+    .replace(/ থেকে/g, " and up");
 }

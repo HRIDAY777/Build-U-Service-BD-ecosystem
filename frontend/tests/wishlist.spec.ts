@@ -30,7 +30,7 @@ test("wishlist saves alert preferences and shares a revocable public list", asyn
   await page.goto("/wishlist");
   const card = page
     .locator(".wishlist-record")
-    .filter({ hasText: offering.name });
+    .filter({ hasText: offering.name_bn || offering.name });
   await expect(card).toBeVisible();
   await card.getByLabel("দাম কমলে জানাবেন").click();
   await expect(card.getByLabel("দাম কমলে জানাবেন")).toBeChecked();
@@ -43,6 +43,9 @@ test("wishlist saves alert preferences and shares a revocable public list", asyn
   await page
     .getByRole("button", { name: "তালিকা শেয়ার করুন", exact: true })
     .click();
+  await expect(page.locator("input[readonly]")).toHaveValue(
+    /\/wishlist\/shared\/.+/,
+  );
   const shareUrl = await page.locator("input[readonly]").inputValue();
   const publicContext = await browser.newContext();
   const publicPage = await publicContext.newPage();

@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, PageResult } from "@/lib/api";
@@ -70,7 +72,11 @@ export function ProjectGallery() {
         </select>
       </label>
       {loading && <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert">
+          <UiText text={error} />
+        </p>
+      )}
       {!loading && !error && !items.length && (
         <p>
           {t(

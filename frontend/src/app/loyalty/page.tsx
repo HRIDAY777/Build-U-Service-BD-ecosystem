@@ -88,7 +88,9 @@ export default function LoyaltyPage() {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>Loyalty / লয়্যালটি</h1>
+        <h1>
+          <UiText text={"Loyalty / লয়্যালটি"} />
+        </h1>
         <Link href="/login" className="button">
           <UiText text={"Sign in"} />
         </Link>
@@ -119,7 +121,7 @@ export default function LoyaltyPage() {
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {loading ? (
@@ -148,7 +150,11 @@ export default function LoyaltyPage() {
                 }
                 onClick={() => redeem(reward)}
               >
-                {redeeming === reward.id ? "Redeeming…" : "Redeem"}
+                {redeeming === reward.id ? (
+                  <UiText text={"Redeeming…"} />
+                ) : (
+                  <UiText text={"Redeem"} />
+                )}
               </button>
             </article>
           ))}
@@ -169,9 +175,11 @@ export default function LoyaltyPage() {
                 {new Date(redemption.created_at).toLocaleString()}
               </p>
               <p role="status">
-                {redemption.fulfilled_at
-                  ? `Fulfilled ${new Date(redemption.fulfilled_at).toLocaleString()}`
-                  : "Awaiting fulfilment"}
+                {redemption.fulfilled_at ? (
+                  `Fulfilled ${new Date(redemption.fulfilled_at).toLocaleString()}`
+                ) : (
+                  <UiText text={"Awaiting fulfilment"} />
+                )}
               </p>
             </article>
           ))}

@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { FormEvent, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { Text } from "./provider";
@@ -207,10 +209,14 @@ function RestaurantSettings({ restaurant }: { restaurant: Restaurant }) {
           </button>
         </fieldset>
       </form>
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p role="status">
+          <UiText text={message} />
+        </p>
+      )}
       {error && (
         <p role="alert" className="error">
-          {error}
+          <UiText text={error} />
         </p>
       )}
     </article>
@@ -247,7 +253,7 @@ export function PartnerRestaurants() {
   if (error)
     return (
       <p className="error" role="alert">
-        {error}
+        <UiText text={error} />
       </p>
     );
   if (loading)

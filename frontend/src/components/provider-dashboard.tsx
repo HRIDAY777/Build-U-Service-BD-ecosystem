@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import { ScheduleEditor } from "./schedule-editor";
 import { ProviderCalendar } from "./provider-calendar";
@@ -94,28 +96,38 @@ export function ProviderDashboard() {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>প্রোভাইডার পোর্টাল</h1>
+        <h1>
+          <UiText text={"প্রোভাইডার পোর্টাল"} />
+        </h1>
         <Link className="button" href="/login">
-          লগইন করুন
+          <UiText text={"লগইন করুন"} />
         </Link>
       </div>
     );
   if (!allowed)
     return (
       <div className="page-wrap">
-        <h1>প্রোভাইডার হিসেবে যুক্ত হোন</h1>
-        <p>অনুমোদিত Provider অ্যাকাউন্ট দিয়ে কাজ পরিচালনা করুন।</p>
+        <h1>
+          <UiText text={"প্রোভাইডার হিসেবে যুক্ত হোন"} />
+        </h1>
+        <p>
+          <UiText
+            text={"অনুমোদিত Provider অ্যাকাউন্ট দিয়ে কাজ পরিচালনা করুন।"}
+          />
+        </p>
         <Link className="button" href="/contact?interest=provider">
-          আবেদন করুন
+          <UiText text={"আবেদন করুন"} />
         </Link>
       </div>
     );
   return (
     <div className="page-wrap">
-      <h1>প্রোভাইডার পোর্টাল / Provider workspace</h1>
+      <h1>
+        <UiText text={"প্রোভাইডার পোর্টাল / Provider workspace"} />
+      </h1>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {data ? (
@@ -123,13 +135,16 @@ export function ProviderDashboard() {
           <h2>{data.profile.name}</h2>
           <div className="stat-grid">
             <article className="record">
-              চলমান কাজ<strong>{data.profile.active_jobs}</strong>
+              <UiText text={"চলমান কাজ"} />
+              <strong>{data.profile.active_jobs}</strong>
             </article>
             <article className="record">
-              সম্পন্ন কাজ<strong>{data.profile.completed_jobs}</strong>
+              <UiText text={"সম্পন্ন কাজ"} />
+              <strong>{data.profile.completed_jobs}</strong>
             </article>
             <article className="record">
-              অসম্পন্ন কাজ<strong>{data.profile.failed_jobs}</strong>
+              <UiText text={"অসম্পন্ন কাজ"} />
+              <strong>{data.profile.failed_jobs}</strong>
             </article>
           </div>
           <label className="field">
@@ -144,20 +159,25 @@ export function ProviderDashboard() {
                   })
                 }
               />{" "}
-              নতুন কাজ নিতে প্রস্তুত
+              <UiText text={"নতুন কাজ নিতে প্রস্তুত"} />
             </span>
           </label>
           <p className="subtle">
-            বন্ধ করলে নতুন নিয়োগ দেওয়া যাবে না। আগে নেওয়া কাজগুলো সম্পন্ন করতে
-            পারবেন। একই সময়ে একাধিক কাজের নিয়োগ আটকানো হয়।
+            <UiText
+              text={
+                "বন্ধ করলে নতুন নিয়োগ দেওয়া যাবে না। আগে নেওয়া কাজগুলো সম্পন্ন করতে পারবেন। একই সময়ে একাধিক কাজের নিয়োগ আটকানো হয়।"
+              }
+            />
           </p>
         </>
       ) : (
-        <p role="status">তথ্য লোড হচ্ছে…</p>
+        <p role="status">
+          <UiText text={"তথ্য লোড হচ্ছে…"} />
+        </p>
       )}
       <div className="search-row">
         <label className="field">
-          কাজের অবস্থা
+          <UiText text={"কাজের অবস্থা"} />
           <select
             value={status}
             onChange={(e) => {
@@ -165,10 +185,12 @@ export function ProviderDashboard() {
               setPage(1);
             }}
           >
-            <option value="">সব কাজ</option>
+            <option value="">
+              <UiText text={"সব কাজ"} />
+            </option>
             {Object.entries(labels).map(([value, label]) => (
               <option key={value} value={value}>
-                {label}
+                <UiText text={label} />
               </option>
             ))}
           </select>
@@ -178,32 +200,41 @@ export function ProviderDashboard() {
           disabled={busy}
           onClick={() => void act()}
         >
-          রিফ্রেশ
+          <UiText text={"রিফ্রেশ"} />
         </button>
       </div>
       {data?.jobs.results.map((job) => (
         <article className="record" key={job.id}>
           <h2>{job.service}</h2>
           <p>
-            {labels[job.status] || job.status} ·{" "}
+            <UiText text={labels[job.status] || job.status} /> ·{" "}
             {new Date(job.scheduled_at).toLocaleString("bn-BD", {
               timeZone: "Asia/Dhaka",
             })}
           </p>
           <p>
-            {job.duration_minutes} মিনিট / minutes · বাংলাদেশ সময় / Bangladesh
-            time
+            {job.duration_minutes}
+            <UiText text={"মিনিট / minutes · বাংলাদেশ সময় / Bangladesh time"} />
           </p>
-          <small>বুকিং: {job.id}</small>
+          <small>
+            <UiText text={"বুকিং:"} />
+            {job.id}
+          </small>
           <p>
             {job.address.recipient}
             <br />
             {job.address.line}, {job.address.area}
           </p>
           <a className="text-link" href={`tel:${job.address.phone}`}>
-            কল করুন: {job.address.phone}
+            <UiText text={"কল করুন:"} />
+            {job.address.phone}
           </a>
-          {job.notes && <p>নির্দেশনা: {job.notes}</p>}
+          {job.notes && (
+            <p>
+              <UiText text={"নির্দেশনা:"} />
+              {job.notes}
+            </p>
+          )}
           <div className="search-row">
             {job.available_actions.map((state) => (
               <button
@@ -214,13 +245,17 @@ export function ProviderDashboard() {
                   void act(`bookings/${job.id}/transition/`, { status: state })
                 }
               >
-                {labels[state] || state}
+                <UiText text={labels[state] || state} />
               </button>
             ))}
           </div>
         </article>
       ))}
-      {data && !data.jobs.count && <p>এই অবস্থায় কোনো নিয়োগকৃত কাজ নেই।</p>}
+      {data && !data.jobs.count && (
+        <p>
+          <UiText text={"এই অবস্থায় কোনো নিয়োগকৃত কাজ নেই।"} />
+        </p>
+      )}
       <ScheduleEditor
         key={`schedule-${user.id}`}
         endpoint="bookings/provider_profile/"
@@ -233,19 +268,24 @@ export function ProviderDashboard() {
           disabled={page === 1 || busy}
           onClick={() => setPage((p) => p - 1)}
         >
-          আগের পৃষ্ঠা
+          <UiText text={"আগের পৃষ্ঠা"} />
         </button>
-        <span>পৃষ্ঠা {page}</span>
+        <span>
+          <UiText text={"পৃষ্ঠা"} />
+          {page}
+        </span>
         <button
           className="button secondary"
           disabled={!data?.jobs.next || busy}
           onClick={() => setPage((p) => p + 1)}
         >
-          পরের পৃষ্ঠা
+          <UiText text={"পরের পৃষ্ঠা"} />
         </button>
       </div>
       <p>
-        <Link href="/support">সাপোর্টের সাহায্য নিন</Link>
+        <Link href="/support">
+          <UiText text={"সাপোর্টের সাহায্য নিন"} />
+        </Link>
       </p>
     </div>
   );
@@ -283,16 +323,22 @@ export function ProviderPicker() {
   const workers = stored?.owner === user?.id ? stored?.workers || [] : [];
   return (
     <label className="field">
-      প্রোভাইডার বাছুন
+      <UiText text={"প্রোভাইডার বাছুন"} />
       <select name="worker" required defaultValue="">
-        <option value="">নাম বাছুন</option>
+        <option value="">
+          <UiText text={"নাম বাছুন"} />
+        </option>
         {workers.map((w) => (
           <option key={w.id} value={w.id}>
             {w.name}
           </option>
         ))}
       </select>
-      {error && <small role="alert">{error}</small>}
+      {error && (
+        <small role="alert">
+          <UiText text={error} />
+        </small>
+      )}
     </label>
   );
 }

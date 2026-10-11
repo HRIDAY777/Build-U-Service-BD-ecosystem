@@ -60,10 +60,12 @@ function Conversation({
   }, [ticket, page, revision, open]);
   return (
     <details onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary>Conversation / কথোপকথন</summary>
+      <summary>
+        <UiText text={"Conversation / কথোপকথন"} />
+      </summary>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       {loading ? (
@@ -80,9 +82,11 @@ function Conversation({
       {messages?.results.map((message) => (
         <div className="record" key={message.id}>
           <strong>
-            {message.sender_role === "team"
-              ? "Support team / সাপোর্ট টিম"
-              : "Customer / গ্রাহক"}
+            {message.sender_role === "team" ? (
+              <UiText text={"Support team / সাপোর্ট টিম"} />
+            ) : (
+              <UiText text={"Customer / গ্রাহক"} />
+            )}
           </strong>
           <p>{new Date(message.created_at).toLocaleString()}</p>
           <p style={{ whiteSpace: "pre-wrap" }}>{message.body}</p>
@@ -113,11 +117,11 @@ function Conversation({
           }}
         >
           <label className="field">
-            Add details / আরও বিস্তারিত
+            <UiText text={"Add details / আরও বিস্তারিত"} />
             <textarea name="body" required maxLength={5000} />
           </label>
           <button className="button" disabled={busy}>
-            Send follow-up / পাঠান
+            <UiText text={"Send follow-up / পাঠান"} />
           </button>
         </form>
       )}
@@ -167,7 +171,9 @@ export default function SupportPage() {
   if (!user)
     return (
       <div className="page-wrap">
-        <h1>Support / সহায়তা</h1>
+        <h1>
+          <UiText text={"Support / সহায়তা"} />
+        </h1>
         <Link className="button" href="/login">
           <UiText text={"Sign in"} />
         </Link>
@@ -175,7 +181,9 @@ export default function SupportPage() {
     );
   return (
     <div className="page-wrap">
-      <h1>Support / সহায়তা</h1>
+      <h1>
+        <UiText text={"Support / সহায়তা"} />
+      </h1>
       <p>
         <UiText
           text={
@@ -185,23 +193,25 @@ export default function SupportPage() {
       </p>
       {error && (
         <p role="alert" className="error">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       <form className="form-panel" onSubmit={(e) => submit(e, "tickets/")}>
         <label className="field">
-          Subject / বিষয়
+          <UiText text={"Subject / বিষয়"} />
           <input name="subject" required maxLength={180} />
         </label>
         <label className="field">
-          How can we help? / বিস্তারিত
+          <UiText text={"How can we help? / বিস্তারিত"} />
           <textarea name="message" required maxLength={5000} />
         </label>
         <button className="button" disabled={busy}>
           <UiText text={"Open ticket"} />
         </button>
       </form>
-      <h2>Tickets / অনুরোধসমূহ</h2>
+      <h2>
+        <UiText text={"Tickets / অনুরোধসমূহ"} />
+      </h2>
       {loading ? (
         <p>
           <UiText text={"Loading…"} />
@@ -221,7 +231,9 @@ export default function SupportPage() {
           <span className="status">{ticket.status.replaceAll("_", " ")}</span>
           <p>{new Date(ticket.created_at).toLocaleString()}</p>
           <p style={{ whiteSpace: "pre-wrap" }}>{ticket.message}</p>
-          <h4>Team reply / টিমের উত্তর</h4>
+          <h4>
+            <UiText text={"Team reply / টিমের উত্তর"} />
+          </h4>
           <p style={{ whiteSpace: "pre-wrap" }}>
             {ticket.response || "Awaiting a response / উত্তরের অপেক্ষায়"}
           </p>
@@ -251,7 +263,7 @@ export default function SupportPage() {
           {ticket.is_owner && ticket.status === "resolved" && (
             <form onSubmit={(e) => submit(e, `tickets/${ticket.id}/reopen/`)}>
               <button className="button secondary" disabled={busy || loading}>
-                Reopen my ticket / আবার সহায়তা চাই
+                <UiText text={"Reopen my ticket / আবার সহায়তা চাই"} />
               </button>
             </form>
           )}

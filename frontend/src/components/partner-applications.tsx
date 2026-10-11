@@ -1,4 +1,5 @@
 "use client";
+import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -250,8 +251,16 @@ function PartnerApplicationsBody() {
           "Documents are private to you and authorized reviewers. Business approval does not replace specialist licensing or legal clearance.",
         )}
       </p>
-      {error && <p role="alert">{error}</p>}
-      {message && <p role="status">{message}</p>}
+      {error && (
+        <p role="alert">
+          <UiText text={error} />
+        </p>
+      )}
+      {message && (
+        <p role="status">
+          <UiText text={message} />
+        </p>
+      )}
       <details>
         <summary>{t("নতুন আবেদন", "New application")}</summary>
         <form className="form-panel" onSubmit={(e) => void submit(e)}>

@@ -97,7 +97,7 @@ export default function ReviewsPage() {
       </p>
       {error && (
         <p className="error" role="alert">
-          {error}
+          <UiText text={error} />
         </p>
       )}
       <form className="form-panel" onSubmit={submit}>
@@ -189,7 +189,11 @@ export default function ReviewsPage() {
           className="button"
           disabled={busy || loading || !purchases?.results.length}
         >
-          {busy ? "Submitting…" : "Submit review"}
+          {busy ? (
+            <UiText text={"Submitting…"} />
+          ) : (
+            <UiText text={"Submit review"} />
+          )}
         </button>
       </form>
       <h2>

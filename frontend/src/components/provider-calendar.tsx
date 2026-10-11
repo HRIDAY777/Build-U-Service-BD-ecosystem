@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useState } from "react";
 import { api } from "@/lib/api";
 type Job = {
@@ -29,9 +31,11 @@ export function ProviderCalendar() {
   }
   return (
     <section aria-label="Work calendar">
-      <h2>কাজের ক্যালেন্ডার / Work calendar</h2>
+      <h2>
+        <UiText text={"কাজের ক্যালেন্ডার / Work calendar"} />
+      </h2>
       <label className="field">
-        সাত দিনের শুরু / Start of seven days
+        <UiText text={"সাত দিনের শুরু / Start of seven days"} />
         <input
           type="date"
           disabled={busy}
@@ -48,12 +52,19 @@ export function ProviderCalendar() {
         disabled={!date || busy}
         onClick={load}
       >
-        ক্যালেন্ডার দেখুন / View calendar
+        <UiText text={"ক্যালেন্ডার দেখুন / View calendar"} />
       </button>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert">
+          <UiText text={error} />
+        </p>
+      )}
       {jobs && (
         <>
-          <p>বাংলাদেশ সময় / Bangladesh time · {date}</p>
+          <p>
+            <UiText text={"বাংলাদেশ সময় / Bangladesh time ·"} />
+            {date}
+          </p>
           {jobs.length ? (
             jobs.map((job) => (
               <article className="record" key={job.id}>
@@ -64,14 +75,19 @@ export function ProviderCalendar() {
                     dateStyle: "medium",
                     timeStyle: "short",
                   }).format(new Date(job.scheduled_at))}{" "}
-                  · {job.duration_minutes} মিনিট · {job.status}
+                  · {job.duration_minutes}
+                  <UiText text={"মিনিট ·"} />
+                  <UiText text={job.status} />
                 </p>
               </article>
             ))
           ) : (
             <p>
-              এই সাত দিনে চলমান কাজ নেই / No active appointments in these seven
-              days.
+              <UiText
+                text={
+                  "এই সাত দিনে চলমান কাজ নেই / No active appointments in these seven days."
+                }
+              />
             </p>
           )}
         </>

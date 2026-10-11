@@ -1,6 +1,9 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import { useEffect, useState } from "react";
 import { Photo } from "./photo";
+import { useApp } from "./provider";
 
 export type DistrictImage = {
   src: string;
@@ -30,6 +33,7 @@ export function districtImages() {
 }
 
 export function DistrictPhoto({ districtId }: { districtId?: number }) {
+  const { lang } = useApp();
   const [images, setImages] = useState<DistrictImages>({});
   useEffect(() => {
     let current = true;
@@ -48,12 +52,14 @@ export function DistrictPhoto({ districtId }: { districtId?: number }) {
     <figure className="district-photo">
       <Photo
         src={image.src}
-        alt={`${image.name_bn} জেলার দৃশ্য / ${image.name} district: ${image.alt}`}
+        alt={
+          lang === "bn"
+            ? `${image.name_bn} জেলার ছবি`
+            : `${image.name} district photo`
+        }
       />
       <figcaption>
-        <strong>
-          {image.name_bn} / {image.name}
-        </strong>
+        <strong>{lang === "bn" ? image.name_bn : image.name}</strong>
         <br />
         <a href={image.source} target="_blank" rel="noreferrer">
           {image.artist} · {image.license}
@@ -64,6 +70,7 @@ export function DistrictPhoto({ districtId }: { districtId?: number }) {
 }
 
 export function DistrictGallery() {
+  const { lang } = useApp();
   const [images, setImages] = useState<DistrictImages>({});
   useEffect(() => {
     districtImages()
@@ -82,21 +89,36 @@ export function DistrictGallery() {
   if (!selected.length) return null;
   return (
     <section className="section">
-      <span className="eyebrow">PLACES, PEOPLE & EVERYDAY STORIES</span>
-      <h2>বাংলাদেশের রঙে, আপনার প্রতিদিন।</h2>
+      <span className="eyebrow">
+        <UiText text={"PLACES, PEOPLE & EVERYDAY STORIES"} />
+      </span>
+      <h2>
+        <UiText text={"বাংলাদেশের রঙে, আপনার প্রতিদিন।"} />
+      </h2>
       <p>
-        নিজের জেলা বেছে নিলে ঠিকানার ফর্মেও দেখবেন সেই জেলার ছবি। সেবার
-        প্রাপ্যতা checkout-এ যাচাই হবে।
+        <UiText
+          text={
+            "নিজের জেলা বেছে নিলে ঠিকানার ফর্মেও দেখবেন সেই জেলার ছবি। সেবার প্রাপ্যতা checkout-এ যাচাই হবে।"
+          }
+        />
       </p>
       <div className="district-gallery">
         {selected.map(([id, image]) => (
           <figure className="district-photo" key={id}>
-            <Photo src={image.src} alt={image.alt} />
+            <Photo
+              src={image.src}
+              alt={
+                lang === "bn"
+                  ? `${image.name_bn} জেলার ছবি`
+                  : `${image.name} district photo`
+              }
+            />
             <figcaption>
-              <strong>{image.name_bn}</strong>
+              <strong>{lang === "bn" ? image.name_bn : image.name}</strong>
               <br />
               <a href={image.source} target="_blank" rel="noreferrer">
-                ছবির উৎস · {image.license}
+                <UiText text={"ছবির উৎস ·"} />
+                {image.license}
               </a>
             </figcaption>
           </figure>

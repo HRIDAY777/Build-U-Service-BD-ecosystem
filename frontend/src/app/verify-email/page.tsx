@@ -10,7 +10,7 @@ export default function VerifyEmail() {
     <Suspense
       fallback={
         <div className="auth-wrap" role="status">
-          লোড হচ্ছে / Loading…
+          <UiText text={"লোড হচ্ছে / Loading…"} />
         </div>
       }
     >

@@ -1,4 +1,6 @@
 "use client";
+import { UiText } from "@/components/ui-text";
+
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
@@ -494,7 +496,7 @@ export function ProjectAccount() {
             {loading && <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>}
             {error && (
               <p role="alert">
-                {error}
+                <UiText text={error} />
                 <button onClick={() => void load()}>
                   {t("আবার চেষ্টা", "Retry")}
                 </button>
@@ -1039,11 +1041,15 @@ export function ProjectAccount() {
                     <label className="field">
                       {t("ধরন", "Type")}
                       <select name="kind">
-                        <option value="receipt">Receipt / গ্রহণ</option>
-                        <option value="distribution">
-                          Distribution / বিতরণ
+                        <option value="receipt">
+                          <UiText text={"Receipt / গ্রহণ"} />
                         </option>
-                        <option value="refund">Refund / ফেরত</option>
+                        <option value="distribution">
+                          <UiText text={"Distribution / বিতরণ"} />
+                        </option>
+                        <option value="refund">
+                          <UiText text={"Refund / ফেরত"} />
+                        </option>
                       </select>
                     </label>
                     <label className="field">
@@ -1083,7 +1089,7 @@ export function ProjectAccount() {
             </section>
           )}
           <p role="status" aria-live="polite">
-            {message}
+            <UiText text={message} />
           </p>
         </>
       )}
