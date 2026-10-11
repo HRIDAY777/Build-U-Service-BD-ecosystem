@@ -72,3 +72,7 @@ Three real PostgreSQL TransactionTestCase tests passed using separate thread con
 ## PostgreSQL booking concurrency
 
 Four targeted PostgreSQL transaction tests passed: identical simultaneous retries return one booking and one creation audit; changed payloads with the same key produce one booking plus a validation rejection; overlapping appointments assigned simultaneously cannot share one provider; adjacent appointments can share that provider. Ruff passed. No product code change was needed. Pending customer requests can coexist; provider assignment is the conflict gate, not a global one-request-per-service capacity rule. Broader commerce/payment, schedule-change races and load acceptance remain open.
+
+## PostgreSQL checkout concurrency
+
+Four targeted PostgreSQL transaction tests and Ruff passed: two buyers cannot purchase one last unit; simultaneous retry reserves once and returns the same order; variant stock cannot be oversold and leaves base stock intact; separate products competing for the last coupon use create one order and consume the coupon once. Assertions also verify one inventory movement, audit and outbox event. Existing product code passed without changes; live data remained untouched. Payment/refund/cancellation races and broader load testing remain open.

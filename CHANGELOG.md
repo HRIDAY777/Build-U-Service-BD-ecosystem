@@ -64,3 +64,7 @@ Added three PostgreSQL-only transaction tests for simultaneous approval, cross-s
 ## 2026-10-11 — booking concurrency regression tests
 
 Added four PostgreSQL-only transaction tests for retry deduplication, conflicting retry details, overlapping provider assignments and adjacent appointment boundaries. Four tests and Ruff passed. Separate connections, start barriers and bounded SQL timeouts exercise the existing booking/customer and provider locks without changing live data.
+
+## 2026-10-11 — checkout stock and coupon concurrency
+
+Added four PostgreSQL-only transaction regressions for last-unit stock, duplicate checkout retry, last variant stock and last coupon use across different products. All four and Ruff passed. Separate connections/barriers and bounded SQL timeouts exercise existing row locks; inventory/audit/outbox effects are asserted once. No product code changes.

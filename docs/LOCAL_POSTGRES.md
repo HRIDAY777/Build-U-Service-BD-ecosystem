@@ -29,3 +29,7 @@ Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.catalog.test_p
 ## Booking transaction checks
 
 Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.test_booking_concurrency`. Four PostgreSQL tests passed for retry identity, changed retry details, overlapping assignments and adjacent appointments. SQLite skips the tests. Live data is unchanged; the separate test database is removed afterward. These are selected regression scenarios, not full load validation.
+
+## Checkout transaction checks
+
+Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.test_checkout_concurrency`. Four tests passed for last-unit stock, checkout retries, variant stock and coupon exhaustion across different products; inventory/audit/outbox effects are verified once. SQLite skips these row-lock tests. The isolated disposable test database is removed; live data is unchanged.

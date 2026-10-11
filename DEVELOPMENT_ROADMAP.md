@@ -26,3 +26,7 @@ Completed targeted PostgreSQL concurrency tests for partner approval, renewal an
 ## Booking concurrency follow-up
 
 Completed four PostgreSQL regressions covering retries and provider appointment conflicts. Next: stock/order concurrency and remaining security/operations gates.
+
+## Checkout concurrency follow-up
+
+Completed stock, variant, retry and coupon transaction regressions on PostgreSQL. Continue with cancellation/refund races and remaining security/operations gates.

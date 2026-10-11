@@ -90,3 +90,7 @@ Three targeted tests passed on PostgreSQL using separate connections: duplicate 
 ## Booking concurrency evidence
 
 Four PostgreSQL tests passed for identical booking retries, changed retries using the same key, overlapping assignments and adjacent assignments. One booking/audit survives retries and one provider cannot receive overlapping appointments. Customer booking requests remain pending and are not global service reservations. These targeted tests do not establish load or all assignment/reassignment/schedule-change interleavings.
+
+## Checkout concurrency evidence
+
+Four real PostgreSQL tests passed for last-unit purchases, identical retries, variant stock and coupon exhaustion. Coupon requests use different product rows so the shared coupon lock is exercised independently. Asserted one order, reservation movement, audit event and outbox event; failed competing requests leave no partial effects. This is selected concurrency regression coverage, not certification of payment/refund races or load.

@@ -35,3 +35,7 @@ Three PostgreSQL concurrency regressions passed: approval duplication, cross-sou
 ## Booking concurrency evidence
 
 Retry deduplication, changed-key payload rejection, overlapping provider conflict and adjacent provider appointments are verified by four real PostgreSQL transaction tests. Broad commerce/payment/load acceptance remains open.
+
+## Checkout concurrency evidence
+
+Four PostgreSQL tests passed for last product/variant units, retry deduplication and final coupon use across different products. Payment/refund/cancellation concurrency remains open.
