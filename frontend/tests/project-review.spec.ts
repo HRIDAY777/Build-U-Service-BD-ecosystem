@@ -3,6 +3,9 @@ import { test, expect } from "@playwright/test";
 test("reviewer can retry and load project choices beyond the first page", async ({
   page,
 }) => {
+  await page.route("**/api/v1/project-applications/test/history/?*", (route) =>
+    route.fulfill({ json: { count: 0, next: null, results: [] } }),
+  );
   await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
   await page.route("**/api/v1/auth/me/", (route) =>
     route.fulfill({

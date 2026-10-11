@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
 import { LocationPicker, addressLine } from "./location-picker";
+import { ProjectHistory } from "./project-history";
 
 type Update = {
   id: number;
@@ -651,6 +652,10 @@ export function ProjectAccount() {
                 {selected.agreement_reference || "—"}
               </p>
               <p>{selected.review_note}</p>
+              <ProjectHistory
+                key={`${selected.id}-${selected.status}-${selected.entries.length}-${selected.accepted_at}-${selected.agreement_sha256}`}
+                applicationId={selected.id}
+              />
               <p>
                 {t("নিশ্চিত শুরুর তারিখ", "Confirmed start date")}:{" "}
                 {selected.start_date || t("এখনো শুরু হয়নি", "Not started")}

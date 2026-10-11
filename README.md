@@ -137,3 +137,7 @@ The assistant requires `AI_CHAT_ENDPOINT`, `AI_API_KEY` and `AI_MODEL` for an HT
 See [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) for the verified launch checklist and [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for provider integration status.
 
 Delivery booking and dispatch instructions, API contracts and operational limits are documented in [docs/DELIVERY_WORKFLOW.md](docs/DELIVERY_WORKFLOW.md).
+
+## Current project continuity
+
+The expanded enterprise request is preserved in [REQUIREMENTS.ecosystem.txt](REQUIREMENTS.ecosystem.txt). Start with [PROJECT_STATUS.md](PROJECT_STATUS.md), [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md) and [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md). Existing working code and data must be preserved; local feature groups are not proof of full production completion.

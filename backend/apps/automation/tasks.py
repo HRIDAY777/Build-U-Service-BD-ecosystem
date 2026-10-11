@@ -30,17 +30,20 @@ def process_event(event_id):
                 failed = True
                 continue
             try:
-                body = f"{rule.template}\nReference: {event.payload.get('reference', event.id)}"
-                if rule.action == "notify":
-                    Notification.objects.create(user=event.user, title=rule.name, body=body)
-                elif rule.action == "crm":
-                    CRMActivity.objects.create(customer=event.user, kind=event.topic, note=body)
-                elif rule.action == "email":
-                    send_mail(
-                        rule.name, body, settings.DEFAULT_FROM_EMAIL, [event.user.email], fail_silently=False
-                    )
-                else:
-                    raise ValueError("Unsupported action")
+                # Roll back partial DB effects and isolate database errors per rule.
+                # External email cannot be unsent by a database transaction.
+                with transaction.atomic():
+                    body = f"{rule.template}\nReference: {event.payload.get('reference', event.id)}"
+                    if rule.action == "notify":
+                        Notification.objects.create(user=event.user, title=rule.name, body=body)
+                    elif rule.action == "crm":
+                        CRMActivity.objects.create(customer=event.user, kind=event.topic, note=body)
+                    elif rule.action == "email":
+                        send_mail(
+                            rule.name, body, settings.DEFAULT_FROM_EMAIL, [event.user.email], fail_silently=False
+                        )
+                    else:
+                        raise ValueError("Unsupported action")
                 run.status = "succeeded"
                 run.error = ""
             except Exception as exc:

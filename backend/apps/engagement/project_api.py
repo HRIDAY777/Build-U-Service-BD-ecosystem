@@ -15,6 +15,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from apps.operations.services import audit
+from apps.operations.models import AuditLog
 from .project_models import ManagedProject, ProjectApplication, ProjectEntry, ProjectUpdate
 from .models import Notification
 
@@ -66,6 +67,7 @@ class ManagedProjectViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, vi
         if category := self.request.query_params.get("category"):
             qs = qs.filter(category=category)
         return qs
+
 
 
 class EntrySerializer(serializers.ModelSerializer):
@@ -201,6 +203,18 @@ class ProjectApplicationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, 
             if search:
                 qs = qs.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(agreement_reference__icontains=search))
         return qs
+
+    @action(detail=True, methods=["get"], url_path="history")
+    def history(self, request, pk=None):
+        obj = self.get_object()
+        allowed = ["project.application.submitted", "project.application.reviewed", "project.application.cancelled", "project.application.acknowledged", "project.agreement.uploaded", "project.ledger.recorded"]
+        logs = AuditLog.objects.filter(entity=str(obj.pk), action__in=allowed).order_by("-created_at", "-pk")
+        page = self.paginate_queryset(logs)
+        rows = [{"id": log.pk, "action": log.action, "date": log.created_at.isoformat(), "actor": "system" if log.actor_id is None else "customer" if log.actor_id == obj.customer_id else "team", "status": log.metadata.get("status") if log.action == "project.application.reviewed" and log.metadata.get("status") in dict(ProjectApplication._meta.get_field("status").choices) else None} for log in (page if page is not None else logs)]
+        response = self.get_paginated_response(rows) if page is not None else Response(rows)
+        response["Cache-Control"] = "private, no-store"
+        return response
+
 
     @action(detail=True, methods=["get"], url_path="statement")
     def statement(self, request, pk=None):

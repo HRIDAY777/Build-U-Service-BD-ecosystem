@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from .project_models import ProjectApplication, ManagedProject, ProjectEntry, ProjectUpdate
 from .project_api import schedule
+from apps.operations.models import AuditLog
 
 
 class ProjectAccountTests(TestCase):
@@ -200,6 +201,27 @@ class ProjectAccountTests(TestCase):
         url = f"/api/v1/project-applications/{key}/cancel/"
         self.assertEqual(self.client.post(url).status_code, 200)
         self.assertEqual(self.client.post(url).status_code, 400)
+
+    def test_history_is_private_paginated_and_redacts_internal_metadata(self):
+        key = self.create()
+        for index in range(35):
+            AuditLog.objects.create(actor=self.staff, action="project.application.reviewed", entity=str(key), metadata={"status": "reviewing", "private_note": "DO NOT EXPOSE", "secret": "hidden-token", "index": index})
+        AuditLog.objects.create(actor=self.staff, action="unrelated.action", entity=str(key), metadata={"secret": "hidden-token"})
+        url = f"/api/v1/project-applications/{key}/history/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 36)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertIsNotNone(response.data["next"])
+        self.assertEqual(response.data["results"][0]["actor"], "team")
+        self.assertEqual(response.data["results"][0]["status"], "reviewing")
+        self.assertNotIn("hidden-token", str(response.data))
+        self.assertNotIn("DO NOT EXPOSE", str(response.data))
+        self.assertNotIn("actor_id", response.data["results"][0])
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_authenticate(None)
+        self.assertIn(self.client.get(url).status_code, [401, 403])
 
     def test_statement_privacy_totals_and_spreadsheet_safety(self):
         key = self.create()

@@ -274,12 +274,16 @@ export function LoginForm() {
             </>
           )}
           <label className="field">
-            ইউজারনেম / Username
+            {register ? (
+              <Text bn="ইউজারনেম" en="Username" />
+            ) : (
+              <Text bn="ইমেইল বা ইউজারনেম" en="Email or username" />
+            )}
             <input
               name="username"
               required
               autoComplete="username"
-              maxLength={150}
+              maxLength={register ? 150 : 254}
             />
           </label>
           <label className="field">

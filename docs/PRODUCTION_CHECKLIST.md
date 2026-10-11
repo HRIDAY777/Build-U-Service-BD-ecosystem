@@ -5,11 +5,12 @@ This checklist records what can be verified in the repository and what still req
 ## Verified locally
 
 - Django system checks and migration drift checks pass.
-- 90 backend tests pass (10 October 2026), including authentication, authorization, checkout, inventory, booking, delivery, payment verification, addresses, notifications, and session invalidation.
+- 125 backend tests pass (11 October 2026) on local SQLite, including authentication, authorization, checkout, inventory, booking, delivery, payment validation, project accounts/history and automation failure isolation.
 - Ruff, frontend ESLint, TypeScript, and formatting checks pass.
 - Session authentication uses HTTP-only cookies, CSRF protection, SameSite cookies, server-side permissions, throttling, audit events, and production HSTS settings.
 - Docker Compose defines PostgreSQL, Redis, Django, Celery worker/beat, Next.js, and Nginx services.
 - Health, API schema, admin, seed data, and local run instructions are documented.
+- Entire local browser suite: 17 passed. Compose configuration-only validation passed with test/example settings; this does not establish a running production stack. Root `IMPLEMENTATION_AUDIT.md` records the expanded request's remaining gaps.
 
 ## Required before public launch
 

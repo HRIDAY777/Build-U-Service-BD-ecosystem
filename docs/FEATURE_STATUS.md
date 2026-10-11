@@ -87,3 +87,7 @@ Verified: package arithmetic and invalid units, real enquiry API/DB persistence,
 ## Project account extension
 
 Group 27 now includes persistent client/investor applications, guarded staff review, confirmed quotes and owner acknowledgement, private statements, manual receipts/distributions/refunds, term scheduling, notifications and project gallery updates. See `PROJECT_ACCOUNT.md` for workflow, verification and remaining production boundaries. `/account` and the footer link to `/project-account`.
+
+## Enterprise request audit — 11 October 2026
+
+The new expanded request is preserved in root `REQUIREMENTS.ecosystem.txt`. Root `IMPLEMENTATION_AUDIT.md`, `FEATURE_MATRIX.md`, `PROJECT_STATUS.md` and the roadmap supersede assumptions that local groups mean full enterprise completion. Email login, transactional automation failure isolation and private paginated project history were added. Full backend: 125 passed; complete local browser suite: 17 passed; lint/typecheck/build, Ruff/migration drift and Compose configuration validation passed. Remote CI, running Docker stack, PostgreSQL production concurrency and deployment are not verified.

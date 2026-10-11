@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
@@ -97,9 +98,18 @@ class AuthView(APIView):
             login(request, user)
             return Response(UserSerializer(user).data, status=201)
         if operation == "login":
-            user = authenticate(
-                request, username=request.data.get("username", ""), password=request.data.get("password", "")
-            )
+            identifier = request.data.get("username", "")
+            password = request.data.get("password", "")
+            if not isinstance(identifier, str) or not isinstance(password, str) or len(identifier) > 254 or len(password) > 128:
+                return Response({"error": "Invalid login details."}, status=400)
+            identifier = identifier.strip()
+            candidates = list(get_user_model().objects.filter(Q(username=identifier) | Q(email__iexact=identifier))[:2]) if identifier else []
+            if len(candidates) == 1:
+                user = authenticate(request, username=candidates[0].username, password=password)
+            else:
+                # Reject ambiguous legacy identities without skipping password hashing for unknown users.
+                get_user_model()().set_password(password)
+                user = None
             if not user:
                 return Response({"error": "Invalid login details."}, status=400)
             login(request, user)

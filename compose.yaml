@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
   backend:
     build: ./backend
-    env_file: .env
+    env_file: ${APP_ENV_FILE:-.env}
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_started}
@@ -27,7 +27,7 @@ services:
   worker:
     build: ./backend
     command: celery -A config worker -l INFO --concurrency=2
-    env_file: .env
+    env_file: ${APP_ENV_FILE:-.env}
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_started}
@@ -36,7 +36,7 @@ services:
   beat:
     build: ./backend
     command: celery -A config beat -l INFO --schedule=/tmp/celerybeat-schedule
-    env_file: .env
+    env_file: ${APP_ENV_FILE:-.env}
     depends_on: [worker]
     restart: unless-stopped
   frontend:

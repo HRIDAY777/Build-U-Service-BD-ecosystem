@@ -1,0 +1,1634 @@
+PROJECT NAME:
+U SERVICE BD LIMITED
+
+OFFICIAL DOMAIN:
+https://www.uservicebd.com
+
+PROJECT TYPE:
+Enterprise-Grade Multi-Service Digital
+Business Ecosystem
+
+PROJECT STATUS:
+EXISTING PROJECT — DEVELOPMENT IN PROGRESS
+
+CRITICAL INSTRUCTION:
+DO NOT REBUILD THE PROJECT FROM SCRATCH.
+
+FIRST AUDIT THE EXISTING IMPLEMENTATION.
+PRESERVE COMPLETED WORK.
+IDENTIFY MISSING FEATURES.
+FIX EXISTING PROBLEMS.
+CONTINUE DEVELOPMENT.
+COMPLETE THE PLATFORM PHASE BY PHASE.
+
+==================================================
+1. YOUR ROLE
+==================================================
+
+Act as a complete senior software
+engineering and business technology team.
+
+Your responsibilities include:
+
+1. Chief Technology Officer
+2. Enterprise Software Architect
+3. Senior Python Backend Engineer
+4. Django REST Framework Specialist
+5. Next.js Frontend Architect
+6. React and TypeScript Developer
+7. UI/UX Design Director
+8. PostgreSQL Database Architect
+9. AI Automation Architect
+10. AI Agent Engineer
+11. API Integration Engineer
+12. Payment Systems Engineer
+13. Marketplace Systems Architect
+14. Logistics Systems Engineer
+15. Cybersecurity Specialist
+16. DevOps Engineer
+17. Quality Assurance Engineer
+18. Business Operations Analyst
+19. SEO and Performance Specialist
+20. Product Manager
+
+Work as one coordinated development team.
+
+Your responsibility is not simply
+to provide recommendations.
+
+Your responsibility is to inspect,
+improve, implement, test, document,
+and prepare the existing project
+for production deployment.
+
+==================================================
+2. PRIMARY BUSINESS VISION
+==================================================
+
+U Service BD Limited is intended to
+operate as a unified digital business
+ecosystem in Bangladesh.
+
+The company will provide multiple
+services under one corporate brand.
+
+The primary corporate website is:
+
+https://www.uservicebd.com
+
+The corporate website must represent
+the parent company.
+
+Individual business verticals must
+operate through dedicated subdomains.
+
+All platforms should share common
+infrastructure wherever appropriate.
+
+The ecosystem should support:
+
+- One central brand
+- One customer identity system
+- One unified authentication platform
+- One central administration system
+- Multiple independent service modules
+- Shared customer profiles
+- Shared notifications
+- Shared payment infrastructure
+- Shared analytics
+- Shared AI automation infrastructure
+- Unified business operations
+- Future business expansion
+
+The goal is to build a scalable
+multi-service company platform.
+
+==================================================
+3. EXISTING PROJECT AUDIT
+==================================================
+
+THIS IS THE MOST IMPORTANT FIRST STEP.
+
+Before writing new application code,
+inspect the existing project.
+
+Inspect:
+
+- Repository structure
+- Frontend source code
+- Backend source code
+- Existing Python applications
+- Existing API endpoints
+- Database schema
+- Database migrations
+- Authentication implementation
+- Existing UI components
+- Existing pages
+- Existing service modules
+- Existing admin dashboards
+- Existing integrations
+- Existing AI automation
+- Existing background workers
+- Environment configuration
+- Docker configuration
+- Deployment configuration
+- Existing tests
+- Existing documentation
+
+Determine what is already implemented.
+
+Classify every feature as:
+
+1. Fully implemented and verified
+2. Implemented but needs improvement
+3. Partially implemented
+4. Designed but not implemented
+5. Missing
+6. Broken
+7. Deprecated
+8. Requires external configuration
+
+Create an implementation audit report.
+
+For each feature include:
+
+Feature Name
+Current Status
+Relevant Files
+Dependencies
+Detected Problems
+Required Improvements
+Priority
+Recommended Next Action
+
+IMPORTANT:
+
+Do not assume a feature is complete
+just because a page exists.
+
+Verify actual functionality.
+
+Do not delete or replace existing
+working functionality unnecessarily.
+
+Do not reset the production database.
+
+Do not overwrite production data.
+
+Do not remove existing integrations
+without evaluating their dependencies.
+
+Preserve existing design decisions
+unless there is a strong technical
+reason to improve them.
+
+==================================================
+4. ARCHITECTURE STRATEGY
+==================================================
+
+Prefer a modular monolith architecture
+for the existing Python backend,
+unless the current architecture
+provides a better verified foundation.
+
+Preferred technology stack:
+
+FRONTEND:
+Next.js
+React
+TypeScript
+Tailwind CSS
+
+BACKEND:
+Python
+Django
+Django REST Framework
+
+DATABASE:
+PostgreSQL
+
+CACHE:
+Redis
+
+BACKGROUND TASKS:
+Celery
+
+REAL-TIME COMMUNICATION:
+Django Channels / WebSockets
+
+STORAGE:
+S3-compatible object storage
+
+DEPLOYMENT:
+Docker
+Reverse proxy
+HTTPS
+CI/CD
+
+AI:
+Provider-independent AI integration
+
+AUTOMATION:
+Event-driven workflow architecture
+
+SEARCH:
+PostgreSQL search initially;
+specialized search when justified.
+
+Use existing compatible technologies
+when replacing them would introduce
+unnecessary risk.
+
+Avoid premature microservices.
+
+Design modules with clear boundaries
+so individual services can be
+separated later if necessary.
+
+==================================================
+5. CORPORATE DOMAIN ARCHITECTURE
+==================================================
+
+MAIN DOMAIN:
+
+www.uservicebd.com
+
+Purpose:
+Corporate headquarters website.
+
+SERVICE SUBDOMAINS:
+
+food.uservicebd.com
+Restaurant and food services.
+
+pharmacy.uservicebd.com
+Pharmacy and medicine services.
+
+electrician.uservicebd.com
+Electrician booking services.
+
+mechanic.uservicebd.com
+Vehicle and mechanical services.
+
+shop.uservicebd.com
+E-commerce marketplace.
+
+SHARED INFRASTRUCTURE:
+
+account.uservicebd.com
+Central authentication and accounts.
+
+admin.uservicebd.com
+Central administration.
+
+partner.uservicebd.com
+Merchant and service provider portal.
+
+api.uservicebd.com
+Backend API gateway.
+
+Additional service subdomains
+may be introduced in the future.
+
+IMPORTANT:
+
+Treat these as the intended
+domain architecture.
+
+Check existing domain and routing
+configurations before making changes.
+
+Do not assume that DNS records
+or hosting environments already exist.
+
+==================================================
+6. CORPORATE WEBSITE
+==================================================
+
+Build or improve the parent website.
+
+Required sections:
+
+- Professional homepage
+- Company introduction
+- About U Service BD
+- Our Services
+- Business divisions
+- Why Choose Us
+- Partner With Us
+- Careers
+- Contact
+- Help Center
+- Privacy Policy
+- Terms and Conditions
+- Business announcements
+- News and updates
+
+The homepage should clearly explain
+the company's ecosystem.
+
+Every service should have a dedicated
+section linking to its subdomain.
+
+Design requirements:
+
+Modern
+Professional
+Responsive
+Fast
+Accessible
+SEO-friendly
+Bangla-first
+English-supported
+
+Do not create fake statistics,
+fake customer reviews, or
+unverified company achievements.
+
+==================================================
+7. CENTRAL AUTHENTICATION
+==================================================
+
+Create one secure identity system.
+
+A customer should be able to
+use one account across services.
+
+Supported roles:
+
+- Customer
+- Merchant
+- Restaurant owner
+- Pharmacy operator
+- Electrician
+- Mechanic
+- Delivery partner
+- Support agent
+- Service manager
+- Administrator
+- Super administrator
+
+Support:
+
+Email authentication
+Phone-based authentication
+Secure password recovery
+Session management
+Account verification
+Role-based authorization
+Account settings
+Security logs
+
+Implement centralized identity
+without exposing user sessions
+or sensitive tokens insecurely
+between subdomains.
+
+Use secure authentication protocols.
+
+==================================================
+8. UNIFIED CUSTOMER ACCOUNT
+==================================================
+
+Each customer should have
+one central dashboard.
+
+Features:
+
+- Personal profile
+- Saved addresses
+- Order history
+- Service bookings
+- Payment history
+- Refund status
+- Notifications
+- Support requests
+- Favorite services
+- Account security settings
+
+Customers should be able to access
+different services without creating
+separate accounts.
+
+Keep service-specific data
+properly isolated and authorized.
+
+==================================================
+9. RESTAURANT AND FOOD PLATFORM
+==================================================
+
+SUBDOMAIN:
+food.uservicebd.com
+
+Build a complete restaurant and
+food ordering system.
+
+CUSTOMER FEATURES:
+
+- Restaurant discovery
+- Restaurant profiles
+- Menu browsing
+- Food categories
+- Product customization
+- Shopping cart
+- Checkout
+- Delivery address
+- Order tracking
+- Order history
+- Reviews
+- Customer support
+
+RESTAURANT FEATURES:
+
+- Restaurant registration
+- Merchant verification
+- Menu management
+- Product availability
+- Pricing management
+- Order acceptance
+- Order preparation status
+- Business hours
+- Sales dashboard
+- Revenue reports
+
+DELIVERY FEATURES:
+
+- Delivery assignment
+- Delivery status
+- Driver dashboard
+- Pickup confirmation
+- Delivery confirmation
+- Delivery history
+
+ADMIN FEATURES:
+
+- Restaurant approval
+- Commission configuration
+- Order monitoring
+- Dispute handling
+- Refund management
+- Merchant performance reports
+
+==================================================
+10. PHARMACY PLATFORM
+==================================================
+
+SUBDOMAIN:
+pharmacy.uservicebd.com
+
+Develop a pharmacy marketplace
+with appropriate regulatory safeguards.
+
+Features:
+
+- Pharmacy discovery
+- Product catalog
+- Medicine search
+- Product availability
+- Pharmacy profiles
+- Cart and checkout
+- Order tracking
+- Pharmacy dashboard
+- Inventory management
+- Expiry tracking
+- Customer support
+
+For prescription medicines,
+require applicable verification
+and licensed professional review.
+
+Implement appropriate restrictions
+for regulated medicines.
+
+Do not let AI independently
+prescribe medication.
+
+Do not provide automated medical
+diagnosis as a substitute
+for qualified professionals.
+
+Verify Bangladesh legal requirements
+before enabling medicine sales
+or delivery.
+
+==================================================
+11. ELECTRICIAN SERVICES
+==================================================
+
+SUBDOMAIN:
+electrician.uservicebd.com
+
+Build a professional service
+booking marketplace.
+
+CUSTOMER FEATURES:
+
+- Browse services
+- Find service providers
+- View provider profiles
+- Request quotations
+- Schedule appointments
+- Track booking status
+- Review completed services
+- Contact support
+
+PROVIDER FEATURES:
+
+- Provider registration
+- Identity verification
+- Skills and qualifications
+- Service categories
+- Service area
+- Availability calendar
+- Booking management
+- Earnings dashboard
+
+ADMIN FEATURES:
+
+- Provider approval
+- Service category management
+- Commission management
+- Dispute resolution
+- Service quality monitoring
+
+==================================================
+12. MECHANIC SERVICES
+==================================================
+
+SUBDOMAIN:
+mechanic.uservicebd.com
+
+Develop a mechanical repair
+and vehicle service marketplace.
+
+Features:
+
+- Mechanic discovery
+- Vehicle service categories
+- Repair appointment booking
+- Service quotation requests
+- Workshop profiles
+- Provider availability
+- Service status tracking
+- Customer reviews
+- Payment history
+- Mechanic dashboard
+- Workshop management
+
+Support future expansion into
+additional repair categories.
+
+==================================================
+13. E-COMMERCE MARKETPLACE
+==================================================
+
+SUBDOMAIN:
+shop.uservicebd.com
+
+Create a multi-vendor
+e-commerce marketplace.
+
+CUSTOMER FEATURES:
+
+- Product browsing
+- Search and filtering
+- Categories
+- Product details
+- Product variations
+- Shopping cart
+- Wishlist
+- Checkout
+- Order tracking
+- Returns and refunds
+- Reviews
+
+SELLER FEATURES:
+
+- Seller registration
+- Seller verification
+- Product management
+- Inventory management
+- Order processing
+- Pricing
+- Sales reports
+- Payout reports
+
+ADMIN FEATURES:
+
+- Seller approval
+- Product moderation
+- Commission settings
+- Refund management
+- Order monitoring
+- Marketplace analytics
+
+==================================================
+14. CENTRAL ADMINISTRATION
+==================================================
+
+SUBDOMAIN:
+admin.uservicebd.com
+
+Create a powerful unified
+administrative control center.
+
+The central dashboard should display:
+
+- Total users
+- Active customers
+- Registered merchants
+- Active service providers
+- Orders
+- Bookings
+- Revenue
+- Commissions
+- Pending approvals
+- Support tickets
+- Service performance
+- AI automation activity
+- Operational alerts
+
+ADMIN MODULES:
+
+User Management
+Role Management
+Service Management
+Merchant Management
+Provider Management
+Order Management
+Booking Management
+Payment Management
+Commission Management
+Refund Management
+Support Management
+Content Management
+Notification Management
+AI Management
+Analytics
+Security Monitoring
+Audit Logs
+System Settings
+
+Support granular permissions.
+
+Not every administrator should
+have access to every module.
+
+==================================================
+15. MERCHANT AND PARTNER PORTAL
+==================================================
+
+SUBDOMAIN:
+partner.uservicebd.com
+
+Build a unified partner portal.
+
+Partners should be able to manage
+their businesses according to
+their assigned service type.
+
+Features:
+
+- Partner onboarding
+- Business verification
+- Business profile
+- Product or service management
+- Orders and bookings
+- Customer requests
+- Earnings
+- Payouts
+- Performance analytics
+- Notifications
+- Support
+
+The interface should dynamically
+show relevant modules based
+on the partner's role.
+
+==================================================
+16. AI AUTOMATION ECOSYSTEM
+==================================================
+
+AI AUTOMATION IS A CORE REQUIREMENT.
+
+First audit any existing AI
+automation implementation.
+
+Do not replace working workflows
+without a clear reason.
+
+Develop a centralized AI
+automation infrastructure.
+
+Core AI capabilities:
+
+1. AI Customer Support
+2. AI Business Assistant
+3. AI Order Assistant
+4. AI Booking Assistant
+5. AI Merchant Assistant
+6. AI Service Recommendation
+7. AI Operations Monitoring
+8. AI Analytics Assistant
+9. AI Content Assistant
+10. AI Administrative Assistant
+
+AI CUSTOMER SUPPORT:
+
+Answer common questions.
+Explain order status.
+Explain booking status.
+Help navigate services.
+Escalate complex cases.
+
+AI ORDER ASSISTANT:
+
+Help customers understand
+available products and services.
+
+Retrieve verified order information.
+
+Never fabricate order status.
+
+AI BOOKING ASSISTANT:
+
+Help users select services.
+Check actual provider availability.
+Assist with booking workflows.
+
+AI BUSINESS ASSISTANT:
+
+Summarize business performance.
+Identify operational problems.
+Generate business reports.
+Suggest improvements.
+
+AI MERCHANT ASSISTANT:
+
+Help merchants manage listings,
+understand sales reports,
+and improve service operations.
+
+IMPORTANT:
+
+AI agents must not perform
+sensitive business actions
+without appropriate authorization.
+
+Payments, refunds, account changes,
+and other high-impact actions
+must use secure approval workflows.
+
+==================================================
+17. AI AGENT ARCHITECTURE
+==================================================
+
+Build an extensible AI agent system.
+
+Components:
+
+AI Gateway
+Model Provider Adapter
+Prompt Management
+Tool Registry
+Workflow Engine
+Permission Engine
+Conversation Storage
+Knowledge Retrieval
+Human Escalation
+Monitoring
+Usage Analytics
+
+Agents should use approved APIs
+rather than unrestricted
+database access.
+
+Implement:
+
+Tool-level permissions
+Action validation
+Audit logging
+Rate limits
+Cost controls
+Error handling
+Prompt injection defenses
+Sensitive data protection
+
+AI responses must distinguish
+verified business information
+from generated suggestions.
+
+==================================================
+18. WORKFLOW AUTOMATION
+==================================================
+
+Develop event-driven automation.
+
+Example events:
+
+CustomerRegistered
+MerchantApproved
+OrderCreated
+OrderConfirmed
+OrderCancelled
+PaymentConfirmed
+BookingCreated
+BookingCompleted
+RefundRequested
+SupportTicketCreated
+
+Example workflows:
+
+New order
+→ Notify merchant
+→ Update order dashboard
+→ Notify customer
+
+Booking confirmed
+→ Notify provider
+→ Notify customer
+→ Schedule reminder
+
+Support ticket created
+→ Classify request
+→ Assign support queue
+→ Escalate when necessary
+
+Use Celery and Redis
+where appropriate.
+
+Make background tasks
+idempotent and retry-safe.
+
+==================================================
+19. PAYMENT INFRASTRUCTURE
+==================================================
+
+Build a secure payment architecture.
+
+Potential payment integrations:
+
+- bKash
+- Nagad
+- Rocket
+- Bank payments
+- Card payment gateways
+- Cash on delivery where supported
+
+Verify official provider
+integration requirements.
+
+Implement:
+
+Payment initiation
+Payment verification
+Webhook processing
+Payment status
+Refund workflow
+Commission calculation
+Merchant settlement records
+Transaction history
+Reconciliation
+
+Never mark an order paid
+based only on frontend data.
+
+Never store raw card details.
+
+Use verified gateway callbacks
+and secure transaction records.
+
+==================================================
+20. COMMISSION AND REVENUE
+==================================================
+
+Create configurable commission systems.
+
+Support:
+
+Restaurant commissions
+Marketplace commissions
+Service booking commissions
+Merchant subscriptions
+Delivery fees
+Platform service fees
+
+Every financial transaction
+should have an auditable record.
+
+Provide:
+
+Gross revenue
+Platform revenue
+Merchant earnings
+Refunds
+Outstanding settlements
+Commission reports
+
+Do not hardcode commission rates
+without business approval.
+
+==================================================
+21. DELIVERY AND LOCATION
+==================================================
+
+Build a shared delivery
+and logistics architecture.
+
+Features:
+
+Delivery zones
+Service coverage areas
+Address management
+Delivery assignment
+Driver availability
+Delivery status
+Proof of delivery
+Delivery reports
+
+Use mapping providers
+through configurable integrations.
+
+Never claim real-time tracking
+unless actual tracking data exists.
+
+==================================================
+22. NOTIFICATION SYSTEM
+==================================================
+
+Create centralized notifications.
+
+Supported channels:
+
+In-app notifications
+Email
+SMS
+Push notifications
+WhatsApp where authorized
+
+Use reusable notification templates.
+
+Support:
+
+Order notifications
+Booking confirmations
+Payment notifications
+Account verification
+Service reminders
+Support updates
+
+Implement user preferences
+and notification consent.
+
+==================================================
+23. CUSTOMER SUPPORT SYSTEM
+==================================================
+
+Build a unified support center.
+
+Features:
+
+Support tickets
+Ticket categories
+Priority management
+Service-specific routing
+Conversation history
+Agent assignment
+Resolution tracking
+Escalation
+Customer feedback
+
+Integrate AI assistance
+without removing access
+to human support.
+
+==================================================
+24. DATABASE ARCHITECTURE
+==================================================
+
+Design a scalable PostgreSQL schema.
+
+Core entities:
+
+Users
+Roles
+Permissions
+CustomerProfiles
+MerchantProfiles
+ProviderProfiles
+Businesses
+Addresses
+ServiceCategories
+Products
+ProductVariants
+Inventory
+Restaurants
+Menus
+Pharmacies
+ServiceListings
+Bookings
+Orders
+OrderItems
+Payments
+Refunds
+Commissions
+Settlements
+Deliveries
+Notifications
+SupportTickets
+Reviews
+AIConversations
+AIWorkflows
+AuditLogs
+SystemSettings
+
+Use database migrations.
+
+Maintain referential integrity.
+
+Use transactions for
+financially sensitive operations.
+
+Create appropriate indexes.
+
+Prevent unauthorized
+cross-tenant data access.
+
+==================================================
+25. API ARCHITECTURE
+==================================================
+
+Create consistent REST APIs.
+
+Requirements:
+
+Versioned endpoints
+Authentication
+Authorization
+Input validation
+Pagination
+Filtering
+Error handling
+Rate limiting
+API documentation
+Request tracing
+
+Organize APIs by domain.
+
+Example:
+
+/api/v1/auth/
+/api/v1/users/
+/api/v1/food/
+/api/v1/pharmacy/
+/api/v1/electrician/
+/api/v1/mechanic/
+/api/v1/shop/
+/api/v1/orders/
+/api/v1/bookings/
+/api/v1/payments/
+/api/v1/notifications/
+/api/v1/ai/
+/api/v1/admin/
+
+Preserve existing API contracts
+unless changes are necessary.
+
+Document breaking changes.
+
+==================================================
+26. FRONTEND DESIGN SYSTEM
+==================================================
+
+Build a consistent,
+enterprise-quality design system.
+
+Requirements:
+
+Mobile-first
+Responsive
+Accessible
+Fast
+Modern
+Professional
+Bangla-first
+English-supported
+
+Create reusable components:
+
+Buttons
+Inputs
+Forms
+Navigation
+Cards
+Tables
+Modals
+Dropdowns
+Status indicators
+Notifications
+Loading states
+Error states
+Empty states
+Charts
+Dashboards
+
+Each business vertical
+may have its own visual identity
+while maintaining the central brand.
+
+Avoid unnecessary animations
+that reduce performance.
+
+==================================================
+27. SEO AND MARKETING
+==================================================
+
+Implement:
+
+Technical SEO
+Metadata
+Sitemaps
+Robots configuration
+Canonical URLs
+Structured data
+Open Graph metadata
+Performance optimization
+Service landing pages
+Analytics integration
+
+Create marketing infrastructure
+for future campaigns.
+
+Support authorized integrations
+with platforms such as Meta
+and Google where appropriate.
+
+Do not fabricate reviews,
+ratings, traffic or sales data.
+
+==================================================
+28. SECURITY
+==================================================
+
+Security is mandatory.
+
+Implement:
+
+Secure authentication
+Role-based access control
+Object-level authorization
+HTTPS
+CSRF protection
+XSS protection
+SQL injection prevention
+Secure session management
+Input validation
+File upload protection
+Rate limiting
+Secrets management
+Audit logging
+Backup strategy
+Data retention policies
+
+Perform security reviews
+before production deployment.
+
+Do not expose secrets
+in source code.
+
+Do not run destructive
+production operations
+without explicit approval.
+
+==================================================
+29. PERFORMANCE AND SCALABILITY
+==================================================
+
+Optimize for Bangladesh users.
+
+Requirements:
+
+Low-bandwidth optimization
+Mobile performance
+Image optimization
+Caching
+Database query optimization
+Background processing
+CDN integration
+Efficient API responses
+Monitoring
+Error tracking
+
+Establish measurable
+performance benchmarks.
+
+Avoid unnecessary infrastructure
+complexity in early stages.
+
+==================================================
+30. TESTING AND QUALITY ASSURANCE
+==================================================
+
+Create automated tests.
+
+Test:
+
+Authentication
+Authorization
+Registration
+Merchant onboarding
+Product management
+Order lifecycle
+Booking lifecycle
+Payment verification
+Commission calculation
+Refund workflows
+AI tool permissions
+Notification delivery
+Admin permissions
+API validation
+
+Include:
+
+Unit tests
+Integration tests
+End-to-end tests
+Security tests
+Accessibility checks
+Performance tests
+
+Do not report tests as passed
+unless they were actually executed.
+
+==================================================
+31. DEVELOPMENT PHASES
+==================================================
+
+PHASE 1:
+EXISTING PROJECT AUDIT
+
+Inspect all available code.
+Map completed features.
+Identify broken features.
+Identify missing components.
+Create prioritized backlog.
+
+PHASE 2:
+ARCHITECTURE STABILIZATION
+
+Fix structural problems.
+Improve existing code.
+Resolve dependency issues.
+Review database migrations.
+Standardize configuration.
+
+PHASE 3:
+CORE ECOSYSTEM
+
+Complete corporate website.
+Complete authentication.
+Complete central accounts.
+Complete administration.
+Complete shared APIs.
+
+PHASE 4:
+BUSINESS VERTICALS
+
+Complete existing modules.
+
+Prioritize modules based on
+their current implementation
+and dependencies.
+
+Do not restart completed modules.
+
+PHASE 5:
+COMMERCE AND OPERATIONS
+
+Complete orders.
+Complete bookings.
+Complete payments.
+Complete commissions.
+Complete notifications.
+Complete support workflows.
+
+PHASE 6:
+AI AUTOMATION
+
+Audit existing automation.
+Improve AI integrations.
+Implement agent permissions.
+Build workflow orchestration.
+Add monitoring and reporting.
+
+PHASE 7:
+BUSINESS DASHBOARDS
+
+Complete customer dashboard.
+Complete merchant dashboard.
+Complete provider dashboard.
+Complete central admin.
+
+PHASE 8:
+QUALITY IMPROVEMENTS
+
+Improve UI/UX.
+Optimize performance.
+Improve security.
+Improve accessibility.
+Fix identified bugs.
+
+PHASE 9:
+PRODUCTION PREPARATION
+
+Complete testing.
+Prepare deployment configuration.
+Prepare backup procedures.
+Configure monitoring.
+Document environment requirements.
+
+PHASE 10:
+LAUNCH READINESS
+
+Run final acceptance tests.
+Review legal requirements.
+Review payment readiness.
+Review infrastructure costs.
+Prepare release checklist.
+
+Do not deploy to production
+without required authorization.
+
+==================================================
+32. AUTONOMOUS WORKSPACE EXECUTION
+==================================================
+
+THIS SECTION IS CRITICAL.
+
+You are operating inside
+an AI development workspace.
+
+Your responsibility is to
+continue real implementation.
+
+Do not stop after generating
+a development proposal.
+
+Do not repeatedly ask the user
+what to do next.
+
+Make reasonable technical decisions
+when requirements are clear.
+
+Inspect existing files first.
+
+For every phase:
+
+1. Inspect relevant existing code.
+2. Identify missing functionality.
+3. Create an implementation plan.
+4. Modify existing files.
+5. Create necessary new files.
+6. Implement frontend functionality.
+7. Implement backend functionality.
+8. Update database migrations.
+9. Integrate APIs.
+10. Implement automated tests.
+11. Execute available tests.
+12. Fix detected problems.
+13. Update documentation.
+14. Continue to the next task.
+
+Use actual working code.
+
+Do not create fake features.
+
+Do not create buttons
+that have no functionality.
+
+Do not replace real API responses
+with fabricated business data.
+
+Mocks may be used in development
+but must be clearly identified.
+
+If external credentials,
+paid services or permissions
+are required:
+
+Document the blocker.
+
+Continue independent work.
+
+Request only the required
+user action when necessary.
+
+Never invent credentials.
+
+Never claim deployment succeeded
+without verifying it.
+
+==================================================
+33. PROJECT CONTINUITY
+==================================================
+
+Maintain a project progress record.
+
+Create or update:
+
+PROJECT_STATUS.md
+ARCHITECTURE.md
+IMPLEMENTATION_AUDIT.md
+DEVELOPMENT_ROADMAP.md
+FEATURE_MATRIX.md
+CHANGELOG.md
+DEPLOYMENT.md
+SECURITY_CHECKLIST.md
+
+Record:
+
+Completed features
+Partially completed features
+Pending features
+Known bugs
+Technical decisions
+Files changed
+Tests executed
+External blockers
+Next development tasks
+
+This documentation must help
+future AI sessions continue
+from the correct project state.
+
+Never rely solely on
+conversation memory.
+
+==================================================
+34. DEFINITION OF DONE
+==================================================
+
+A feature is complete only when:
+
+- Required code exists.
+- Backend functionality works.
+- Frontend functionality works.
+- Database integration works.
+- Authorization is enforced.
+- Error handling is implemented.
+- Relevant tests pass.
+- Documentation is updated.
+- No critical known defects remain.
+
+A business module is complete
+only when its main workflow
+works from beginning to end.
+
+Example:
+
+Customer selects service
+→ Creates booking
+→ Provider receives booking
+→ Provider confirms
+→ Customer receives update
+→ Booking is completed
+→ Transaction is recorded
+→ Admin can review activity
+
+Verify each step.
+
+==================================================
+35. FINAL DELIVERABLES
+==================================================
+
+Produce or update:
+
+1. Existing project audit
+2. Complete technical architecture
+3. Updated project structure
+4. Corporate website
+5. Service subdomain applications
+6. Central authentication
+7. Customer dashboard
+8. Merchant dashboard
+9. Provider dashboard
+10. Central administration
+11. Python backend
+12. Database migrations
+13. API documentation
+14. Order management
+15. Booking management
+16. Payment infrastructure
+17. Commission system
+18. Notification system
+19. AI automation infrastructure
+20. AI agent architecture
+21. Customer support system
+22. Automated tests
+23. Security documentation
+24. Deployment configuration
+25. Operational documentation
+26. Maintenance roadmap
+
+Preserve and improve
+existing project files.
+
+Provide a runnable repository
+or source archive when supported.
+
+==================================================
+36. FINAL EXECUTION COMMAND
+==================================================
+
+BEGIN WORK ON THE EXISTING
+U SERVICE BD LIMITED PROJECT.
+
+OFFICIAL DOMAIN:
+https://www.uservicebd.com
+
+IMPORTANT:
+
+THIS IS NOT A NEW PROJECT.
+
+THIS IS AN EXISTING PROJECT
+THAT MUST BE COMPLETED.
+
+FIRST:
+
+Inspect the workspace.
+
+Identify the existing repository.
+
+Review all project files.
+
+Analyze the architecture.
+
+Inspect the database.
+
+Audit existing service modules.
+
+Audit existing AI automation.
+
+Determine actual implementation status.
+
+SECOND:
+
+Create a detailed gap analysis.
+
+Identify completed features.
+
+Identify incomplete features.
+
+Identify broken features.
+
+Identify missing infrastructure.
+
+THIRD:
+
+Create a prioritized
+implementation roadmap.
+
+FOURTH:
+
+START IMPLEMENTING THE
+HIGHEST-PRIORITY TASKS.
+
+DO NOT STOP AT PLANNING.
+
+DO NOT REBUILD WORKING FEATURES.
+
+DO NOT DELETE EXISTING DATA.
+
+DO NOT MAKE FALSE COMPLETION CLAIMS.
+
+CONTINUE DEVELOPMENT
+PHASE BY PHASE.
+
+AFTER EACH MAJOR MILESTONE,
+REPORT:
+
+- Completed work
+- Files modified
+- Features implemented
+- Tests executed
+- Problems fixed
+- Remaining tasks
+- Next development phase
+
+Continue autonomously
+within available tools,
+permissions and execution limits.
+
+The final objective is a
+secure, scalable, modern,
+AI-powered multi-service
+business ecosystem.
+
+PROJECT:
+U SERVICE BD LIMITED
+
+DOMAIN:
+https://www.uservicebd.com
+
+START THE EXISTING PROJECT
+AUDIT AND CONTINUE DEVELOPMENT NOW.
