@@ -76,3 +76,9 @@ Four targeted PostgreSQL transaction tests passed: identical simultaneous retrie
 ## PostgreSQL checkout concurrency
 
 Four targeted PostgreSQL transaction tests and Ruff passed: two buyers cannot purchase one last unit; simultaneous retry reserves once and returns the same order; variant stock cannot be oversold and leaves base stock intact; separate products competing for the last coupon use create one order and consume the coupon once. Assertions also verify one inventory movement, audit and outbox event. Existing product code passed without changes; live data remained untouched. Payment/refund/cancellation races and broader load testing remain open.
+
+## Variant stock restoration fix
+
+Cancelled/rejected/returned variant orders now restore the selected variant and record its identity in the positive inventory movement. Base stock remains unchanged for variant lines. Reversals acquire inventory locks in the same ordered product-then-variant sequence as checkout. Added concurrent cancellation and full/partial refund reservation regressions plus rejection/return variant checks. See docs/ORDER_REVERSALS.md for boundaries, including historical stock reconciliation and refund-request limitations.
+
+Verification: full PostgreSQL suite **157 passed** after the stock correction; afterward the final reversal module **5 passed**, including newly added rejection/return checks. Ruff passed and the restarted PostgreSQL backend returned HTTP 200. No frontend changes were made; no new frontend build or browser result is claimed for this milestone.

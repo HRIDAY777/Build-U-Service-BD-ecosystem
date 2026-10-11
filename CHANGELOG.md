@@ -68,3 +68,9 @@ Added four PostgreSQL-only transaction tests for retry deduplication, conflictin
 ## 2026-10-11 — checkout stock and coupon concurrency
 
 Added four PostgreSQL-only transaction regressions for last-unit stock, duplicate checkout retry, last variant stock and last coupon use across different products. All four and Ruff passed. Separate connections/barriers and bounded SQL timeouts exercise existing row locks; inventory/audit/outbox effects are asserted once. No product code changes.
+
+## 2026-10-11 — correct variant stock on order reversal
+
+Fixed cancellation/rejection/return restoring variant inventory into the base product. Restoration now updates the original variant and includes it in the movement record; mixed inventory locks follow checkout order. Added concurrent base/variant cancellation, full/partial refund reservation and rejected/returned variant regression tests. Existing historical inventory records are preserved.
+
+Verification: full PostgreSQL suite **157 passed** after the stock correction; afterward the final reversal module **5 passed**, including newly added rejection/return checks. Ruff passed and the restarted PostgreSQL backend returned HTTP 200. No frontend changes were made; no new frontend build or browser result is claimed for this milestone.

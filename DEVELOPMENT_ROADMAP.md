@@ -30,3 +30,7 @@ Completed four PostgreSQL regressions covering retries and provider appointment 
 ## Checkout concurrency follow-up
 
 Completed stock, variant, retry and coupon transaction regressions on PostgreSQL. Continue with cancellation/refund races and remaining security/operations gates.
+
+## Order reversal follow-up
+
+Corrected variant stock restoration and added cancellation/refund-reservation regressions. Continue remaining security and operations gates, including staff MFA and automation dead-letter monitoring. Refund gateway execution requires approved provider integration; historical inventory is not automatically rewritten.

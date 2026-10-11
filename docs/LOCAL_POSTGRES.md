@@ -33,3 +33,7 @@ Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.tes
 ## Checkout transaction checks
 
 Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.test_checkout_concurrency`. Four tests passed for last-unit stock, checkout retries, variant stock and coupon exhaustion across different products; inventory/audit/outbox effects are verified once. SQLite skips these row-lock tests. The isolated disposable test database is removed; live data is unchanged.
+
+## Order reversal checks
+
+Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.test_order_reversal_concurrency`. Covers simultaneous cancellations and full/partial refund reservation limits, plus variant rejection/return restoration. Details and payment limitations: docs/ORDER_REVERSALS.md.

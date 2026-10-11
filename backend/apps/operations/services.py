@@ -359,10 +359,17 @@ def transition(user, model, pk, new_status, details=None):
         else ["status"]
     )
     if kind == "order" and new_status in {"cancelled", "rejected", "returned"}:
-        for item in obj.items.all():
-            Offering.objects.filter(pk=item.offering_id).update(stock=F("stock") + item.quantity)
+        items = list(obj.items.order_by("offering_id", "variant_id", "pk"))
+        # Match checkout's product-then-variant lock order for mixed-item reversals.
+        list(Offering.objects.select_for_update().filter(pk__in=[item.offering_id for item in items]).order_by("pk"))
+        list(ProductVariant.objects.select_for_update().filter(pk__in=[item.variant_id for item in items if item.variant_id]).order_by("pk"))
+        for item in items:
+            if item.variant_id:
+                ProductVariant.objects.filter(pk=item.variant_id).update(stock=F("stock") + item.quantity)
+            else:
+                Offering.objects.filter(pk=item.offering_id).update(stock=F("stock") + item.quantity)
             InventoryMovement.objects.create(
-                offering=item.offering, order=obj, delta=item.quantity, reason=new_status
+                offering=item.offering, variant=item.variant, order=obj, delta=item.quantity, reason=new_status
             )
     if kind == "order" and new_status == "delivered":
         LoyaltyEntry.objects.get_or_create(

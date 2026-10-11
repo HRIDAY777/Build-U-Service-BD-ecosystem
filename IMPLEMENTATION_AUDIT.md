@@ -94,3 +94,9 @@ Four PostgreSQL tests passed for identical booking retries, changed retries usin
 ## Checkout concurrency evidence
 
 Four real PostgreSQL tests passed for last-unit purchases, identical retries, variant stock and coupon exhaustion. Coupon requests use different product rows so the shared coupon lock is exercised independently. Asserted one order, reservation movement, audit event and outbox event; failed competing requests leave no partial effects. This is selected concurrency regression coverage, not certification of payment/refund races or load.
+
+## Order reversal correction
+
+A PostgreSQL concurrency regression reproduced a variant cancellation bug: variant stock stayed depleted while base stock increased. Corrected inventory target and movement attribution with deterministic product/variant locking. Refund checks cover reservation totals only; separate partial requests within the remaining balance are still allowed and no payout is performed. Details: docs/ORDER_REVERSALS.md.
+
+Verification: full PostgreSQL suite **157 passed** after the stock correction; afterward the final reversal module **5 passed**, including newly added rejection/return checks. Ruff passed and the restarted PostgreSQL backend returned HTTP 200. No frontend changes were made; no new frontend build or browser result is claimed for this milestone.

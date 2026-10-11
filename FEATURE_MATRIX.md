@@ -39,3 +39,7 @@ Retry deduplication, changed-key payload rejection, overlapping provider conflic
 ## Checkout concurrency evidence
 
 Four PostgreSQL tests passed for last product/variant units, retry deduplication and final coupon use across different products. Payment/refund/cancellation concurrency remains open.
+
+## Order reversal update
+
+Variant cancellation/rejection/return now restores the correct inventory source; reversal movement includes the variant. Added concurrency coverage for cancellation and refund reservation limits. Gateway refund execution and general partial-request idempotency remain separate work.
