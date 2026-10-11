@@ -24,7 +24,9 @@ from apps.operations.payments import PaymentMethodsView, PaymentStartView, Payme
 
 from apps.engagement.project_api import ManagedProjectViewSet, ProjectApplicationViewSet
 from apps.accounts.api import SecurityHistoryView
+from apps.catalog.onboarding_api import PartnerApplicationViewSet
 router = DefaultRouter()
+router.register("partner-applications", PartnerApplicationViewSet, basename="partner-application")
 router.register("managed-projects", ManagedProjectViewSet, basename="managed-project")
 router.register("project-applications", ProjectApplicationViewSet, basename="project-application")
 router.register("partner-offerings", PartnerOfferingViewSet, basename="partner-offering")

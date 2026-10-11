@@ -9,6 +9,7 @@ This is an engineering checklist, not an independent security certification. Det
 - Input validation, request IDs, scoped/global throttling and audit records.
 - Server-side gateway validation, transactional stock/financial writes, reference/idempotency guards.
 - Authenticated prescription/agreement downloads; no public private-media routes.
+- Private partner document downloads, permission-scoped application review, applicant self-review denial and frozen terminal applications.
 - Read-only credential-gated AI using approved public knowledge; no unrestricted action tools.
 
 ## Required checks before launch

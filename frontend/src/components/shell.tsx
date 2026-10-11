@@ -155,6 +155,9 @@ export function Footer() {
           <Link href="/project-account">
             <Text bn="প্রজেক্ট অ্যাকাউন্ট" en="Project account" />
           </Link>
+          <Link href="/partner-application">
+            <Text bn="পার্টনার আবেদন" en="Partner application" />
+          </Link>
           <Link href="/contact?interest=provider">
             <UiText text={"Become a provider"} />
           </Link>

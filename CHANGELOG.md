@@ -15,6 +15,12 @@
 
 Authenticated self-scoped event history, Preferences refresh/pagination, no-store/redacted output and audit lookup index added. Seven account tests, Ruff/migration drift, frontend lint/typecheck and build passed. Targeted browser results are recorded in `PROJECT_STATUS.md`.
 
-## Earlier existing work
+## 11 October 2026 — private partner onboarding
+
+- Added authenticated applicant/reviewer workflow, private PDF files and expiry validation, withdrawal and corrections, guarded approval and organization creation.
+- Added bilingual application page and footer entry, read-only Django admin, migration `catalog.0011` and workflow documentation.
+- Full backend 132 passed before final self-review protection; five updated onboarding tests passed afterward. Two targeted browser tests passed; Ruff/drift/lint/typecheck/build passed. Renewal, scanning and specialist legal review remain incomplete.
+
+## Earlier implementation records
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.

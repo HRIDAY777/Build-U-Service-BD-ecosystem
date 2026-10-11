@@ -1,0 +1,395 @@
+"use client";
+
+import Link from "next/link";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { api, Division, PageResult } from "@/lib/api";
+import { useApp } from "./provider";
+
+type Document = {
+  id: number;
+  title: string;
+  expires_on: string | null;
+  active: boolean;
+};
+type Application = {
+  id: string;
+  is_owner: boolean;
+  division: number;
+  business_name: string;
+  phone: string;
+  area: string;
+  address: string;
+  details: string;
+  status: string;
+  review_note: string;
+  organization: number | null;
+  documents: Document[];
+};
+const statuses: Record<string, [string, string]> = {
+  submitted: ["জমা হয়েছে", "Submitted"],
+  reviewing: ["পর্যালোচনায়", "Under review"],
+  needs_changes: ["সংশোধন প্রয়োজন", "Changes requested"],
+  approved: ["অনুমোদিত", "Approved"],
+  rejected: ["অনুমোদন হয়নি", "Rejected"],
+  cancelled: ["বাতিল", "Cancelled"],
+};
+
+export function PartnerApplications() {
+  const { user } = useApp();
+  return <PartnerApplicationsBody key={user?.id || 0} />;
+}
+
+function PartnerApplicationsBody() {
+  const { user, lang } = useApp();
+  const t = (bn: string, en: string) => (lang === "bn" ? bn : en);
+  const [items, setItems] = useState<Application[]>([]);
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [reviewer, setReviewer] = useState(false);
+  const [page, setPage] = useState(1);
+  const [next, setNext] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const sequence = useRef(0);
+  const load = useCallback(async () => {
+    if (!user) return;
+    const current = ++sequence.current;
+    setLoading(true);
+    try {
+      const results = await Promise.all([
+        api<PageResult<Application>>(`partner-applications/?page=${page}`),
+        api<PageResult<Division>>("divisions/"),
+        api<{ review: boolean }>("partner-applications/capabilities/"),
+      ]);
+      if (current !== sequence.current) return;
+      setItems(results[0].results);
+      setNext(Boolean(results[0].next));
+      setDivisions(results[1].results);
+      setReviewer(results[2].review);
+    } catch (failure) {
+      if (current === sequence.current)
+        setError(
+          failure instanceof Error
+            ? failure.message
+            : "Unable to load applications",
+        );
+    } finally {
+      if (current === sequence.current) setLoading(false);
+    }
+  }, [user, page]);
+  const invalidate = useCallback(() => {
+    sequence.current++;
+  }, []);
+  useEffect(() => {
+    void load();
+    return invalidate;
+  }, [load, invalidate]);
+
+  async function save(path: string, body?: unknown, method = "POST") {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await api(path, method, body);
+      setMessage(t("সংরক্ষণ হয়েছে।", "Saved."));
+      await load();
+      return true;
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Unable to save");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function submit(event: FormEvent<HTMLFormElement>, item?: Application) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fields = Object.fromEntries(new FormData(form).entries());
+    if (
+      await save(
+        item ? `partner-applications/${item.id}/` : "partner-applications/",
+        { ...fields, division: Number(fields.division) },
+        item ? "PATCH" : "POST",
+      )
+    ) {
+      if (!item) form.reset();
+    }
+  }
+  function businessFields(item?: Application) {
+    return (
+      <>
+        <label>
+          {t("সেবার বিভাগ", "Business division")}
+          <select name="division" required defaultValue={item?.division || ""}>
+            <option value="">{t("বাছুন", "Select")}</option>
+            {divisions.map((d) => (
+              <option key={d.id} value={d.id}>
+                {lang === "bn" ? d.name_bn : d.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("ব্যবসার নাম", "Business name")}
+          <input
+            name="business_name"
+            required
+            maxLength={160}
+            defaultValue={item?.business_name}
+          />
+        </label>
+        <label>
+          {t("মোবাইল", "Mobile number")}
+          <input
+            name="phone"
+            required
+            maxLength={20}
+            defaultValue={item?.phone}
+          />
+        </label>
+        <label>
+          {t("এলাকা", "Area")}
+          <input
+            name="area"
+            required
+            maxLength={100}
+            defaultValue={item?.area}
+          />
+        </label>
+        <label>
+          {t("সম্পূর্ণ ঠিকানা", "Full address")}
+          <textarea
+            name="address"
+            required
+            maxLength={500}
+            defaultValue={item?.address}
+          />
+        </label>
+        <label>
+          {t("ব্যবসার বিবরণ", "Business details")}
+          <textarea
+            name="details"
+            maxLength={5000}
+            defaultValue={item?.details}
+          />
+        </label>
+      </>
+    );
+  }
+  if (!user)
+    return (
+      <div className="page-wrap">
+        <h1>{t("পার্টনার আবেদন", "Partner applications")}</h1>
+        <Link href="/login" className="button">
+          {t("লগইন করুন", "Sign in")}
+        </Link>
+      </div>
+    );
+  return (
+    <div className="page-wrap">
+      <h1>{t("পার্টনার আবেদন ও নথি", "Partner applications & documents")}</h1>
+      <p>
+        {t(
+          "নথি শুধু আপনি ও অনুমোদিত পর্যালোচক দেখতে পারবেন। ব্যবসার অনুমোদন বিশেষ লাইসেন্স বা আইনগত ছাড়পত্রের বিকল্প নয়।",
+          "Documents are private to you and authorized reviewers. Business approval does not replace specialist licensing or legal clearance.",
+        )}
+      </p>
+      {error && <p role="alert">{error}</p>}
+      {message && <p role="status">{message}</p>}
+      <details>
+        <summary>{t("নতুন আবেদন", "New application")}</summary>
+        <form className="form-panel" onSubmit={(e) => void submit(e)}>
+          <fieldset disabled={busy || loading}>
+            {businessFields()}
+            <button className="button" type="submit">
+              {t("আবেদন জমা দিন", "Submit application")}
+            </button>
+          </fieldset>
+        </form>
+      </details>
+      <button
+        disabled={busy || loading}
+        onClick={() => {
+          setError("");
+          void load();
+        }}
+      >
+        {t("আবার দেখুন", "Refresh")}
+      </button>
+      {loading && <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>}
+      {!loading && !items.length && (
+        <p>{t("কোনো আবেদন নেই।", "No applications yet.")}</p>
+      )}
+      {items.map((item) => {
+        const editable =
+          item.is_owner && ["submitted", "needs_changes"].includes(item.status);
+        const status = statuses[item.status];
+        return (
+          <section
+            className="form-panel"
+            key={`${item.id}-${item.status}-${item.documents.length}`}
+            style={{ marginTop: 20 }}
+          >
+            <h2>{item.business_name}</h2>
+            <p>{status ? status[lang === "bn" ? 0 : 1] : item.status}</p>
+            <p>
+              {item.address} · {item.phone}
+            </p>
+            <p>{item.details}</p>
+            {item.review_note && <p>{item.review_note}</p>}
+            {item.organization && (
+              <Link href="/portal">
+                {t("পার্টনার পোর্টাল খুলুন", "Open partner portal")}
+              </Link>
+            )}
+            {editable && (
+              <details>
+                <summary>
+                  {t("সংশোধন ও পুনরায় জমা", "Edit and resubmit")}
+                </summary>
+                <form onSubmit={(e) => void submit(e, item)}>
+                  <fieldset disabled={busy}>
+                    {businessFields(item)}
+                    <button className="button">
+                      {t("সংরক্ষণ ও জমা", "Save and submit")}
+                    </button>
+                  </fieldset>
+                </form>
+              </details>
+            )}
+            <h3>{t("ব্যবসার নথি", "Business documents")}</h3>
+            {item.documents.map((doc) => (
+              <p key={doc.id}>
+                <a
+                  href={`/api/v1/partner-applications/${item.id}/documents/${doc.id}/download/`}
+                >
+                  {doc.title}
+                </a>{" "}
+                {doc.expires_on && ` · ${doc.expires_on}`}{" "}
+                {!doc.active && t("(প্রত্যাহার করা)", "(Withdrawn)")}{" "}
+                {editable && doc.active && (
+                  <button
+                    disabled={busy}
+                    onClick={() =>
+                      void save(
+                        `partner-applications/${item.id}/documents/${doc.id}/withdraw/`,
+                      )
+                    }
+                  >
+                    {t("প্রত্যাহার", "Withdraw")}
+                  </button>
+                )}
+              </p>
+            ))}
+            {editable && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const data = new FormData(form);
+                  if (!data.get("expires_on")) data.delete("expires_on");
+                  void save(
+                    `partner-applications/${item.id}/document/`,
+                    data,
+                  ).then((ok) => {
+                    if (ok) form.reset();
+                  });
+                }}
+              >
+                <fieldset disabled={busy}>
+                  <label>
+                    {t("নথির নাম", "Document title")}
+                    <input name="title" required maxLength={160} />
+                  </label>
+                  <label>
+                    {t("পিডিএফ (সর্বোচ্চ ৫ এমবি)", "PDF (maximum 5 MB)")}
+                    <input
+                      type="file"
+                      name="file"
+                      accept="application/pdf"
+                      required
+                    />
+                  </label>
+                  <label>
+                    {t("মেয়াদ শেষ (ঐচ্ছিক)", "Expiry date (optional)")}
+                    <input type="date" name="expires_on" />
+                  </label>
+                  <button>{t("নথি জমা দিন", "Upload document")}</button>
+                </fieldset>
+              </form>
+            )}
+            {editable && (
+              <button
+                disabled={busy}
+                onClick={() =>
+                  void save(`partner-applications/${item.id}/cancel/`)
+                }
+              >
+                {t("আবেদন বাতিল", "Cancel application")}
+              </button>
+            )}
+            {reviewer &&
+              !item.is_owner &&
+              ["submitted", "reviewing"].includes(item.status) && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void save(
+                      `partner-applications/${item.id}/review/`,
+                      Object.fromEntries(
+                        new FormData(e.currentTarget).entries(),
+                      ),
+                    );
+                  }}
+                >
+                  <fieldset disabled={busy}>
+                    <label>
+                      {t("পর্যালোচনার সিদ্ধান্ত", "Review decision")}
+                      <select name="status">
+                        {(item.status === "submitted"
+                          ? ["reviewing"]
+                          : ["needs_changes", "approved", "rejected"]
+                        ).map((s) => (
+                          <option key={s} value={s}>
+                            {statuses[s][lang === "bn" ? 0 : 1]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      {t("আবেদনকারীকে মন্তব্য", "Note to applicant")}
+                      <textarea name="review_note" required maxLength={2000} />
+                    </label>
+                    <label>
+                      {t(
+                        "যাচাইয়ের রেফারেন্স (অনুমোদনে আবশ্যক)",
+                        "Verification reference (required for approval)",
+                      )}
+                      <input name="verification_reference" maxLength={160} />
+                    </label>
+                    <button>{t("সিদ্ধান্ত সংরক্ষণ", "Save decision")}</button>
+                  </fieldset>
+                </form>
+              )}
+          </section>
+        );
+      })}
+      <div>
+        <button
+          disabled={page === 1 || busy || loading}
+          onClick={() => setPage((p) => p - 1)}
+        >
+          {t("আগের পাতা", "Previous page")}
+        </button>{" "}
+        <span>{page}</span>{" "}
+        <button
+          disabled={!next || busy || loading}
+          onClick={() => setPage((p) => p + 1)}
+        >
+          {t("পরের পাতা", "Next page")}
+        </button>
+      </div>
+    </div>
+  );
+}

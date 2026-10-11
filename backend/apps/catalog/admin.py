@@ -1,6 +1,22 @@
 from django.contrib import admin
+from apps.operations.admin import ReadOnlyAdmin
+from .models import PartnerApplication, PartnerDocument
 from apps.operations.services import audit
 from .models import Division, Organization, Offering, ProductVariant, Category, ServiceArea, FoodOptionGroup, FoodOption
+
+
+@admin.register(PartnerApplication)
+class PartnerApplicationAdmin(ReadOnlyAdmin):
+    list_display = ["business_name", "division", "status", "created_at"]
+    list_filter = ["status", "division"]
+    search_fields = ["business_name", "verification_reference"]
+
+
+@admin.register(PartnerDocument)
+class PartnerDocumentAdmin(ReadOnlyAdmin):
+    list_display = ["title", "application", "expires_on", "active"]
+    # Storage paths are not usable public links; downloads use the scoped API.
+    exclude = ["file"]
 
 
 class AuditedAdmin(admin.ModelAdmin):

@@ -8,6 +8,39 @@ from .restaurant_rules import validate_weekly_hours
 from .service_schedule import validate_leave_dates
 
 
+class PartnerApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    division = models.ForeignKey("Division", on_delete=models.PROTECT)
+    business_name = models.CharField(max_length=160)
+    phone = models.CharField(max_length=20)
+    area = models.CharField(max_length=100)
+    address = models.CharField(max_length=500)
+    details = models.TextField(blank=True)
+    status = models.CharField(max_length=20, default="submitted", choices=[
+        (value, value) for value in ["submitted", "reviewing", "needs_changes", "approved", "rejected", "cancelled"]
+    ])
+    review_note = models.CharField(max_length=2000, blank=True)
+    verification_reference = models.CharField(max_length=160, blank=True)
+    organization = models.OneToOneField("Organization", null=True, blank=True, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+def partner_document_path(instance, filename):
+    return f"private/partners/{instance.application_id}/{uuid.uuid4()}.pdf"
+
+
+class PartnerDocument(models.Model):
+    application = models.ForeignKey(PartnerApplication, on_delete=models.PROTECT, related_name="documents")
+    title = models.CharField(max_length=160)
+    file = models.FileField(upload_to=partner_document_path)
+    sha256 = models.CharField(max_length=64)
+    expires_on = models.DateField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class Division(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=120)

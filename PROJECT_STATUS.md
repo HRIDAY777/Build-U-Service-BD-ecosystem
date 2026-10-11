@@ -17,13 +17,19 @@ The initial phase 1 audit and selected phase 2/3 fixes are delivered. This does 
 
 Private project history is implemented and verified, including privacy, pagination, no-store headers, Bangladesh timestamps and refreshed cancellation events. Email or username sign-in is implemented with ambiguous-identity protection. Automation savepoints isolate failing rules and roll back partial notification effects; CI discovery and Compose configuration were improved. Most core commerce/service workflows already exist; major gaps are centralized subdomain identity, verified phone login, business verification, commission/settlement infrastructure, expanded AI/agents and production operations. Existing manual finance records are not payment execution.
 
-Next work: private partner verification workflow, staff MFA and automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
+Next work: partner renewal/per-document decisions and staff MFA/automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
 
 ## Delivered milestone: account security history
 
 Added a private paginated security history endpoint and Preferences UI, event whitelist/no-store headers and an audit lookup index (`operations.0015`, applied locally). See `docs/ACCOUNT_SECURITY.md`. Seven account tests, Ruff/migration drift, frontend lint/typecheck and production build passed. Both targeted browser tests passed: real email login/security history and existing project-history/download/cancellation regression. MFA, device inventory and failed-login monitoring are not implemented by this feature.
 
-## External blockers
+## Delivered milestone: private partner applications
+
+Added bilingual `/partner-application`, private scoped PDF upload/download/withdrawal, applicant edits/cancellation, permission-gated review and guarded creation of a new approved organization. Reviewers cannot review their own application; existing businesses and applicant staff privileges are preserved. Migration `catalog.0011` is applied locally; Django admin records are read-only. Details and remaining policy/scanning/renewal gaps: `docs/PARTNER_APPLICATIONS.md`.
+
+Executed: full backend suite **132 passed** before the final self-review guard; the updated **five onboarding tests passed** after that guard. Ruff, migration drift, frontend lint/typecheck and production build passed. **Two targeted browser tests passed**: actual partner application/PDF/private download/reload/cancellation and email login/security history. Full prior 17-browser results remain historical; no PostgreSQL concurrency or legal verification is claimed.
+
+## External blockers (remaining)
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 
