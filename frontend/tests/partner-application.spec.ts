@@ -59,4 +59,8 @@ test("partner applicant submits a private document and cancels their application
   await expect(
     application.getByRole("button", { name: "Upload document" }),
   ).toHaveCount(0);
+  await page.getByRole("button", { name: "Check renewal reminders" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "0 new reminders created",
+  );
 });

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from apps.operations.admin import ReadOnlyAdmin
-from .models import PartnerApplication, PartnerDocument
+from .models import PartnerApplication, PartnerDocument, PartnerExpiryReminder
 from apps.operations.services import audit
 from .models import Division, Organization, Offering, ProductVariant, Category, ServiceArea, FoodOptionGroup, FoodOption
 
@@ -17,6 +17,11 @@ class PartnerDocumentAdmin(ReadOnlyAdmin):
     list_display = ["title", "application", "review_status", "reviewed_at", "expires_on", "active"]
     # Storage paths are not usable public links; downloads use the scoped API.
     exclude = ["file"]
+
+
+@admin.register(PartnerExpiryReminder)
+class PartnerExpiryReminderAdmin(ReadOnlyAdmin):
+    list_display = ["document", "expires_on", "notification", "created_at"]
 
 
 class AuditedAdmin(admin.ModelAdmin):

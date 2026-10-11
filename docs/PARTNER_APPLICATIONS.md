@@ -1,5 +1,13 @@
 # Private partner onboarding
 
+## Private renewal notifications
+
+Renewal reminders are stored in the existing account Notifications inbox. `check_partner_renewals` creates one reminder per active document/expiry date within 30 days or already expired, only for the latest approved application of a still-approved organization in an active division. The organization must still belong to that active applicant. Newer approved renewals supersede older reminder candidates. Withdrawing a file, removing approval, transferring ownership or disabling the applicant prevents new reminders; existing delivered messages remain historical.
+
+The applicant can use Check renewal reminders (`POST /api/v1/partner-applications/check-renewal-reminders/`); it checks only the signed-in user's applications, including for staff, and ignores client-supplied user IDs. Messages are visible in `/account` → Notifications. A unique document/date constraint and atomic reminder/message write prevent duplicate reminders and allow failed writes to retry without leaving a misleading sent record. Deleting an inbox message does not recreate it on the next scan. No repeated daily escalation is sent for the same document/date.
+
+Celery Beat registers `apps.catalog.tasks.dispatch_partner_renewal_alerts` every 86,400 seconds. Automatic execution requires configured Redis, worker and Beat services; registering this schedule is not evidence of a running production scheduler. The button works without Redis. Reminders do not send external messages, change business approval, extend expiry or certify document authenticity. External delivery, scanning and suspension policy remain separate gates.
+
 The private list supports `search` (up to 160 characters: business name, area, phone or verification reference), `status` and `kind` (initial/renewal). Filters are applied after owner/reviewer permissions and preserve pagination. The bilingual page provides Apply/Clear filters and a matching count; applying filters resets to page one. Invalid filters return validation errors. These parameters affect list results only and cannot widen detail/document access.
 
 Document API responses include an `expiry` summary computed on the Bangladesh local date: expired, due_today, expiring_soon (1–30 days), valid (over 30 days), not_provided, or withdrawn. It includes days_remaining, as_of and renewal_needed. The application page shows bilingual expiry/renewal notices; use Refresh for a current snapshot. The 30-day window is an informational reminder, not a statutory deadline. Missing expiry is displayed as unknown, not proof of validity. Withdrawn documents do not trigger renewal notices. The notices do not automatically renew files, send notifications or suspend businesses.

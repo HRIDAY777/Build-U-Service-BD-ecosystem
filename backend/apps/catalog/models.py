@@ -45,6 +45,16 @@ class PartnerDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class PartnerExpiryReminder(models.Model):
+    document = models.ForeignKey(PartnerDocument, on_delete=models.PROTECT)
+    expires_on = models.DateField()
+    notification = models.OneToOneField("engagement.Notification", null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["document", "expires_on"], name="unique_partner_expiry_reminder")]
+
+
 class Division(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=120)

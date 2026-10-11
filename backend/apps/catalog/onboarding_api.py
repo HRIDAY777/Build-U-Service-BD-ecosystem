@@ -127,6 +127,11 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
     def capabilities(self, request):
         return Response({"review": self.reviewer()})
 
+    @action(detail=False, methods=["post"], url_path="check-renewal-reminders")
+    def check_renewal_reminders(self, request):
+        from .renewal_alerts import check_partner_renewal_alerts
+        return Response({"created": check_partner_renewal_alerts(user=request.user)})
+
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def renew(self, request, pk=None):

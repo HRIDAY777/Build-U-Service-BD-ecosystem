@@ -47,7 +47,11 @@ Nine targeted onboarding tests and the full **137-test backend suite passed** on
 
 Added permission-scoped business/area/phone/reference search, status and initial/renewal filters with validation and pagination. Bilingual Apply/Clear controls, matching counts and empty results are implemented. Ten onboarding tests, Ruff and frontend lint/typecheck passed; the real applicant/document browser test now also verifies no-match filtering and reset. No migration was needed. Full 137-test evidence from the previous milestone is historical; a new full suite was not required for this list-only change.
 
-## Remaining external configuration
+## Follow-up: private renewal reminders
+
+Added account inbox renewal reminders, applicant-scoped manual checking, daily Celery task/management command and unique per-document/expiry deduplication. Latest approval, active/current owner, organization approval and division eligibility are checked; reminder/message writes roll back together on failure. Migration `catalog.0014` is applied locally. Thirteen onboarding tests, Ruff/drift and frontend lint/typecheck passed; the real applicant browser test verifies the manual-check endpoint. Redis/worker/Beat production execution is not verified. Existing full 137-test results are historical.
+
+## External configuration and policies still required
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 

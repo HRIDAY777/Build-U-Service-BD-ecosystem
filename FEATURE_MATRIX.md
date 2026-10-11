@@ -14,7 +14,7 @@ Canonical detailed matrix: [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md). S
 | Admin and partner | Partial; private onboarding, document decisions and renewal submissions implemented | Automatic monitoring/suspension, specialist eligibility, scanning/retention and complete modules |
 | Payments/revenue | Partial/missing/external | Live verification, refunds, commissions, settlements |
 | Delivery/location | Locally verified core; improvement needed | Recipient evidence, dispatch exceptions; GPS needs actual provider/data |
-| Notifications/support | Partial | Preferences, templates, delivery channels and ticket routing |
+| Notifications/support | Partial; private partner renewal reminders added | Preferences, templates, external delivery channels, scheduler deployment and ticket routing |
 | AI/agents | Partial/design only | Provider gateway/tools/conversations/workflow/cost/permission infrastructure |
 | Automation | Implemented; failure isolation tested | Worker monitoring, dead-letter operations and external-email delivery guarantees |
 | SEO/analytics | Partial | Actual metrics, schema/canonicals, consent/attribution |

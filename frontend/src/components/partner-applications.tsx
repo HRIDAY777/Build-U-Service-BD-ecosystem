@@ -213,6 +213,36 @@ function PartnerApplicationsBody() {
   return (
     <div className="page-wrap">
       <h1>{t("পার্টনার আবেদন ও নথি", "Partner applications & documents")}</h1>
+      <button
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setError("");
+          try {
+            const result = await api<{ created: number }>(
+              "partner-applications/check-renewal-reminders/",
+              "POST",
+            );
+            setMessage(
+              t(
+                `${result.created}টি নতুন বিজ্ঞপ্তি তৈরি হয়েছে। অ্যাকাউন্টের বিজ্ঞপ্তি বিভাগে দেখুন।`,
+                `${result.created} new reminders created. See Notifications in your account.`,
+              ),
+            );
+          } catch (failure) {
+            setError(
+              failure instanceof Error
+                ? failure.message
+                : "Unable to check reminders",
+            );
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {t("নবায়ন বিজ্ঞপ্তি যাচাই", "Check renewal reminders")}
+      </button>
+      <Link href="/account">{t("অ্যাকাউন্ট খুলুন", "Open account")}</Link>
       <p>
         {t(
           "নথি শুধু আপনি ও অনুমোদিত পর্যালোচক দেখতে পারবেন। ব্যবসার অনুমোদন বিশেষ লাইসেন্স বা আইনগত ছাড়পত্রের বিকল্প নয়।",

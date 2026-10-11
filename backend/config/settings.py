@@ -123,6 +123,7 @@ CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_BEAT_SCHEDULE = {
     "dispatch-outbox": {"task": "apps.automation.tasks.dispatch_outbox", "schedule": 30.0},
     "wishlist-alerts": {"task": "apps.catalog.tasks.dispatch_wishlist_alerts", "schedule": 300.0},
+    "partner-renewal-alerts": {"task": "apps.catalog.tasks.dispatch_partner_renewal_alerts", "schedule": 86400.0},
 }
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}

@@ -40,6 +40,10 @@ Added approved-applicant renewal requests, open-renewal reuse, protected source 
 
 Added validated owner/reviewer-scoped text search and status/type filters, paginated matching counts and bilingual reset/empty results. Ten targeted backend tests, Ruff/lint/typecheck and the real applicant browser filtering/reset regression passed. No migration. Renewal reminders, scanning and production configuration remain open.
 
-## Earlier implementation records
+## 11 October 2026 — private renewal notifications
+
+Added account inbox reminders for documents expiring within 30 days or overdue, latest-approval/current-owner eligibility, daily Celery schedule and a self-scoped check button. Database deduplication and atomic notification/reminder writes preserve retry safety. Migration `catalog.0014` applied locally. Thirteen targeted tests, Ruff/drift/lint/typecheck and real applicant browser verification passed. Running Redis/worker/Beat, external delivery and malware scanning are not claimed complete.
+
+## Earlier implementation history
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.

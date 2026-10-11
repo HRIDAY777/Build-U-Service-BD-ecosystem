@@ -1,12 +1,16 @@
 import tempfile
 from pathlib import Path
 from datetime import timedelta
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from .models import Division, PartnerApplication, PartnerDocument, Organization
+from .models import PartnerExpiryReminder
+from .renewal_alerts import check_partner_renewal_alerts
+from apps.engagement.models import Notification
 
 
 class PartnerOnboardingTests(TestCase):
@@ -229,3 +233,61 @@ class PartnerOnboardingTests(TestCase):
         self.assertEqual(self.client.get(url, {"search": "a" * 161}).status_code, 400)
         self.client.force_authenticate(self.admin)
         self.assertEqual(self.client.get(url, {"search": "SECRET-REF"}).data["count"], 1)
+
+    def due_document(self):
+        document_id = self.upload()
+        self.approved_source()
+        document = PartnerDocument.objects.get(pk=document_id)
+        document.expires_on = timezone.localdate() + timedelta(days=30)
+        document.save()
+        return document
+
+    def test_renewal_reminders_are_private_and_deduplicated(self):
+        document = self.due_document()
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.post("/api/v1/partner-applications/check-renewal-reminders/", {"user": self.owner.pk}, format="json").data["created"], 0)
+        self.client.force_authenticate(self.owner)
+        self.assertEqual(check_partner_renewal_alerts(user=self.other), 0)
+        self.assertEqual(check_partner_renewal_alerts(user=self.owner), 1)
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        self.assertEqual(Notification.objects.filter(user=self.owner).count(), 1)
+        self.assertEqual(PartnerExpiryReminder.objects.get().expires_on, document.expires_on)
+        self.assertEqual(self.client.post("/api/v1/partner-applications/check-renewal-reminders/").data["created"], 0)
+
+    def test_reminder_failure_rolls_back_and_retry_succeeds(self):
+        self.due_document()
+        with patch("apps.catalog.renewal_alerts.Notification.objects.create", side_effect=RuntimeError("notification failure")):
+            with self.assertRaises(RuntimeError):
+                check_partner_renewal_alerts()
+        self.assertFalse(PartnerExpiryReminder.objects.exists())
+        self.assertEqual(check_partner_renewal_alerts(), 1)
+
+    def test_reminders_skip_superseded_and_ineligible_documents(self):
+        document = self.due_document()
+        document.expires_on = timezone.localdate() + timedelta(days=31)
+        document.save()
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        document.expires_on = timezone.localdate() - timedelta(days=1)
+        document.active = False
+        document.save()
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        document.active = True
+        document.save()
+        organization = self.application.organization
+        organization.approved = False
+        organization.save()
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        organization.approved = True
+        organization.save()
+        organization.owner = self.other
+        organization.save()
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        organization.owner = self.owner
+        organization.save()
+        self.owner.is_active = False
+        self.owner.save()
+        self.assertEqual(check_partner_renewal_alerts(), 0)
+        self.owner.is_active = True
+        self.owner.save()
+        PartnerApplication.objects.create(owner=self.owner, division=self.division, business_name="Renewed", phone="01712345678", area="Dhaka", address="Dhaka", organization=organization, status="approved", renewal_of=self.application)
+        self.assertEqual(check_partner_renewal_alerts(), 0)
