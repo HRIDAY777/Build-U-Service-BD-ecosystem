@@ -14,3 +14,7 @@ Follow the user's ten phases while preserving verified work. This is an ordered 
 10. **Launch readiness:** business/legal approvals, payment certification, signed release checklist, explicit deployment authorization and verified DNS/HTTPS.
 
 Independent coding continues without credentials. Provider calls/deployment are not claimed complete without verified external evidence. Required external actions are in `DEPLOYMENT.md` and `docs/PROJECT_LIVE_SETUP.bn.md`.
+
+## Local PostgreSQL milestone
+
+Local Docker database and preserved SQLite transfer are delivered; private partner history is delivered. Next acceptance work includes explicit concurrency tests, then remaining MFA, dead-letter monitoring, identity and production infrastructure gates.

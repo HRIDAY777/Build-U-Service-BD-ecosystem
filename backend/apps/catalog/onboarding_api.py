@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.operations.services import audit
+from apps.operations.models import AuditLog
 from .models import Division, Organization, PartnerApplication, PartnerDocument
 
 
@@ -126,6 +127,19 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def capabilities(self, request):
         return Response({"review": self.reviewer()})
+
+    @action(detail=True, methods=["get"])
+    def history(self, request, pk=None):
+        application = self.get_object()
+        allowed = ["partner.submitted", "partner.updated", "partner.cancelled", "partner.document_uploaded", "partner.document_withdrawn", "partner.reviewed", "partner.document_reviewed", "partner.renewal_requested"]
+        logs = AuditLog.objects.filter(entity=str(application.pk), action__in=allowed).order_by("-created_at", "-pk")
+        page = self.paginate_queryset(logs)
+        rows = []
+        for log in page if page is not None else logs:
+            status = log.metadata.get("status") if isinstance(log.metadata, dict) else None
+            choices = dict(PartnerApplication._meta.get_field("status").choices) if log.action == "partner.reviewed" else {"accepted": "", "rejected": ""} if log.action == "partner.document_reviewed" else {}
+            rows.append({"id": log.pk, "action": log.action, "date": log.created_at.isoformat(), "actor": "system" if log.actor_id is None else "applicant" if log.actor_id == application.owner_id else "team", "status": status if isinstance(status, str) and status in choices else None})
+        return self.get_paginated_response(rows) if page is not None else Response(rows)
 
     @action(detail=False, methods=["post"], url_path="check-renewal-reminders")
     def check_renewal_reminders(self, request):

@@ -56,6 +56,12 @@ test("partner applicant submits a private document and cancels their application
   await expect(application).toContainText("Demo document");
   await application.getByRole("button", { name: "Cancel application" }).click();
   await expect(application).toContainText("Cancelled");
+  await application.getByText("Application history", { exact: true }).click();
+  await expect(application).toContainText("Application cancelled");
+  await expect(application).toContainText("Document uploaded");
+  await expect(application).toContainText("Application submitted");
+  await application.getByRole("button", { name: "Refresh history" }).click();
+  await expect(application).toContainText("Application cancelled");
   await expect(
     application.getByRole("button", { name: "Upload document" }),
   ).toHaveCount(0);

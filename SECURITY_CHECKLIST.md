@@ -26,3 +26,7 @@ This is an engineering checklist, not an independent security certification. Det
 - [ ] Independent security assessment and staging browser/accessibility/load acceptance.
 
 Never store raw card data, invent credentials, disclose secrets in logs or execute destructive production operations without explicit authorization. Local demo data must remain identifiable and must not be presented as real achievements, sales or reviews.
+
+## Local PostgreSQL / partner history
+
+Local DB binds localhost only, isolated from Windows PostgreSQL. Generated credentials and private backup fixtures are Git-ignored. Partner history has scoped authorization, no-store, metadata redaction and malformed-status protection. Production credential rotation, restricted DB roles, encrypted backup restoration and concurrency/security review remain open.

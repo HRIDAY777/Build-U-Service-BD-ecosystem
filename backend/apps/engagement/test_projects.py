@@ -262,7 +262,9 @@ class ProjectAccountTests(TestCase):
         self.assertEqual(download.status_code, 200)
         self.assertIn("attachment", download["Content-Disposition"])
         self.assertTrue(b"".join(download.streaming_content).startswith(b"%PDF-"))
-        download.close()
+        # Manual response cleanup must not end TestCase's PostgreSQL transaction.
+        with patch("django.http.response.signals.request_finished.send"):
+            download.close()
         self.assertEqual(self.client.post(url+"accept/", {"consent": True, "signed_name": "Other"}, format="json").status_code, 400)
         accepted = self.client.post(url+"accept/", {"consent": True, "signed_name": "Test Applicant"}, format="json")
         self.assertEqual(accepted.status_code, 200)

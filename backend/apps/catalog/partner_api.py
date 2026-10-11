@@ -125,7 +125,7 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
     @transaction.atomic
     def service_schedule(self, request, pk=None):
         offering = self.get_object()
-        offering = Offering.objects.select_for_update().select_related("organization", "division").get(pk=offering.pk)
+        offering = Offering.objects.select_for_update(of=("self",)).select_related("organization", "division").get(pk=offering.pk)
         if offering.division.kind != "service":
             raise ValidationError("Choose a service offering.")
         if not request.user.has_perm("catalog.change_offering") and (

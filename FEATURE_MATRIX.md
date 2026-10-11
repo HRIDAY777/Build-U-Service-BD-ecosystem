@@ -23,3 +23,7 @@ Canonical detailed matrix: [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md). S
 | Project/event extension | Locally verified core; improvement needed | Live finance/signature integrations and acceptance |
 
 Historical local feature groups: [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md). They are narrower than the enterprise requirements and must not be used as a percentage.
+
+## Local PostgreSQL / partner history update
+
+Local persistent Docker PostgreSQL: implemented, data transfer counts verified. Private partner history: implemented and browser verified. Production Docker stack and concurrent transaction/load acceptance remain open. See docs/LOCAL_POSTGRES.md and docs/PARTNER_APPLICATIONS.md.

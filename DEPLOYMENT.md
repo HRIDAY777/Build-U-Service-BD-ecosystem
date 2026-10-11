@@ -21,3 +21,7 @@ Compose defaults to the private `.env` file. `APP_ENV_FILE` can select another e
 ## Acceptance evidence still required
 
 Docker stack execution, staging identity/domain routing, SMTP/provider delivery, gateway certification, private storage/scanning, backup restoration, load/performance, MFA/security review and explicit release approval. Do not equate a build, health response or mock callback with these results.
+
+## Executed local Docker database
+
+An isolated PostgreSQL 15 container is running on localhost:15432 and powers the backend at 8002. SQLite backup/import verified 1,633 records across 35 models. Credentials and backups remain ignored. Restart instructions: docs/LOCAL_POSTGRES.md. The full production stack, external providers and staging concurrency/load validation remain unverified.

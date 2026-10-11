@@ -58,3 +58,9 @@ No approved live project payment/payout/certified signature accounts exist. Doma
 ## Continuation rule
 
 Read the audit, roadmap and changelog before implementation. Keep existing contracts/data. Run meaningful checks, update status with executed evidence, then commit/push authorized changes. Do not treat pages, environment variables or old test counts as proof of full completion.
+
+## Local PostgreSQL and partner history
+
+The local backend now uses isolated Docker PostgreSQL 15 on localhost:15432. Backed up SQLite and imported/verified 1,633 records across 35 models; original SQLite, Windows PostgreSQL and private media preserved. See docs/LOCAL_POSTGRES.md for restart and backup details. Private partner history adds scoped paginated events with generic actors and no raw metadata. Frontend lint/typecheck/build, Ruff and system check passed; two real browser tests passed on PostgreSQL (email login and partner upload/history/cancellation). PostgreSQL tests exposed a nullable schedule join lock and synthetic streaming-test cleanup issues; both were corrected.
+
+Final verification: all **142 backend tests passed on PostgreSQL** using the separate disposable test database. Two real browser tests, frontend lint/typecheck/production build, Ruff and Django system check passed. This does not establish production deployment or concurrency/load acceptance.

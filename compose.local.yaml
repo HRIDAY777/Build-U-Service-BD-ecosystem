@@ -1,0 +1,20 @@
+name: uservicebd-local
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uservice}
+      POSTGRES_USER: ${POSTGRES_USER:-uservice}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set local database password}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+volumes:
+  local_postgres_data:

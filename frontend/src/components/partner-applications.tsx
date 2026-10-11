@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, Division, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
+import { PartnerHistory } from "./partner-history";
 
 type Document = {
   id: number;
@@ -350,6 +351,7 @@ function PartnerApplicationsBody() {
             style={{ marginTop: 20 }}
           >
             <h2>{item.business_name}</h2>
+            <PartnerHistory applicationId={item.id} />
             {item.renewal_of && (
               <p>{t("নথি নবায়নের আবেদন", "Document renewal application")}</p>
             )}

@@ -33,3 +33,7 @@ Document decisions use `POST documents/{id}/review/` with `status` (accepted/rej
 Local file validation checks size and PDF header, not malware or document authenticity. Private production storage/scanning/retention policies, renewal monitoring and suspension after expiry, specialist reviewer eligibility, automatic notifications, searchable geography and duplicate-submission idempotency remain separate improvements. This milestone must not be presented as a complete regulated partner verification system.
 
 Verification: backend tests cover private scope (including unauthorized staff), self-approval denial, document privacy, invalid files, expired-document replacement, guarded approval, preservation of existing businesses and terminal immutability. Browser coverage submits an actual test application/PDF, downloads privately, reloads and cancels; it does not certify uploaded content or legal review.
+
+## Private application history
+
+GET history/ on an application is owner/reviewer scoped, paginated (24), newest first and no-store. It exposes only event/date/generic actor and a validated decision status. Raw audit metadata, file hashes, filenames, review notes and reviewer identities remain private. The bilingual application card loads history on expansion, supports paging and refresh, and shows upload/cancellation events. Backend tests verify cross-account denial, redaction, malformed metadata and pagination; real browser coverage checks submission/upload/cancellation and refresh.

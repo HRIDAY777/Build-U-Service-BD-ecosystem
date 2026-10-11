@@ -47,3 +47,12 @@ Added account inbox reminders for documents expiring within 30 days or overdue, 
 ## Earlier implementation history
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.
+
+## 2026-10-11 — local Docker PostgreSQL and partner history
+
+- Backed up SQLite; imported and verified 1,633 records across 35 models into separate persistent local Docker PostgreSQL 15. Switched the local backend without changing Windows PostgreSQL or private media. Added credential-safe local runner and guarded transactional transfer script.
+- Fixed PostgreSQL schedule locking on a nullable organization join; adjusted synthetic response-cleanup tests to preserve TestCase transactions.
+- Added lazy bilingual private partner application history with pagination, refresh, whitelisted events, generic actors and no-store headers. Added privacy/redaction tests and real browser coverage.
+- Ruff/system check, frontend lint/typecheck/build and two PostgreSQL browser tests passed.
+
+Final verification: all **142 backend tests passed on PostgreSQL** using the separate disposable test database. Two real browser tests, frontend lint/typecheck/production build, Ruff and Django system check passed. This does not establish production deployment or concurrency/load acceptance.

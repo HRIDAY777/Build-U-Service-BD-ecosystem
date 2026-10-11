@@ -26,3 +26,7 @@ Browser -> Next site / loopback proxy -> versioned Django APIs -> database. Prod
 Email sign-in accepts the existing login `username` field as username or case-insensitive email. It rejects ambiguous legacy email/username collisions and leaves admin authentication/session protocols unchanged. Phone verification and subdomain identity remain separate work.
 
 Channels configuration has no active WebSocket routing. S3 variables have no storage adapter. AI is not a tool-using agent platform. Commission/settlement rules need approved business inputs. Live gateway/refund/payout/signature integration, scanners, observability, backups and production concurrency remain acceptance gates.
+
+## Local database execution
+
+The current local backend uses isolated Docker PostgreSQL 15 at localhost:15432 via scripts/run-local-postgres.ps1; bare Django still defaults to SQLite when DATABASE_URL is absent. Original SQLite is a preserved snapshot. Private media stays in the existing backend media directory. Partner history reuses scoped AuditLog events with no public raw metadata.

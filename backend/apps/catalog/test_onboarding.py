@@ -11,6 +11,7 @@ from .models import Division, PartnerApplication, PartnerDocument, Organization
 from .models import PartnerExpiryReminder
 from .renewal_alerts import check_partner_renewal_alerts
 from apps.engagement.models import Notification
+from apps.operations.models import AuditLog
 
 
 class PartnerOnboardingTests(TestCase):
@@ -44,6 +45,29 @@ class PartnerOnboardingTests(TestCase):
         self.assertEqual(response.status_code, 201, response.data)
         self.assertNotIn("file", response.data)
         return response.data["id"]
+
+    def test_history_is_private_paginated_and_redacted(self):
+        for index in range(27):
+            AuditLog.objects.create(actor=self.admin, entity=str(self.application.pk), action="partner.document_reviewed", metadata={"status": "accepted", "note": "PRIVATE NOTE", "filename": "private.pdf"})
+        AuditLog.objects.create(actor=self.owner, entity=str(self.application.pk), action="unrelated.secret", metadata={"secret": "hidden"})
+        AuditLog.objects.create(entity=str(self.application.pk), action="partner.reviewed", metadata={"status": ["invalid"]})
+        url = self.url + "history/"
+        result = self.client.get(url)
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.data["count"], 29)
+        self.assertEqual(len(result.data["results"]), 24)
+        self.assertEqual(result.data["results"][0]["actor"], "system")
+        self.assertIsNone(result.data["results"][0]["status"])
+        self.assertEqual(set(result.data["results"][0]), {"id", "action", "date", "actor", "status"})
+        self.assertNotIn("PRIVATE NOTE", str(result.data))
+        self.assertIn("no-store", result["Cache-Control"])
+        self.assertEqual(len(self.client.get(url + "?page=2").data["results"]), 5)
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.client.force_authenticate(None)
+        self.assertIn(self.client.get(url).status_code, [401, 403])
 
     def review(self, status, **extra):
         return self.client.post(self.url + "review/", {"status": status, "review_note": "Manual review", **extra}, format="json")
@@ -96,7 +120,9 @@ class PartnerOnboardingTests(TestCase):
         response = self.client.get(self.url + f"documents/{document_id}/download/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Cache-Control"], "private, no-store")
-        response.close()
+        # Manual response cleanup must not end TestCase's PostgreSQL transaction.
+        with patch("django.http.response.signals.request_finished.send"):
+            response.close()
         document = PartnerDocument.objects.get(pk=document_id)
         document.expires_on = timezone.localdate() - timedelta(days=1)
         document.save()
