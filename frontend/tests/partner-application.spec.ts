@@ -27,13 +27,11 @@ test("partner applicant submits a private document and cancels their application
     .filter({ hasText: `Test ${username}` });
   await expect(application).toContainText("Submitted");
   await application.getByLabel("Document title").fill("Demo document");
-  await application
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "demo.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("%PDF-1.4\n%%EOF"),
-    });
+  await application.locator('input[type="file"]').setInputFiles({
+    name: "demo.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4\n%%EOF"),
+  });
   await application.getByRole("button", { name: "Upload document" }).click();
   await expect(
     application.getByRole("link", { name: "Demo document" }),
@@ -45,6 +43,16 @@ test("partner applicant submits a private document and cancels their application
   expect(response.status()).toBe(200);
   expect(response.headers()["cache-control"]).toBe("private, no-store");
   await page.reload();
+  await expect(application).toContainText("Demo document");
+  await page
+    .getByLabel("Search business, area, phone or reference")
+    .fill("No matching business xyz");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(
+    page.getByText("No matching applications.", { exact: true }),
+  ).toBeVisible();
+  await expect(application).toHaveCount(0);
+  await page.getByRole("button", { name: "Clear filters" }).click();
   await expect(application).toContainText("Demo document");
   await application.getByRole("button", { name: "Cancel application" }).click();
   await expect(application).toContainText("Cancelled");

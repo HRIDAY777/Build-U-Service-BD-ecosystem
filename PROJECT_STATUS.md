@@ -43,7 +43,11 @@ Approved applicants can open a separate renewal with new private documents. Repe
 
 Nine targeted onboarding tests and the full **137-test backend suite passed** on local SQLite. Ruff, migration drift, frontend lint/typecheck and production build passed. **Three targeted browser tests passed**: actual applicant/PDF/download/cancellation plus controlled document-review/mobile and renewal UI fixtures. The controlled fixtures do not certify a live staff session or PostgreSQL concurrency. Automatic notifications/monitoring, suspension policy, scanning and specialist licensing remain open.
 
-## External configuration still required
+## Follow-up: private application search and filters
+
+Added permission-scoped business/area/phone/reference search, status and initial/renewal filters with validation and pagination. Bilingual Apply/Clear controls, matching counts and empty results are implemented. Ten onboarding tests, Ruff and frontend lint/typecheck passed; the real applicant/document browser test now also verifies no-match filtering and reset. No migration was needed. Full 137-test evidence from the previous milestone is historical; a new full suite was not required for this list-only change.
+
+## Remaining external configuration
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 

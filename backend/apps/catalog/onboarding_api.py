@@ -1,5 +1,6 @@
 import hashlib
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse
 from django.utils import timezone
 from rest_framework import serializers, viewsets
@@ -71,7 +72,24 @@ class PartnerApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = PartnerApplication.objects.select_related("division").prefetch_related("documents").order_by("-created_at", "-pk")
-        return qs if self.reviewer() else qs.filter(owner=self.request.user)
+        qs = qs if self.reviewer() else qs.filter(owner=self.request.user)
+        if self.action == "list":
+            search = self.request.query_params.get("search", "").strip()
+            status = self.request.query_params.get("status", "")
+            kind = self.request.query_params.get("kind", "")
+            if len(search) > 160:
+                raise ValidationError("Search must be no longer than 160 characters.")
+            if status and status not in dict(PartnerApplication._meta.get_field("status").choices):
+                raise ValidationError("Invalid application status.")
+            if kind not in ["", "initial", "renewal"]:
+                raise ValidationError("Invalid application type.")
+            if search:
+                qs = qs.filter(Q(business_name__icontains=search) | Q(area__icontains=search) | Q(phone__icontains=search) | Q(verification_reference__icontains=search))
+            if status:
+                qs = qs.filter(status=status)
+            if kind:
+                qs = qs.filter(renewal_of__isnull=kind == "initial")
+        return qs
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)

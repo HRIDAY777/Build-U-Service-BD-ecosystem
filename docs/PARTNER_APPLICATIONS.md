@@ -1,5 +1,7 @@
 # Private partner onboarding
 
+The private list supports `search` (up to 160 characters: business name, area, phone or verification reference), `status` and `kind` (initial/renewal). Filters are applied after owner/reviewer permissions and preserve pagination. The bilingual page provides Apply/Clear filters and a matching count; applying filters resets to page one. Invalid filters return validation errors. These parameters affect list results only and cannot widen detail/document access.
+
 Document API responses include an `expiry` summary computed on the Bangladesh local date: expired, due_today, expiring_soon (1–30 days), valid (over 30 days), not_provided, or withdrawn. It includes days_remaining, as_of and renewal_needed. The application page shows bilingual expiry/renewal notices; use Refresh for a current snapshot. The 30-day window is an informational reminder, not a statutory deadline. Missing expiry is displayed as unknown, not proof of validity. Withdrawn documents do not trigger renewal notices. The notices do not automatically renew files, send notifications or suspend businesses.
 
 ## Renewal submissions

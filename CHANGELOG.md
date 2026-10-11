@@ -36,6 +36,10 @@ Added private expiry summaries and bilingual renewal notices for documents expir
 
 Added approved-applicant renewal requests, open-renewal reuse, protected source records and guarded approval to the existing business. Renewals use new individually reviewed documents and cannot change business identity or restore a suspended/transferred organization. Migration `catalog.0013` preserves existing records. Nine onboarding tests, full backend 137 tests, Ruff/drift/lint/typecheck/build and three targeted browser tests passed (two controlled fixtures and one real applicant workflow). Production monitoring/scanning and specialist approvals remain open.
 
-## Earlier feature records
+## 11 October 2026 — private partner application filtering
+
+Added validated owner/reviewer-scoped text search and status/type filters, paginated matching counts and bilingual reset/empty results. Ten targeted backend tests, Ruff/lint/typecheck and the real applicant browser filtering/reset regression passed. No migration. Renewal reminders, scanning and production configuration remain open.
+
+## Earlier implementation records
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.

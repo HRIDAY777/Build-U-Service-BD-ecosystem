@@ -198,6 +198,7 @@ class PartnerOnboardingTests(TestCase):
 
     def test_renewal_scope_and_ineligible_business(self):
         self.assertEqual(self.client.post(self.url + "renew/").status_code, 400)
+
         organization = self.approved_source()
         self.client.force_authenticate(self.admin)
         self.assertEqual(self.client.post(self.url + "renew/").status_code, 403)
@@ -211,3 +212,20 @@ class PartnerOnboardingTests(TestCase):
         organization.approved = False
         organization.save()
         self.assertEqual(self.client.post(self.url + "renew/").status_code, 400)
+
+    def test_application_filters_preserve_private_scope(self):
+        self.approved_source()
+        renewal = PartnerApplication.objects.create(owner=self.owner, division=self.division, business_name="Renewal example", phone="01712345678", area="Mirpur", address="Dhaka", status="needs_changes", renewal_of=self.application)
+        PartnerApplication.objects.create(owner=self.other, division=self.division, business_name="Private business", phone="01812345678", area="Mirpur", address="Dhaka", verification_reference="SECRET-REF")
+        url = "/api/v1/partner-applications/"
+        result = self.client.get(url, {"search": "mirpur", "kind": "renewal", "status": "needs_changes"})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.data["count"], 1)
+        self.assertEqual(result.data["results"][0]["id"], str(renewal.pk))
+        self.assertEqual(self.client.get(url, {"search": "SECRET-REF"}).data["count"], 0)
+        self.assertEqual(self.client.get(url, {"kind": "initial", "status": "approved"}).data["count"], 1)
+        self.assertEqual(self.client.get(url, {"status": "unknown"}).status_code, 400)
+        self.assertEqual(self.client.get(url, {"kind": "unknown"}).status_code, 400)
+        self.assertEqual(self.client.get(url, {"search": "a" * 161}).status_code, 400)
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.get(url, {"search": "SECRET-REF"}).data["count"], 1)

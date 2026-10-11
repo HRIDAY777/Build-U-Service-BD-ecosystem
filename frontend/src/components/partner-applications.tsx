@@ -56,6 +56,8 @@ function PartnerApplicationsBody() {
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [reviewer, setReviewer] = useState(false);
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ search: "", status: "", kind: "" });
+  const [count, setCount] = useState(0);
   const [next, setNext] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -68,12 +70,15 @@ function PartnerApplicationsBody() {
     setLoading(true);
     try {
       const results = await Promise.all([
-        api<PageResult<Application>>(`partner-applications/?page=${page}`),
+        api<PageResult<Application>>(
+          `partner-applications/?${new URLSearchParams({ page: String(page), ...filters })}`,
+        ),
         api<PageResult<Division>>("divisions/"),
         api<{ review: boolean }>("partner-applications/capabilities/"),
       ]);
       if (current !== sequence.current) return;
       setItems(results[0].results);
+      setCount(results[0].count);
       setNext(Boolean(results[0].next));
       setDivisions(results[1].results);
       setReviewer(results[2].review);
@@ -87,7 +92,7 @@ function PartnerApplicationsBody() {
     } finally {
       if (current === sequence.current) setLoading(false);
     }
-  }, [user, page]);
+  }, [user, page, filters]);
   const invalidate = useCallback(() => {
     sequence.current++;
   }, []);
@@ -227,6 +232,63 @@ function PartnerApplicationsBody() {
           </fieldset>
         </form>
       </details>
+      <form
+        className="form-panel"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const data = new FormData(e.currentTarget);
+          setPage(1);
+          setFilters({
+            search: String(data.get("search") || "").trim(),
+            status: String(data.get("status") || ""),
+            kind: String(data.get("kind") || ""),
+          });
+        }}
+      >
+        <fieldset disabled={busy || loading}>
+          <label>
+            {t(
+              "ব্যবসা, এলাকা, মোবাইল বা রেফারেন্স খুঁজুন",
+              "Search business, area, phone or reference",
+            )}
+            <input name="search" maxLength={160} />
+          </label>
+          <label>
+            {t("আবেদনের অবস্থা", "Application status")}
+            <select name="status">
+              <option value="">{t("সব অবস্থা", "All statuses")}</option>
+              {Object.entries(statuses).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label[lang === "bn" ? 0 : 1]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t("আবেদনের ধরন", "Application type")}
+            <select name="kind">
+              <option value="">{t("সব আবেদন", "All applications")}</option>
+              <option value="initial">
+                {t("নতুন ব্যবসা", "Initial application")}
+              </option>
+              <option value="renewal">{t("নবায়ন", "Renewal")}</option>
+            </select>
+          </label>
+          <button>{t("বাছাই করুন", "Apply filters")}</button>
+          <button
+            type="reset"
+            onClick={() => {
+              setPage(1);
+              setFilters({ search: "", status: "", kind: "" });
+            }}
+          >
+            {t("বাছাই মুছুন", "Clear filters")}
+          </button>
+        </fieldset>
+      </form>
+      <p>
+        {t("মোট আবেদন", "Matching applications")}: {count}
+      </p>
       <button
         disabled={busy || loading}
         onClick={() => {
@@ -238,7 +300,14 @@ function PartnerApplicationsBody() {
       </button>
       {loading && <p role="status">{t("লোড হচ্ছে…", "Loading…")}</p>}
       {!loading && !items.length && (
-        <p>{t("কোনো আবেদন নেই।", "No applications yet.")}</p>
+        <p>
+          {filters.search || filters.status || filters.kind
+            ? t(
+                "বাছাই অনুযায়ী কোনো আবেদন পাওয়া যায়নি।",
+                "No matching applications.",
+              )
+            : t("কোনো আবেদন নেই।", "No applications yet.")}
+        </p>
       )}
       {items.map((item) => {
         const editable =
