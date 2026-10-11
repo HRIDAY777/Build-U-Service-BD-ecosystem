@@ -30,3 +30,7 @@ Channels configuration has no active WebSocket routing. S3 variables have no sto
 ## Local database execution
 
 The current local backend uses isolated Docker PostgreSQL 15 at localhost:15432 via scripts/run-local-postgres.ps1; bare Django still defaults to SQLite when DATABASE_URL is absent. Original SQLite is a preserved snapshot. Private media stays in the existing backend media directory. Partner history reuses scoped AuditLog events with no public raw metadata.
+
+## Automation retry budget
+
+AutomationRun now stores attempt_limit, default five. The existing worker checks this budget; authorized staff can add one attempt to an exhausted failed run while retaining total attempts. Queueing and audit commit together per run, locking event before run to match processing. Django admin remains read-only apart from the explicit retry action.

@@ -35,10 +35,12 @@ class AutomationRun(models.Model):
     rule = models.ForeignKey(AutomationRule, on_delete=models.PROTECT)
     status = models.CharField(max_length=20, default="pending")
     attempts = models.PositiveIntegerField(default=0)
+    attempt_limit = models.PositiveIntegerField(default=5)
     error = models.CharField(max_length=500, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        permissions = [("retry_automationrun", "Can authorize one extra automation attempt")]
         constraints = [models.UniqueConstraint(fields=["event", "rule"], name="automation_deduplication")]
 
 

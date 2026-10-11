@@ -25,3 +25,7 @@ Docker stack execution, staging identity/domain routing, SMTP/provider delivery,
 ## Executed local Docker database
 
 An isolated PostgreSQL 15 container is running on localhost:15432 and powers the backend at 8002. SQLite backup/import verified 1,633 records across 35 models. Credentials and backups remain ignored. Restart instructions: docs/LOCAL_POSTGRES.md. The full production stack, external providers and staging concurrency/load validation remain unverified.
+
+## Automation retry operations
+
+Apply automation.0002 before running the updated worker/admin. Grant view_automationrun and retry_automationrun only to designated active staff. The retry admin action queues work; existing outbox dispatch/worker must run to execute it. Local PostgreSQL migration and admin login were verified, but Redis/Celery/Beat services were not started. External email retries need delivery-record inspection because DB rollback cannot undo external sends. See docs/AUTOMATION_RETRIES.md.

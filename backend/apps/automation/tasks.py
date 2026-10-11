@@ -26,7 +26,7 @@ def process_event(event_id):
             run, _ = AutomationRun.objects.get_or_create(event=event, rule=rule)
             if run.status == "succeeded":
                 continue
-            if run.attempts >= 5:
+            if run.attempts >= run.attempt_limit:
                 failed = True
                 continue
             try:

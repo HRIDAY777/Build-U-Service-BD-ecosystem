@@ -34,3 +34,7 @@ Completed stock, variant, retry and coupon transaction regressions on PostgreSQL
 ## Order reversal follow-up
 
 Corrected variant stock restoration and added cancellation/refund-reservation regressions. Continue remaining security and operations gates, including staff MFA and automation dead-letter monitoring. Refund gateway execution requires approved provider integration; historical inventory is not automatically rewritten.
+
+## Automation operations milestone
+
+Delivered exhausted-run visibility and audited one-attempt retry authorization. Next security/operations gates remain staff MFA, worker/Beat operations, retry backoff and alert delivery, followed by remaining identity/deployment requirements.

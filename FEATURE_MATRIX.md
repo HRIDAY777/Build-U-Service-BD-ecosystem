@@ -43,3 +43,7 @@ Four PostgreSQL tests passed for last product/variant units, retry deduplication
 ## Order reversal update
 
 Variant cancellation/rejection/return now restores the correct inventory source; reversal movement includes the variant. Added concurrency coverage for cancellation and refund reservation limits. Gateway refund execution and general partial-request idempotency remain separate work.
+
+## Automation failure operations
+
+Implemented exhausted-run monitoring and read-only admin with separately authorized one-attempt retry queueing and preserved counters. PostgreSQL concurrency test covers duplicate operator requests. Worker execution, external delivery, alerts and backoff remain unverified or unimplemented.

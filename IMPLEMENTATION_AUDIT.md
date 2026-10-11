@@ -100,3 +100,9 @@ Four real PostgreSQL tests passed for last-unit purchases, identical retries, va
 A PostgreSQL concurrency regression reproduced a variant cancellation bug: variant stock stayed depleted while base stock increased. Corrected inventory target and movement attribution with deterministic product/variant locking. Refund checks cover reservation totals only; separate partial requests within the remaining balance are still allowed and no payout is performed. Details: docs/ORDER_REVERSALS.md.
 
 Verification: full PostgreSQL suite **157 passed** after the stock correction; afterward the final reversal module **5 passed**, including newly added rejection/return checks. Ruff passed and the restarted PostgreSQL backend returned HTTP 200. No frontend changes were made; no new frontend build or browser result is claimed for this milestone.
+
+## Automation retry evidence
+
+Full PostgreSQL suite 164 passed with new admin controls, permission guards, one-attempt limits, audit rollback and concurrent operator authorization. Local schema updated and admin login checked (HTTP 200). Remaining gates include live worker/Beat execution, external provider delivery/idempotency, backoff and alerts. Details: docs/AUTOMATION_RETRIES.md.
+
+Final verification: all eight targeted automation tests passed on PostgreSQL after the final exhausted-filter, changed-trigger and inactive-user assertions. Full 164-test suite passed earlier in this milestone. Ruff and migration drift passed. Worker/external delivery was not executed.

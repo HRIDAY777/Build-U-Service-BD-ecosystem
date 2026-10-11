@@ -30,3 +30,7 @@ Never store raw card data, invent credentials, disclose secrets in logs or execu
 ## Local PostgreSQL / partner history
 
 Local DB binds localhost only, isolated from Windows PostgreSQL. Generated credentials and private backup fixtures are Git-ignored. Partner history has scoped authorization, no-store, metadata redaction and malformed-status protection. Production credential rotation, restricted DB roles, encrypted backup restoration and concurrency/security review remain open.
+
+## Controlled automation retries
+
+Viewing alone does not authorize retrying. Action requires active staff plus view/retry permissions, retains counters, allows one extra attempt and writes an audit entry in the same transaction. Processed/successful/pending/ineligible runs are skipped. PostgreSQL test checks concurrent authorizations grant only one attempt. Live external delivery remains a separate verification gate.

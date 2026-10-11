@@ -74,3 +74,9 @@ Added four PostgreSQL-only transaction regressions for last-unit stock, duplicat
 Fixed cancellation/rejection/return restoring variant inventory into the base product. Restoration now updates the original variant and includes it in the movement record; mixed inventory locks follow checkout order. Added concurrent base/variant cancellation, full/partial refund reservation and rejected/returned variant regression tests. Existing historical inventory records are preserved.
 
 Verification: full PostgreSQL suite **157 passed** after the stock correction; afterward the final reversal module **5 passed**, including newly added rejection/return checks. Ruff passed and the restarted PostgreSQL backend returned HTTP 200. No frontend changes were made; no new frontend build or browser result is claimed for this milestone.
+
+## 2026-10-11 — monitor exhausted automation and authorize retries
+
+Added admin filtering/search and permission-gated one-extra-attempt action; introduced preserved per-run attempt_limit (default five). Retry requests lock the event then run, revalidate eligibility, and audit budget changes atomically. No effects execute during queueing; successful rules are never replayed by this action. Migration automation.0002 applied locally. Full 164-test PostgreSQL suite, Ruff and migration drift passed; no frontend changes.
+
+Final verification: all eight targeted automation tests passed on PostgreSQL after the final exhausted-filter, changed-trigger and inactive-user assertions. Full 164-test suite passed earlier in this milestone. Ruff and migration drift passed. Worker/external delivery was not executed.
