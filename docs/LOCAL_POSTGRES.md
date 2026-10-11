@@ -21,3 +21,7 @@ SQLite backup and UTF-8 fixture: ignored `backend/artifacts/postgres-transfer-20
 PostgreSQL testing exposed a schedule row lock on a nullable join; it now locks only the offering row. Streaming-response cleanup tests suppress their synthetic request-finished signal to preserve TestCase's enclosing transaction. Production response cleanup is unchanged.
 
 Final verification: all **142 backend tests passed on PostgreSQL** using the separate disposable test database. Two real browser tests, frontend lint/typecheck/production build, Ruff and Django system check passed. This does not establish production deployment or concurrency/load acceptance.
+
+## Targeted concurrency tests
+
+Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.catalog.test_partner_concurrency`. Three tests passed on PostgreSQL using distinct thread connections, start barriers and lock/statement timeouts. They cover one-business approval, one-open-renewal across different approved sources and one expiry notification. These tests are skipped on SQLite. The disposable test database is removed afterward; live data is untouched.

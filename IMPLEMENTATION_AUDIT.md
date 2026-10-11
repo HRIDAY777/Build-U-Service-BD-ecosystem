@@ -82,3 +82,7 @@ Renewal follow-up: approved applicants can request a separate renewal linked to 
 Persistent local Docker database executed; 1,633 SQLite records across 35 models imported and counted. Real PostgreSQL browser tests passed for email login and partner PDF/history/cancellation. Build/lint/typecheck/Ruff/system check passed. Schedule nullable-join locking corrected. Full production stack and deliberate PostgreSQL concurrency testing remain separate acceptance gates.
 
 Final verification: all **142 backend tests passed on PostgreSQL** using the separate disposable test database. Two real browser tests, frontend lint/typecheck/production build, Ruff and Django system check passed. This does not establish production deployment or concurrency/load acceptance.
+
+## Concurrent partner transaction evidence
+
+Three targeted tests passed on PostgreSQL using separate connections: duplicate approval, renewal from different approved sources for one organization, and simultaneous renewal reminder checks. Asserted one resulting organization/application/notification and corresponding single audit/reminder records. This narrows the partner concurrency gap; it does not verify every interleaving, commerce/payment races, sustained load or production infrastructure.

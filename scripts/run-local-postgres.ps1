@@ -1,6 +1,7 @@
 param(
     [ValidateSet("run", "migrate", "check", "test")][string]$Mode = "run",
-    [ValidateRange(1024, 65535)][int]$Port = 8002
+    [ValidateRange(1024, 65535)][int]$Port = 8002,
+    [string[]]$TestLabels = @("apps")
 )
 $ErrorActionPreference = "Stop"
 $taskRoot = Split-Path -Parent $PSScriptRoot
@@ -22,6 +23,6 @@ switch ($Mode) {
     "run" { & $taskPython $taskManage runserver "127.0.0.1:$Port" --noreload }
     "migrate" { & $taskPython $taskManage migrate --noinput }
     "check" { & $taskPython $taskManage check }
-    "test" { Push-Location (Join-Path $taskRoot "backend"); try { & $taskPython $taskManage test apps --noinput } finally { Pop-Location } }
+    "test" { Push-Location (Join-Path $taskRoot "backend"); try { & $taskPython $taskManage test @TestLabels --noinput } finally { Pop-Location } }
 }
 exit $LASTEXITCODE

@@ -18,3 +18,7 @@ Independent coding continues without credentials. Provider calls/deployment are 
 ## Local PostgreSQL milestone
 
 Local Docker database and preserved SQLite transfer are delivered; private partner history is delivered. Next acceptance work includes explicit concurrency tests, then remaining MFA, dead-letter monitoring, identity and production infrastructure gates.
+
+## Partner concurrency follow-up
+
+Completed targeted PostgreSQL concurrency tests for partner approval, renewal and expiry reminders. Continue with commerce/booking concurrency and MFA/dead-letter monitoring; deployment acceptance remains separate.

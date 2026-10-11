@@ -56,3 +56,7 @@ See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documen
 - Ruff/system check, frontend lint/typecheck/build and two PostgreSQL browser tests passed.
 
 Final verification: all **142 backend tests passed on PostgreSQL** using the separate disposable test database. Two real browser tests, frontend lint/typecheck/production build, Ruff and Django system check passed. This does not establish production deployment or concurrency/load acceptance.
+
+## 2026-10-11 — concurrent partner workflow verification
+
+Added three PostgreSQL-only transaction tests for simultaneous approval, cross-source renewal and expiry notification deduplication. All three passed on the isolated disposable PostgreSQL test database; Ruff passed. Each worker owns/closes its database connection, starts through a barrier, and has bounded SQL timeouts. The local runner accepts selected TestLabels. SQLite skips these tests because it cannot establish row-lock behavior.

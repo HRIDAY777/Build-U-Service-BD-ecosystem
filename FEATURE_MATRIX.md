@@ -27,3 +27,7 @@ Historical local feature groups: [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md
 ## Local PostgreSQL / partner history update
 
 Local persistent Docker PostgreSQL: implemented, data transfer counts verified. Private partner history: implemented and browser verified. Production Docker stack and concurrent transaction/load acceptance remain open. See docs/LOCAL_POSTGRES.md and docs/PARTNER_APPLICATIONS.md.
+
+## Partner concurrency evidence
+
+Three PostgreSQL concurrency regressions passed: approval duplication, cross-source renewal duplication and reminder duplication. Broad load/commerce concurrency remains an acceptance gate.

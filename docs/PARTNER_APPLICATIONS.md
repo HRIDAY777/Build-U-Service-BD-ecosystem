@@ -37,3 +37,7 @@ Verification: backend tests cover private scope (including unauthorized staff), 
 ## Private application history
 
 GET history/ on an application is owner/reviewer scoped, paginated (24), newest first and no-store. It exposes only event/date/generic actor and a validated decision status. Raw audit metadata, file hashes, filenames, review notes and reviewer identities remain private. The bilingual application card loads history on expansion, supports paging and refresh, and shows upload/cancellation events. Backend tests verify cross-account denial, redaction, malformed metadata and pagination; real browser coverage checks submission/upload/cancellation and refresh.
+
+## PostgreSQL concurrency verification
+
+Three transaction tests passed for concurrent duplicate approval, cross-source renewal requests for the same organization and simultaneous expiry checks. Each uses separate connections and asserts a single resulting record and audit/reminder. This verifies selected duplicate-request scenarios, not all ownership/expiry/deadlock interleavings or sustained production load.
