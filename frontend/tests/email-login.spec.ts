@@ -21,4 +21,10 @@ test("customer signs back in using their email address", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Email Login Demo/ }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Preferences", exact: true }).click();
+  const history = page.getByRole("region", { name: "Security history" });
+  await expect(history).toContainText("Successful sign-in");
+  await expect(history).toContainText("Account created");
+  await history.getByRole("button", { name: "Refresh history" }).click();
+  await expect(history).toContainText("Signed out");
 });

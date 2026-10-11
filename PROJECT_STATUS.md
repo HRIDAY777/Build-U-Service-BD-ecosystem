@@ -17,7 +17,11 @@ The initial phase 1 audit and selected phase 2/3 fixes are delivered. This does 
 
 Private project history is implemented and verified, including privacy, pagination, no-store headers, Bangladesh timestamps and refreshed cancellation events. Email or username sign-in is implemented with ambiguous-identity protection. Automation savepoints isolate failing rules and roll back partial notification effects; CI discovery and Compose configuration were improved. Most core commerce/service workflows already exist; major gaps are centralized subdomain identity, verified phone login, business verification, commission/settlement infrastructure, expanded AI/agents and production operations. Existing manual finance records are not payment execution.
 
-Next work: private partner verification workflow, account security history/staff MFA, and automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
+Next work: private partner verification workflow, staff MFA and automation dead-letter monitoring; then continue remaining roadmap gates. No business rates or live credentials have been invented.
+
+## Delivered milestone: account security history
+
+Added a private paginated security history endpoint and Preferences UI, event whitelist/no-store headers and an audit lookup index (`operations.0015`, applied locally). See `docs/ACCOUNT_SECURITY.md`. Seven account tests, Ruff/migration drift, frontend lint/typecheck and production build passed. Both targeted browser tests passed: real email login/security history and existing project-history/download/cancellation regression. MFA, device inventory and failed-login monitoring are not implemented by this feature.
 
 ## External blockers
 

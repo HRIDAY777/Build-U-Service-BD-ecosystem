@@ -12,13 +12,14 @@ from django.db.models import Q
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from apps.operations.services import audit, emit
+from apps.operations.models import AuditLog
 from .models import AccountDeletionRequest, Address, ConsentLog
 
 
@@ -171,6 +172,28 @@ class LogoutAllView(APIView):
         audit(request.user, "account.logout_all", request.user.pk)
         logout(request)
         return Response({"logged_out": True})
+
+
+class SecurityEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuditLog
+        fields = ["id", "action", "created_at"]
+
+
+class SecurityHistoryView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SecurityEventSerializer
+
+    def get_queryset(self):
+        return AuditLog.objects.filter(entity=str(self.request.user.pk), action__in=[
+            "account.registered", "account.login", "account.logout", "account.password_changed",
+            "account.password_reset", "account.logout_all", "account.email_verified", "account.deletion_requested",
+        ]).order_by("-created_at", "-pk")
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response["Cache-Control"] = "private, no-store"
+        return response
 
 
 class AccountDeletionRequestView(APIView):

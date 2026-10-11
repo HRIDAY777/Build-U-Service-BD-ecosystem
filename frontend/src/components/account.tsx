@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { PartnerCatalog } from "./partner-catalog";
+import { SecurityHistory } from "./security-history";
 import { ProviderPicker } from "./provider-dashboard";
 import { LocationPicker, LocalityInput, addressLine } from "./location-picker";
 type RecordItem = {
@@ -962,6 +963,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
               <UiText text={"Request account deletion"} />
             </button>
           </form>
+          <SecurityHistory key={user.id} />
           <div className="form-panel" style={{ marginTop: 20 }}>
             <h2>
               <UiText text={"Saved addresses"} />

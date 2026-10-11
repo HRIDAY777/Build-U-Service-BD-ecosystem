@@ -250,6 +250,7 @@ class AuditLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [models.Index(fields=["entity", "-created_at", "-id"], name="audit_entity_date_idx")]
 
 
 class ReturnRequest(models.Model):

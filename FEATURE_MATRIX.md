@@ -6,7 +6,7 @@ Canonical detailed matrix: [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md). S
 | --- | --- | --- |
 | Corporate and design | Implemented; improvement needed | Approved careers/news/legal/help content, complete translation/accessibility |
 | Shared accounts | Partial; email login verified | Verified phone login, subdomain identity, MFA |
-| Customer workspace | Implemented; improvement needed | Complete financial history/security views |
+| Customer workspace | Implemented; security event history added | Complete financial history, MFA and device/failed-attempt monitoring |
 | Food | Locally verified core; improvement needed | Branch/staff onboarding, commissions/settlements |
 | Pharmacy | Partial; external configuration | Eligibility, expiry controls, regulatory verification and staged workflow |
 | Electrician/mechanic | Locally verified core; improvement needed | Skills/quotes/rescheduling/parts/payment |

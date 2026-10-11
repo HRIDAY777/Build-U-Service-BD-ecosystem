@@ -23,6 +23,7 @@ from apps.catalog.api import SharedWishlistView
 from apps.operations.payments import PaymentMethodsView, PaymentStartView, PaymentIPNView, PaymentReturnView
 
 from apps.engagement.project_api import ManagedProjectViewSet, ProjectApplicationViewSet
+from apps.accounts.api import SecurityHistoryView
 router = DefaultRouter()
 router.register("managed-projects", ManagedProjectViewSet, basename="managed-project")
 router.register("project-applications", ProjectApplicationViewSet, basename="project-application")
@@ -70,6 +71,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health),
     path("api/v1/auth/password/", PasswordChangeView.as_view()),
+    path("api/v1/auth/security-history/", SecurityHistoryView.as_view()),
     path("api/v1/auth/logout-all/", LogoutAllView.as_view()),
     path("api/v1/auth/delete-request/", AccountDeletionRequestView.as_view()),
     path("api/v1/auth/password-reset/", PasswordResetRequestView.as_view()),
