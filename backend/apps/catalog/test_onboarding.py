@@ -145,3 +145,20 @@ class PartnerOnboardingTests(TestCase):
         self.assertEqual(result["review_status"], "accepted")
         self.assertEqual(result["review_note"], "Checked")
         self.assertIsNotNone(result["reviewed_at"])
+
+    def test_expiry_summary_boundaries_and_withdrawal(self):
+        document_id = self.upload()
+        document = PartnerDocument.objects.get(pk=document_id)
+        for days, status, renewal in [(None, "not_provided", False), (-1, "expired", True), (0, "due_today", True), (30, "expiring_soon", True), (31, "valid", False)]:
+            document.expires_on = timezone.localdate() + timedelta(days=days) if days is not None else None
+            document.save()
+            expiry = self.client.get(self.url).data["documents"][0]["expiry"]
+            self.assertEqual(expiry["status"], status)
+            self.assertEqual(expiry["days_remaining"], days)
+            self.assertEqual(expiry["renewal_needed"], renewal)
+            self.assertEqual(expiry["as_of"], timezone.localdate().isoformat())
+        document.active = False
+        document.save()
+        expiry = self.client.get(self.url).data["documents"][0]["expiry"]
+        self.assertEqual(expiry["status"], "withdrawn")
+        self.assertFalse(expiry["renewal_needed"])

@@ -28,6 +28,10 @@ Authenticated self-scoped event history, Preferences refresh/pagination, no-stor
 - Six onboarding tests, Ruff/drift, frontend lint/typecheck/build passed. Real applicant/PDF/download/cancellation browser test passed. Controlled reviewer UI/mobile test passed after correcting an ambiguous test selector; it is not a live reviewer or legal certification test. Prior full-suite counts are historical.
 - Remaining: renewal/suspension monitoring, private production scanning/storage/retention and specialist eligibility.
 
-## Earlier implementation records
+## 11 October 2026 — partner document expiry notices
+
+Added private expiry summaries and bilingual renewal notices for documents expiring within 30 days. Missing expiry and withdrawn files are handled explicitly; previous approvals remain unchanged. Seven targeted backend tests, lint/typecheck and the controlled reviewer/mobile browser test passed. No automatic renewal, notifications or suspension is claimed.
+
+## Earlier feature history
 
 See `docs/FEATURE_STATUS.md`, `docs/MASTER_PROMPT_AUDIT.md` and workflow documents for previously delivered commerce, providers, restaurants, delivery, wishlist, events and private project accounting. Git commits remain the detailed change record. Their local completion does not certify live integrations.

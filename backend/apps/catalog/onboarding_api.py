@@ -12,9 +12,17 @@ from .models import Division, Organization, PartnerApplication, PartnerDocument
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    expiry = serializers.SerializerMethodField()
+
+    def get_expiry(self, document):
+        today = timezone.localdate()
+        days = (document.expires_on - today).days if document.expires_on else None
+        status = "withdrawn" if not document.active else "not_provided" if days is None else "expired" if days < 0 else "due_today" if days == 0 else "expiring_soon" if days <= 30 else "valid"
+        return {"status": status, "days_remaining": days, "as_of": today.isoformat(), "renewal_needed": document.active and days is not None and days <= 30}
+
     class Meta:
         model = PartnerDocument
-        fields = ["id", "title", "sha256", "expires_on", "active", "review_status", "review_note", "reviewed_at", "created_at"]
+        fields = ["id", "title", "sha256", "expires_on", "active", "review_status", "review_note", "reviewed_at", "created_at", "expiry"]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):

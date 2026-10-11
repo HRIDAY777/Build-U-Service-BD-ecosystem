@@ -33,7 +33,11 @@ Executed: full backend suite **132 passed** before the final self-review guard; 
 
 Added accepted/rejected/pending document status, required reviewer notes/timestamps, audited decisions, expiry/self-review/terminal-state guards and an approval gate requiring every active document to be accepted. Bilingual reviewer controls and applicant decision display are implemented. Migration `catalog.0012` is applied locally; earlier approvals are preserved. Six onboarding tests, Ruff/drift, frontend lint/typecheck/build passed. Browser results are recorded in the changelog. Renewal monitoring, scanning and specialist licensing remain open.
 
-## Remaining external configuration
+## Follow-up: document expiry display
+
+Private document responses and the bilingual page now show expiry status and a 30-day renewal reminder, calculated from the Bangladesh local date. Seven onboarding tests passed, including missing dates, yesterday/today, 30/31-day boundaries and withdrawn documents. Frontend lint/typecheck and a controlled reviewer/mobile browser test passed. No migration needed. Automatic monitoring/notifications, approved-document renewal submission and business suspension remain unimplemented.
+
+## External services still required
 
 No approved live project payment/payout/certified signature accounts exist. Domain/DNS/hosting, SMTP/SMS/WhatsApp/storage/maps/AI services and business approval/commission/settlement policies remain necessary. Continue independent work; do not invent credentials or rates.
 

@@ -13,6 +13,12 @@ type Document = {
   review_status: "pending" | "accepted" | "rejected";
   review_note: string;
   reviewed_at: string | null;
+  expiry?: {
+    status: string;
+    days_remaining: number | null;
+    as_of: string;
+    renewal_needed: boolean;
+  };
 };
 type Application = {
   id: string;
@@ -270,6 +276,31 @@ function PartnerApplicationsBody() {
                   {doc.title}
                 </a>{" "}
                 {doc.expires_on && ` · ${doc.expires_on}`}{" "}
+                {doc.active && doc.expiry && (
+                  <p>
+                    {doc.expiry.status === "expired"
+                      ? t("মেয়াদ শেষ—নবায়ন প্রয়োজন", "Expired — renewal needed")
+                      : doc.expiry.status === "due_today"
+                        ? t(
+                            "আজ মেয়াদ শেষ—নবায়ন প্রয়োজন",
+                            "Expires today — renewal needed",
+                          )
+                        : doc.expiry.status === "expiring_soon"
+                          ? t(
+                              `আর ${doc.expiry.days_remaining} দিন—নবায়নের প্রস্তুতি নিন`,
+                              `${doc.expiry.days_remaining} days remaining — prepare renewal`,
+                            )
+                          : doc.expiry.status === "not_provided"
+                            ? t(
+                                "মেয়াদের তথ্য দেওয়া হয়নি",
+                                "Expiry date not provided",
+                              )
+                            : t(
+                                `মেয়াদ বাকি ${doc.expiry.days_remaining} দিন`,
+                                `${doc.expiry.days_remaining} days remaining`,
+                              )}
+                  </p>
+                )}
                 {!doc.active && t("(প্রত্যাহার করা)", "(Withdrawn)")}{" "}
                 <p>
                   {doc.review_status === "accepted"

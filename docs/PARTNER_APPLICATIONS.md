@@ -1,5 +1,7 @@
 # Private partner onboarding
 
+Document API responses include an `expiry` summary computed on the Bangladesh local date: expired, due_today, expiring_soon (1–30 days), valid (over 30 days), not_provided, or withdrawn. It includes days_remaining, as_of and renewal_needed. The application page shows bilingual expiry/renewal notices; use Refresh for a current snapshot. The 30-day window is an informational reminder, not a statutory deadline. Missing expiry is displayed as unknown, not proof of validity. Withdrawn documents do not trigger renewal notices. Approved records remain frozen; this display does not renew files, send notifications, suspend businesses or provide a completed renewal submission workflow.
+
 Applicants sign in at `/partner-application`, submit a business division/name/contact/address, and upload up to ten private PDFs (5 MB each). No bank details or national ID are requested. Applicants can edit, withdraw a document, or cancel only while submitted or changes are requested. Editing resubmits the application; upload alone does not resubmit requested changes.
 
 Reviewers need both `catalog.view_partnerapplication` and `catalog.change_partnerapplication`. A staff flag alone does not provide access. Superusers already have these permissions. Grant both only to authorized business reviewers; ordinary organization edit permission is insufficient. Django admin displays these records read-only. Decisions are made through the application page/API.

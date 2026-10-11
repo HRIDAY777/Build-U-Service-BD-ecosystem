@@ -38,6 +38,7 @@ test("reviewer records a document decision (controlled API fixture)", async ({
     review_status: "pending",
     review_note: "",
     reviewed_at: null as string | null,
+    expiry: { status: "expiring_soon", days_remaining: 30, as_of: "2026-10-11", renewal_needed: true },
   };
   const application = {
     id: "test",
@@ -71,6 +72,7 @@ test("reviewer records a document decision (controlled API fixture)", async ({
     },
   );
   await page.goto("/partner-application");
+  await expect(page.getByText("30 days remaining — prepare renewal", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Document awaiting review", { exact: true }),
   ).toBeVisible();
