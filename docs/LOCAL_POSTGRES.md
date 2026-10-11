@@ -25,3 +25,7 @@ Final verification: all **142 backend tests passed on PostgreSQL** using the sep
 ## Targeted concurrency tests
 
 Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.catalog.test_partner_concurrency`. Three tests passed on PostgreSQL using distinct thread connections, start barriers and lock/statement timeouts. They cover one-business approval, one-open-renewal across different approved sources and one expiry notification. These tests are skipped on SQLite. The disposable test database is removed afterward; live data is untouched.
+
+## Booking transaction checks
+
+Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.operations.test_booking_concurrency`. Four PostgreSQL tests passed for retry identity, changed retry details, overlapping assignments and adjacent appointments. SQLite skips the tests. Live data is unchanged; the separate test database is removed afterward. These are selected regression scenarios, not full load validation.

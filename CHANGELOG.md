@@ -60,3 +60,7 @@ Final verification: all **142 backend tests passed on PostgreSQL** using the sep
 ## 2026-10-11 — concurrent partner workflow verification
 
 Added three PostgreSQL-only transaction tests for simultaneous approval, cross-source renewal and expiry notification deduplication. All three passed on the isolated disposable PostgreSQL test database; Ruff passed. Each worker owns/closes its database connection, starts through a barrier, and has bounded SQL timeouts. The local runner accepts selected TestLabels. SQLite skips these tests because it cannot establish row-lock behavior.
+
+## 2026-10-11 — booking concurrency regression tests
+
+Added four PostgreSQL-only transaction tests for retry deduplication, conflicting retry details, overlapping provider assignments and adjacent appointment boundaries. Four tests and Ruff passed. Separate connections, start barriers and bounded SQL timeouts exercise the existing booking/customer and provider locks without changing live data.

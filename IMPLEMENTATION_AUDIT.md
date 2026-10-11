@@ -86,3 +86,7 @@ Final verification: all **142 backend tests passed on PostgreSQL** using the sep
 ## Concurrent partner transaction evidence
 
 Three targeted tests passed on PostgreSQL using separate connections: duplicate approval, renewal from different approved sources for one organization, and simultaneous renewal reminder checks. Asserted one resulting organization/application/notification and corresponding single audit/reminder records. This narrows the partner concurrency gap; it does not verify every interleaving, commerce/payment races, sustained load or production infrastructure.
+
+## Booking concurrency evidence
+
+Four PostgreSQL tests passed for identical booking retries, changed retries using the same key, overlapping assignments and adjacent assignments. One booking/audit survives retries and one provider cannot receive overlapping appointments. Customer booking requests remain pending and are not global service reservations. These targeted tests do not establish load or all assignment/reassignment/schedule-change interleavings.

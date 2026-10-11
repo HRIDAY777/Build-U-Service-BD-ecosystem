@@ -68,3 +68,7 @@ Final verification: all **142 backend tests passed on PostgreSQL** using the sep
 ## PostgreSQL concurrent partner workflows
 
 Three real PostgreSQL TransactionTestCase tests passed using separate thread connections and bounded lock/statement timeouts: duplicate approval produces one organization and one approval audit event; renewal from different approved applications for the same business produces one pending renewal and one renewal audit event; simultaneous reminder checks produce one notification/reminder. The local runner supports selected TestLabels. Previous 142-test and two-browser results are historical to the preceding milestone. No product code change was needed. Broader order/payment concurrency, load and production acceptance remain open.
+
+## PostgreSQL booking concurrency
+
+Four targeted PostgreSQL transaction tests passed: identical simultaneous retries return one booking and one creation audit; changed payloads with the same key produce one booking plus a validation rejection; overlapping appointments assigned simultaneously cannot share one provider; adjacent appointments can share that provider. Ruff passed. No product code change was needed. Pending customer requests can coexist; provider assignment is the conflict gate, not a global one-request-per-service capacity rule. Broader commerce/payment, schedule-change races and load acceptance remain open.

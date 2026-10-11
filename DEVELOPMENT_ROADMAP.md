@@ -22,3 +22,7 @@ Local Docker database and preserved SQLite transfer are delivered; private partn
 ## Partner concurrency follow-up
 
 Completed targeted PostgreSQL concurrency tests for partner approval, renewal and expiry reminders. Continue with commerce/booking concurrency and MFA/dead-letter monitoring; deployment acceptance remains separate.
+
+## Booking concurrency follow-up
+
+Completed four PostgreSQL regressions covering retries and provider appointment conflicts. Next: stock/order concurrency and remaining security/operations gates.

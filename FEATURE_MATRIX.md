@@ -31,3 +31,7 @@ Local persistent Docker PostgreSQL: implemented, data transfer counts verified. 
 ## Partner concurrency evidence
 
 Three PostgreSQL concurrency regressions passed: approval duplication, cross-source renewal duplication and reminder duplication. Broad load/commerce concurrency remains an acceptance gate.
+
+## Booking concurrency evidence
+
+Retry deduplication, changed-key payload rejection, overlapping provider conflict and adjacent provider appointments are verified by four real PostgreSQL transaction tests. Broad commerce/payment/load acceptance remains open.
