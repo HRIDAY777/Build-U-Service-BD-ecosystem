@@ -1,4 +1,5 @@
 "use client";
+import { MechanicBookingProgress } from "./mechanic-booking-progress";
 import { TranslatedInput } from "@/components/translated-elements";
 
 import { UiText } from "@/components/ui-text";
@@ -516,7 +517,10 @@ export function Account({ operations = false }: { operations?: boolean }) {
               </div>
             )}
             {records.map((r) => (
-              <article className="record" key={r.id}>
+              <article
+                className={`record ${tab === "bookings" && r.service_details?.vehicle_type ? "mechanic-booking-record" : ""}`}
+                key={r.id}
+              >
                 <div className="record-head">
                   <div>
                     <h3>
@@ -570,6 +574,9 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     {r.preparation_minutes}
                     <UiText text={"মিনিট / minutes"} />
                   </p>
+                )}
+                {tab === "bookings" && r.service_details?.vehicle_type && (
+                  <MechanicBookingProgress status={r.status} />
                 )}
                 <MechanicSummary details={r.service_details} />
                 <MechanicReportView report={r.mechanic_report} />

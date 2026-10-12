@@ -63,6 +63,8 @@ test("mechanic vehicle details survive booking and language changes", async ({
   await expect(page).toHaveURL(/\/account$/);
   await page.getByRole("button", { name: "Bookings", exact: true }).click();
   const record = page.locator(".record").filter({ hasText: "Demo 150" });
+  await expect(record).toContainText("Request received");
+  await expect(record.locator("[aria-current=step]")).toHaveText("1Request");
   await expect(record).toContainText("Brakes");
   await expect(record).toContainText("Unsafe to drive");
   await page.reload();
@@ -73,6 +75,31 @@ test("mechanic vehicle details survive booking and language changes", async ({
   await expect(record).toContainText("চালানো নিরাপদ নয়");
   const saved = await (await context.request.get("/api/v1/bookings/")).json();
   expect(saved.results[0].service_details.odometer_km).toBe(12000);
+  let status = "waiting_for_parts";
+  await page.route("**/api/v1/bookings/", (route) =>
+    route.fulfill({
+      json: { ...saved, results: [{ ...saved.results[0], status }] },
+    }),
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const [value, label] of [
+    ["waiting_for_parts", "যন্ত্রাংশের অপেক্ষায়"],
+    ["cancelled", "বুকিং বাতিল হয়েছে"],
+    ["failed", "কাজ সম্পন্ন করা যায়নি"],
+    ["completed", "কাজ সম্পন্ন হয়েছে"],
+  ]) {
+    status = value;
+    await page.getByRole("button", { name: "রিফ্রেশ", exact: true }).click();
+    await expect(record.locator(".mechanic-progress")).toContainText(label);
+    await expect(record.locator("[aria-current=step]")).toHaveCount(
+      value === "cancelled" || value === "failed" ? 0 : 1,
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+  }
 });
 
 test("mechanic landing shows bookable services on mobile in both languages", async ({
