@@ -85,6 +85,8 @@ const eventNextStates: Record<string, string[]> = {
 export function Account({ operations = false }: { operations?: boolean }) {
   const { user, refresh, toast, lang } = useApp();
   const [tab, setTab] = useState("orders");
+  const [bookingQuery, setBookingQuery] = useState("");
+  const [bookingFilter, setBookingFilter] = useState("all");
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [stats, setStats] = useState<Record<string, number | string>>({});
   const [error, setError] = useState("");
@@ -114,6 +116,35 @@ export function Account({ operations = false }: { operations?: boolean }) {
   >([]);
   const [editingAddress, setEditingAddress] = useState<number | null>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const visibleRecords =
+    tab === "bookings"
+      ? records.filter((record) => {
+          const terminal = ["completed", "cancelled", "failed"].includes(
+            record.status,
+          );
+          const matchesStatus =
+            bookingFilter === "all" ||
+            (bookingFilter === "active"
+              ? !terminal
+              : record.status === bookingFilter);
+          const searchable = [
+            record.id,
+            record.service,
+            record.service_details?.vehicle_model,
+            record.service_details?.registration,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .normalize("NFC")
+            .toLocaleLowerCase();
+          return (
+            matchesStatus &&
+            searchable.includes(
+              bookingQuery.trim().normalize("NFC").toLocaleLowerCase(),
+            )
+          );
+        })
+      : records;
   const loadVersion = useRef(0);
   const load = useCallback(async () => {
     if (!user) return;
@@ -309,6 +340,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
             className={`filter ${tab === t ? "active" : ""}`}
             onClick={() => {
               setTab(t);
+              setBookingQuery("");
+              setBookingFilter("all");
               setHistory(null);
             }}
           >
@@ -507,6 +540,77 @@ export function Account({ operations = false }: { operations?: boolean }) {
       ) : (
         ["orders", "bookings", "deliveries"].includes(tab) && (
           <>
+            {tab === "bookings" && records.length > 0 && (
+              <section
+                className="booking-list-tools"
+                aria-label={lang === "bn" ? "বুকিং খুঁজুন" : "Find bookings"}
+              >
+                <div className="booking-list-inputs">
+                  <label>
+                    <Text bn="বুকিং খুঁজুন" en="Find a booking" />
+                    <input
+                      type="search"
+                      value={bookingQuery}
+                      onChange={(event) => setBookingQuery(event.target.value)}
+                      placeholder={
+                        lang === "bn"
+                          ? "সেবা, যানবাহন বা বুকিং নম্বর"
+                          : "Service, vehicle or booking ID"
+                      }
+                    />
+                  </label>
+                  <label>
+                    <Text bn="বুকিংয়ের অবস্থা" en="Booking status" />
+                    <select
+                      value={bookingFilter}
+                      onChange={(event) => setBookingFilter(event.target.value)}
+                    >
+                      {[
+                        ["all", "সব বুকিং", "All bookings"],
+                        ["active", "চলমান বুকিং", "Active bookings"],
+                        [
+                          "waiting_for_parts",
+                          "যন্ত্রাংশের অপেক্ষায়",
+                          "Waiting for parts",
+                        ],
+                        ["completed", "সম্পন্ন", "Completed"],
+                        ["cancelled", "বাতিল", "Cancelled"],
+                        ["failed", "অসম্পূর্ণ", "Failed"],
+                      ].map(([value, bn, en]) => (
+                        <option key={value} value={value}>
+                          {lang === "bn" ? bn : en}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <p role="status">
+                  <Text
+                    bn={`লোড হওয়া ${records.length.toLocaleString("bn-BD")}টি বুকিংয়ের মধ্যে ${visibleRecords.length.toLocaleString("bn-BD")}টি দেখানো হচ্ছে।`}
+                    en={`Showing ${visibleRecords.length} of ${records.length} loaded bookings.`}
+                  />
+                </p>
+                {(bookingQuery || bookingFilter !== "all") && (
+                  <button
+                    className="button secondary"
+                    onClick={() => {
+                      setBookingQuery("");
+                      setBookingFilter("all");
+                    }}
+                  >
+                    <Text bn="সব বুকিং দেখুন" en="Show all bookings" />
+                  </button>
+                )}
+                {visibleRecords.length === 0 && (
+                  <p>
+                    <Text
+                      bn="এই খোঁজে কোনো বুকিং পাওয়া যায়নি। অন্য নাম বা অবস্থা বেছে নিন।"
+                      en="No bookings match. Try another name or status."
+                    />
+                  </p>
+                )}
+              </section>
+            )}
             {!records.length && (
               <div className="empty">
                 <p>
@@ -535,7 +639,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </Link>
               </div>
             )}
-            {records.map((r) => (
+            {visibleRecords.map((r) => (
               <article
                 className={`record ${tab === "bookings" && r.service_details?.vehicle_type ? "mechanic-booking-record" : ""}`}
                 key={r.id}

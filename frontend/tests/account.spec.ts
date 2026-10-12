@@ -85,6 +85,37 @@ test("a late order response cannot replace the selected bookings", async ({
   await expect(page.locator(".mechanic-progress")).toContainText(
     "অনুরোধ জমা হয়েছে",
   );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("searchbox", { name: "বুকিং খুঁজুন", exact: true })
+    .fill("Demo car");
+  await expect(page.locator(".record")).toHaveCount(1);
+  await page
+    .getByRole("combobox", { name: "বুকিংয়ের অবস্থা" })
+    .selectOption("cancelled");
+  await expect(page.locator(".record")).toHaveCount(0);
+  await expect(page.locator(".booking-list-tools")).toContainText(
+    "এই খোঁজে কোনো বুকিং পাওয়া যায়নি",
+  );
+  await page.getByRole("button", { name: "সব বুকিং দেখুন" }).click();
+  await expect(page.locator(".record")).toHaveCount(1);
+  await page.locator(".lang-switch").click();
+  await page
+    .getByRole("searchbox", { name: "Find a booking" })
+    .fill("does not exist");
+  await expect(page.locator(".booking-list-tools")).toContainText(
+    "No bookings match.",
+  );
+  await page.getByRole("button", { name: "Show all bookings" }).click();
+  await page
+    .getByRole("combobox", { name: "Booking status" })
+    .selectOption("active");
+  await expect(page.locator(".record")).toHaveCount(1);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
 });
 
 test("empty account messages switch fully between Bangla and English", async ({

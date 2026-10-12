@@ -1803,3 +1803,11 @@ footer {
 .mechanic-progress.is-waiting { background: #fffaf0; border-color: #ead7aa; }
 .mechanic-progress p { margin: 16px 0 0; font-size: .9rem; }
 @media(max-width:650px) { .mechanic-progress { padding: 16px 12px; } .mechanic-progress ol { gap: 4px; } .mechanic-progress li { font-size: .75rem; } }
+
+.booking-list-tools { background: #faf7fc; border: 1px solid #e9dfed; padding: 20px; border-radius: 18px; margin: 20px 0; }
+.booking-list-inputs { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+.booking-list-inputs label { display: grid; gap: 8px; font-weight: 600; }
+.booking-list-inputs input, .booking-list-inputs select { width: 100%; min-width: 0; padding: 12px; background: white; border: 1px solid #d9cfdf; border-radius: 10px; color: #252332; font: inherit; }
+.booking-list-tools p { color: #706478; margin: 12px 0 0; }
+.booking-list-tools .button { margin-top: 12px; }
+@media(max-width:650px) { .booking-list-inputs { grid-template-columns: 1fr; } .booking-list-tools { padding: 16px; } }
