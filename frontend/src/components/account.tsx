@@ -11,7 +11,7 @@ import {
   type MechanicReport,
   type MechanicDetails,
 } from "./mechanic-details";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { PartnerCatalog } from "./partner-catalog";
@@ -114,56 +114,62 @@ export function Account({ operations = false }: { operations?: boolean }) {
   >([]);
   const [editingAddress, setEditingAddress] = useState<number | null>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const loadVersion = useRef(0);
   const load = useCallback(async () => {
     if (!user) return;
+    const version = ++loadVersion.current;
     setError("");
     setLoading(true);
     try {
-      if (["orders", "bookings", "deliveries"].includes(tab))
-        setRecords((await api<PageResult<RecordItem>>(`${tab}/`)).results);
-      if (tab === "events")
-        setEvents((await api<PageResult<EventItem>>("events/")).results);
-      if (tab === "support")
-        setTickets(
-          (
-            await api<
-              PageResult<{
-                id: number;
-                subject: string;
-                status: string;
-                response: string;
-              }>
-            >("tickets/")
-          ).results,
-        );
-      if (tab === "notifications" || !operations)
-        setNotifications(
-          (
-            await api<
-              PageResult<{
-                id: number;
-                title: string;
-                body: string;
-                read: boolean;
-              }>
-            >("notifications/")
-          ).results,
-        );
-      if (tab === "preferences")
-        setAddresses(
-          (await api<PageResult<(typeof addresses)[number]>>("addresses/"))
-            .results,
-        );
-      if (!operations) setStats(await api("dashboard/"));
+      if (["orders", "bookings", "deliveries"].includes(tab)) {
+        const data = await api<PageResult<RecordItem>>(`${tab}/`);
+        if (version !== loadVersion.current) return;
+        setRecords(data.results);
+      }
+      if (tab === "events") {
+        const data = await api<PageResult<EventItem>>("events/");
+        if (version !== loadVersion.current) return;
+        setEvents(data.results);
+      }
+      if (tab === "support") {
+        const data =
+          await api<PageResult<(typeof tickets)[number]>>("tickets/");
+        if (version !== loadVersion.current) return;
+        setTickets(data.results);
+      }
+      if (tab === "notifications" || !operations) {
+        const data =
+          await api<PageResult<(typeof notifications)[number]>>(
+            "notifications/",
+          );
+        if (version !== loadVersion.current) return;
+        setNotifications(data.results);
+      }
+      if (tab === "preferences") {
+        const data =
+          await api<PageResult<(typeof addresses)[number]>>("addresses/");
+        if (version !== loadVersion.current) return;
+        setAddresses(data.results);
+      }
+      if (!operations) {
+        const data = await api<Record<string, number | string>>("dashboard/");
+        if (version !== loadVersion.current) return;
+        setStats(data);
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load records");
+      if (version === loadVersion.current)
+        setError(e instanceof Error ? e.message : "Unable to load records");
     } finally {
-      setLoading(false);
+      if (version === loadVersion.current) setLoading(false);
     }
   }, [user, tab, operations]);
+  const invalidateLoad = useCallback(() => {
+    ++loadVersion.current;
+  }, []);
   useEffect(() => {
     load();
-  }, [load]);
+    return invalidateLoad;
+  }, [load, invalidateLoad]);
   async function act(path: string, body: unknown) {
     setError("");
     setBusy(true);
@@ -504,9 +510,22 @@ export function Account({ operations = false }: { operations?: boolean }) {
             {!records.length && (
               <div className="empty">
                 <p>
-                  <UiText text={"No"} />
-                  {tab}
-                  <UiText text={"yet."} />
+                  <Text
+                    bn={
+                      tab === "bookings"
+                        ? "এখনও কোনো বুকিং নেই।"
+                        : tab === "deliveries"
+                          ? "এখনও কোনো ডেলিভারি নেই।"
+                          : "এখনও কোনো অর্ডার নেই।"
+                    }
+                    en={
+                      tab === "bookings"
+                        ? "No bookings yet."
+                        : tab === "deliveries"
+                          ? "No deliveries yet."
+                          : "No orders yet."
+                    }
+                  />
                 </p>
                 <Link
                   className="button"
@@ -535,7 +554,11 @@ export function Account({ operations = false }: { operations?: boolean }) {
                         r.division_slug}
                     </h3>
                     <p>
-                      {new Date(r.created_at).toLocaleString()} · {r.id}
+                      {new Date(r.created_at).toLocaleString(
+                        lang === "bn" ? "bn-BD" : "en-GB",
+                        { timeZone: "Asia/Dhaka" },
+                      )}{" "}
+                      · {r.id}
                     </p>
                   </div>
                   <span className="status">
@@ -544,7 +567,13 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </div>
                 <p>
                   ৳{r.total || r.price || r.fee}{" "}
-                  {r.payment_status ? `· Payment: ${r.payment_status}` : ""}
+                  {r.payment_status && (
+                    <>
+                      {" "}
+                      · <Text bn="পেমেন্ট:" en="Payment:" />{" "}
+                      <UiText text={r.payment_status} />
+                    </>
+                  )}
                 </p>
                 {r.scheduled_at && (
                   <p>
