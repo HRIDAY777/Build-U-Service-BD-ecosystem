@@ -75,6 +75,19 @@ test("mechanic vehicle details survive booking and language changes", async ({
   await expect(record).toContainText("চালানো নিরাপদ নয়");
   const saved = await (await context.request.get("/api/v1/bookings/")).json();
   expect(saved.results[0].service_details.odometer_km).toBe(12000);
+  await record.getByRole("button", { name: "বুকিংয়ের সময় পরিবর্তন" }).click();
+  const newTime = new Date(Date.now() + 86400000 * 9)
+    .toISOString()
+    .slice(0, 16);
+  await record
+    .locator(".booking-reschedule input[type=datetime-local]")
+    .fill(newTime);
+  await record.getByRole("button", { name: "নতুন সময় সংরক্ষণ" }).click();
+  await expect(record.locator(".booking-reschedule")).toHaveCount(0);
+  const updated = await (await context.request.get("/api/v1/bookings/")).json();
+  expect(new Date(updated.results[0].scheduled_at).getTime()).toBe(
+    new Date(newTime + "+06:00").getTime(),
+  );
   let status = "waiting_for_parts";
   await page.route("**/api/v1/bookings/", (route) =>
     route.fulfill({

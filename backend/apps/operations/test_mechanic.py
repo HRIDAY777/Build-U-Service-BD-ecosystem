@@ -87,3 +87,56 @@ class MechanicBookingTests(TestCase):
         self.assertEqual(self.client.put(url+'mechanic_report/',report,format='json').status_code,400)
         self.client.force_authenticate(self.customer)
         self.assertEqual(self.client.get(url).data['mechanic_report'],report)
+
+    def test_reschedule_permissions_hours_and_terminal_states(self):
+        result = self.submit()
+        booking = Booking.objects.get(pk=result.data['id'])
+        url = '/api/v1/bookings/' + str(booking.pk) + '/reschedule/'
+        new_time = timezone.now() + timedelta(days=7)
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 404)
+        self.client.force_authenticate(self.customer)
+        self.assertEqual(self.client.post(url, {'scheduled_at': timezone.now().isoformat()}, format='json').status_code, 400)
+        self.assertEqual(self.client.post(url, {'scheduled_at': 'invalid'}, format='json').status_code, 400)
+        response = self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json')
+        self.assertEqual(response.status_code, 200, response.data)
+        booking.refresh_from_db()
+        self.assertEqual(booking.scheduled_at, new_time)
+        from .models import AuditLog
+        self.assertEqual(AuditLog.objects.filter(action='booking.rescheduled').count(), 1)
+        self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 200)
+        self.assertEqual(AuditLog.objects.filter(action='booking.rescheduled').count(), 1)
+        from zoneinfo import ZoneInfo
+        self.offering.service_leave_dates = [new_time.astimezone(ZoneInfo('Asia/Dhaka')).date().isoformat()]
+        self.offering.save()
+        self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 400)
+        for status in ['on_the_way', 'arrived', 'in_progress', 'waiting_for_parts', 'completed', 'cancelled', 'failed']:
+            booking.status = status
+            booking.save()
+            self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 400)
+
+    def test_reschedule_checks_provider_and_preserves_booking(self):
+        result = self.submit()
+        booking = Booking.objects.get(pk=result.data['id'])
+        booking.provider = self.provider
+        booking.status = 'assigned'
+        booking.save()
+        new_time = timezone.now() + timedelta(days=8)
+        other = Booking.objects.create(customer=self.other, offering=self.offering, provider=self.provider, status='assigned', scheduled_at=new_time, duration_minutes=booking.duration_minutes, price=600, address=booking.address, idempotency_key='conflict')
+        url = '/api/v1/bookings/' + str(booking.pk) + '/reschedule/'
+        self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 400)
+        booking.refresh_from_db()
+        self.assertNotEqual(booking.scheduled_at, new_time)
+        other.status = 'cancelled'
+        other.save()
+        self.client.force_authenticate(self.provider)
+        self.assertEqual(self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json').status_code, 403)
+        self.client.force_authenticate(self.customer)
+        response = self.client.post(url, {'scheduled_at': new_time.isoformat()}, format='json')
+        self.assertEqual(response.status_code, 200, response.data)
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, 'assigned')
+        self.assertEqual(booking.service_details, self.details)
+        from .models import ProviderProfile
+        ProviderProfile.objects.create(user=self.provider, available=False)
+        self.assertEqual(self.client.post(url, {'scheduled_at': (new_time + timedelta(days=1)).isoformat()}, format='json').status_code, 400)

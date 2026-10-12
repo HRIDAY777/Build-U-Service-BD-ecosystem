@@ -9,3 +9,11 @@ The displayed fee is the selected service fee. Additional repair/parts prices mu
 Validation covers input limits, invalid enum/odometer, idempotent retries, cross-service misuse, customer isolation, assigned-provider visibility, report permissions, completion gating and locked reports. Browser tests exercise real customer booking persistence, language changes and a mobile service listing.
 
 Verified locally: all 170 backend tests passed on PostgreSQL; three mechanic browser tests passed, including the work-report editor with a mocked provider API. TypeScript, lint and production build are checked separately. Live parts quotations, payments and towing remain outside this implementation.
+
+## Booking time changes
+
+Customers and operators with change_booking permission can POST scheduled_at to /api/v1/bookings/{id}/reschedule/ while pending, confirmed or assigned. Assigned providers cannot change a customer's time. The request locks the booking and assigned provider, validates future time, service hours/leave and provider availability/hours/leave, and rejects overlapping active appointments. It preserves status, price and vehicle details. Changes create an audit entry and notify the assigned provider; repeating the same time does not duplicate that entry. The customer mechanic card offers a bilingual time-change form and existing service-hour suggestions. Changes stop once travelling begins.
+
+Booking search and status filters apply to loaded records; the displayed count states that scope explicitly.
+
+Latest rescheduling validation: 110 operations backend tests and six account/mechanic browser tests passed, including real customer rescheduling persisted in PostgreSQL.

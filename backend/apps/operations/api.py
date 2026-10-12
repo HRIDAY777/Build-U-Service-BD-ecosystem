@@ -645,6 +645,10 @@ class BookingInput(serializers.Serializer):
     service_details = MechanicDetailsInput(required=False)
 
 
+class RescheduleInput(serializers.Serializer):
+    scheduled_at = serializers.DateTimeField()
+
+
 class MechanicReportInput(serializers.Serializer):
     diagnosis = serializers.CharField(max_length=2000)
     work_performed = serializers.CharField(max_length=2000)
@@ -654,7 +658,14 @@ class MechanicReportInput(serializers.Serializer):
 
 class BookingSerializer(serializers.ModelSerializer):
     service = serializers.CharField(source="offering.name")
+    can_reschedule = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
+
+    def get_can_reschedule(self, obj):
+        user = self.context["request"].user
+        return obj.status in {"pending", "confirmed", "assigned"} and (
+            obj.customer_id == user.pk or user.has_perm("operations.change_booking")
+        )
 
     def get_available_actions(self, obj):
         user = self.context["request"].user
@@ -682,6 +693,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "provider",
             "created_at",
             "available_actions",
+            "can_reschedule",
         ]
         read_only_fields = fields
 
@@ -708,6 +720,41 @@ class ProviderScheduleInput(serializers.Serializer):
 
 class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
+
+    @action(detail=True, methods=["post"])
+    def reschedule(self, request, pk=None):
+        serializer = RescheduleInput(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        scheduled_at = serializer.validated_data["scheduled_at"]
+        with transaction.atomic():
+            booking = get_object_or_404(Booking.objects.select_for_update(), pk=self.get_object().pk)
+            if booking.customer_id != request.user.pk and not request.user.has_perm("operations.change_booking"):
+                raise PermissionDenied()
+            if booking.status not in {"pending", "confirmed", "assigned"}:
+                raise ValidationError("সময় পরিবর্তন করা যাবে না / This booking can no longer be rescheduled.")
+            if scheduled_at <= timezone.now():
+                raise ValidationError("ভবিষ্যতের সময় বাছুন / Choose a future appointment.")
+            offering = booking.offering
+            if not appointment_allowed(offering.service_weekly_hours, offering.service_leave_dates, scheduled_at, booking.duration_minutes):
+                raise ValidationError("এই সময়ে সেবা বন্ধ / Service is closed at this time.")
+            if booking.provider_id:
+                get_user_model().objects.select_for_update().get(pk=booking.provider_id)
+                profile = ProviderProfile.objects.filter(user_id=booking.provider_id).first()
+                if profile and (not profile.available or not appointment_allowed(profile.weekly_hours, profile.leave_dates, scheduled_at, booking.duration_minutes)):
+                    raise ValidationError("মেকানিক এই সময়ে উপলব্ধ নন / Provider is unavailable at this time.")
+                from datetime import timedelta
+                end = scheduled_at + timedelta(minutes=booking.duration_minutes)
+                conflicts = Booking.objects.filter(provider_id=booking.provider_id).exclude(pk=booking.pk).exclude(status__in=["cancelled", "completed", "failed"])
+                if any(other.scheduled_at < end and other.scheduled_at + timedelta(minutes=other.duration_minutes) > scheduled_at for other in conflicts):
+                    raise ValidationError("এই সময়ে অন্য বুকিং আছে / Provider already has an overlapping appointment.")
+            before = booking.scheduled_at
+            if before != scheduled_at:
+                booking.scheduled_at = scheduled_at
+                booking.save(update_fields=["scheduled_at"])
+                audit(request.user, "booking.rescheduled", booking.pk, before=before.isoformat(), after=scheduled_at.isoformat())
+                if booking.provider_id:
+                    Notification.objects.create(user_id=booking.provider_id, title="Booking time changed", body=f"Booking {booking.pk}: {scheduled_at.isoformat()}")
+        return Response(self.get_serializer(booking).data)
 
     @action(detail=True, methods=["put"])
     def mechanic_report(self, request, pk=None):

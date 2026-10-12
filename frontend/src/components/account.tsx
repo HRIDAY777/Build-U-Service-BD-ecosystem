@@ -1,5 +1,6 @@
 "use client";
 import { MechanicBookingProgress } from "./mechanic-booking-progress";
+import { BookingReschedule } from "./booking-reschedule";
 import { TranslatedInput } from "@/components/translated-elements";
 
 import { UiText } from "@/components/ui-text";
@@ -19,6 +20,8 @@ import { SecurityHistory } from "./security-history";
 import { ProviderPicker } from "./provider-dashboard";
 import { LocationPicker, LocalityInput, addressLine } from "./location-picker";
 type RecordItem = {
+  offering?: number;
+  can_reschedule?: boolean;
   id: string;
   status: string;
   total?: string;
@@ -713,6 +716,16 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 )}
                 <MechanicSummary details={r.service_details} />
                 <MechanicReportView report={r.mechanic_report} />
+                {tab === "bookings" &&
+                  r.service_details?.vehicle_type &&
+                  r.can_reschedule &&
+                  r.offering && (
+                    <BookingReschedule
+                      id={r.id}
+                      offering={r.offering}
+                      onSaved={load}
+                    />
+                  )}
                 <div className="record-actions">
                   {tab === "deliveries" && (
                     <Link
