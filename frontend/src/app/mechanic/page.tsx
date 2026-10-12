@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Text } from "@/components/provider";
 import { Photo } from "@/components/photo";
-import { OfferingCard } from "@/components/offering-card";
+import { MechanicServiceList } from "@/components/mechanic-service-list";
 import { serverGet, PageResult, Offering } from "@/lib/api";
 export const metadata = {
   title: "Mechanic services | U Service BD",
@@ -21,7 +21,6 @@ export default async function MechanicPage() {
   const offerings = await serverGet<PageResult<Offering>>(
     "offerings/?division=mechanic",
   );
-  const featured = [...new Map((offerings?.results || []).map(item => [item.name, item])).values()].slice(0, 8);
   return (
     <div className="page-wrap mechanic-page">
       <section className="mechanic-hero">
@@ -153,11 +152,7 @@ export default async function MechanicPage() {
           </p>
         </div>
         {offerings ? (
-          <div className="offering-grid">
-            {featured.map((o) => (
-              <OfferingCard key={o.id} offering={o} />
-            ))}
-          </div>
+          <MechanicServiceList services={offerings.results} />
         ) : (
           <p role="alert">
             <Text

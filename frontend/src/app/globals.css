@@ -1769,3 +1769,22 @@ footer {
 .mechanic-detail-bottom>span { font-size:16px; font-weight:600; }
 @media(max-width:850px) { .mechanic-detail-grid { grid-template-columns:1fr; gap:28px; } .mechanic-detail-image>.subject-photo { height:340px; } .mechanic-detail-faq { grid-template-columns:1fr; gap:10px; } }
 @media(max-width:650px) { .mechanic-detail-expect { grid-template-columns:1fr; padding:24px; gap:26px; } .mechanic-detail-image>.subject-photo { height:290px; } .mechanic-detail-bottom { flex-direction:column; align-items:flex-start; padding:24px; } .mechanic-detail-faq { padding:36px 0; } }
+
+.mechanic-list-controls { display:flex; gap:16px; padding:16px; border:1px solid #ebe8ee; border-radius:16px; background:#fcfafc; }
+.mechanic-search { flex:1; display:flex; align-items:center; gap:12px; border:1px solid #ded8e1; border-radius:10px; background:#fff; padding:0 14px; color:#9b74a8; min-width:0; }
+.mechanic-search input { width:100%; min-width:0; border:0; background:transparent; min-height:46px; color:#252332; font-size:13px; }
+.mechanic-search:focus-within { outline:2px solid #9b74a8; outline-offset:2px; }
+.mechanic-search input:focus { outline:none; }
+.mechanic-sort { display:flex; align-items:center; gap:10px; color:#776681; }
+.mechanic-sort select { padding:12px; border:1px solid #ded8e1; border-radius:10px; background:#fff; color:#514358; min-height:46px; font-size:13px; }
+.mechanic-list-status { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:18px 0; color:#77747f; font-size:12px; }
+.mechanic-list-status p { margin:0; }
+.mechanic-list-status button { border:0; padding:6px 0; background:none; color:#772d90; cursor:pointer; font-size:12px; }
+.mechanic-show-more { display:flex; justify-content:center; margin-top:26px; }
+.mechanic-show-more .button { display:inline-flex; gap:10px; align-items:center; }
+.mechanic-search-empty { padding:42px 20px; text-align:center; background:#faf7fc; border-radius:18px; color:#776681; }
+.mechanic-search-empty h3 { color:#252332; margin:16px 0 10px; }
+.mechanic-search-empty p { font-size:13px; margin-bottom:22px; }
+@media(max-width:650px) { .mechanic-list-controls { flex-direction:column; padding:12px; } .mechanic-sort select { flex:1; min-width:0; } .mechanic-list-status { align-items:flex-start; } }
+
+.mechanic-list-controls .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }

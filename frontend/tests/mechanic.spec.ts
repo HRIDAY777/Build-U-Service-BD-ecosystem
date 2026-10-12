@@ -91,11 +91,152 @@ test("mechanic landing shows bookable services on mobile in both languages", asy
   ).toBeTruthy();
 });
 
-test('assigned mechanic can record and view the work report',async({page})=>{
- let report={diagnosis:'',work_performed:'',parts_used:'',follow_up:''};
- await page.route('**/api/v1/auth/me/',r=>r.fulfill({json:{id:99999,username:'QA',first_name:'QA',roles:['Provider']}}));
- await page.route('**/api/v1/bookings/provider_profile/',r=>r.fulfill({json:{name:'QA mechanic',available:true,active_jobs:1,completed_jobs:0,failed_jobs:0}}));
- await page.route('**/api/v1/bookings/?*',r=>r.fulfill({json:{count:1,next:null,results:[{id:'qa-mechanic-job',service:'Bike inspection',scheduled_at:'2026-12-01T10:00:00+06:00',duration_minutes:60,status:'in_progress',address:{recipient:'QA',phone:'01712345678',line:'Demo house',area:'Dhaka'},notes:'Brake noise',service_details:{vehicle_type:'motorbike',vehicle_model:'Demo 150',problem_type:'brakes',mobility:'unsafe'},mechanic_report:report,available_actions:['completed']}]}}));
- await page.route('**/api/v1/bookings/qa-mechanic-job/mechanic_report/',r=>{expect(r.request().method()).toBe('PUT');report=r.request().postDataJSON();return r.fulfill({json:{mechanic_report:report}})});
- await page.goto('/provider');await expect(page.getByRole('heading',{name:'QA mechanic',exact:true})).toBeVisible();await page.locator('.lang-switch').click();await page.getByLabel('Diagnosis',{exact:true}).fill('Worn brake cable');await page.getByLabel('Work performed',{exact:true}).fill('Cable replaced and tested');await page.getByLabel('Parts used',{exact:true}).fill('Brake cable');await page.getByLabel('Follow-up',{exact:true}).fill('Recheck next week');await page.getByRole('button',{name:'Save work report',exact:true}).click();await expect(page.getByRole('heading',{name:'Mechanic work report',exact:true})).toBeVisible();await expect(page.locator('.mechanic-summary').last()).toContainText('Cable replaced and tested');expect(report.parts_used).toBe('Brake cable');
+test("assigned mechanic can record and view the work report", async ({
+  page,
+}) => {
+  let report = {
+    diagnosis: "",
+    work_performed: "",
+    parts_used: "",
+    follow_up: "",
+  };
+  await page.route("**/api/v1/auth/me/", (r) =>
+    r.fulfill({
+      json: {
+        id: 99999,
+        username: "QA",
+        first_name: "QA",
+        roles: ["Provider"],
+      },
+    }),
+  );
+  await page.route("**/api/v1/bookings/provider_profile/", (r) =>
+    r.fulfill({
+      json: {
+        name: "QA mechanic",
+        available: true,
+        active_jobs: 1,
+        completed_jobs: 0,
+        failed_jobs: 0,
+      },
+    }),
+  );
+  await page.route("**/api/v1/bookings/?*", (r) =>
+    r.fulfill({
+      json: {
+        count: 1,
+        next: null,
+        results: [
+          {
+            id: "qa-mechanic-job",
+            service: "Bike inspection",
+            scheduled_at: "2026-12-01T10:00:00+06:00",
+            duration_minutes: 60,
+            status: "in_progress",
+            address: {
+              recipient: "QA",
+              phone: "01712345678",
+              line: "Demo house",
+              area: "Dhaka",
+            },
+            notes: "Brake noise",
+            service_details: {
+              vehicle_type: "motorbike",
+              vehicle_model: "Demo 150",
+              problem_type: "brakes",
+              mobility: "unsafe",
+            },
+            mechanic_report: report,
+            available_actions: ["completed"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.route(
+    "**/api/v1/bookings/qa-mechanic-job/mechanic_report/",
+    (r) => {
+      expect(r.request().method()).toBe("PUT");
+      report = r.request().postDataJSON();
+      return r.fulfill({ json: { mechanic_report: report } });
+    },
+  );
+  await page.goto("/provider");
+  await expect(
+    page.getByRole("heading", { name: "QA mechanic", exact: true }),
+  ).toBeVisible();
+  await page.locator(".lang-switch").click();
+  await page.getByLabel("Diagnosis", { exact: true }).fill("Worn brake cable");
+  await page
+    .getByLabel("Work performed", { exact: true })
+    .fill("Cable replaced and tested");
+  await page.getByLabel("Parts used", { exact: true }).fill("Brake cable");
+  await page.getByLabel("Follow-up", { exact: true }).fill("Recheck next week");
+  await page
+    .getByRole("button", { name: "Save work report", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Mechanic work report", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".mechanic-summary").last()).toContainText(
+    "Cable replaced and tested",
+  );
+  expect(report.parts_used).toBe("Brake cable");
+});
+
+test("service search works across languages and sort and reset preserve the listing", async ({
+  page,
+  context,
+}) => {
+  const data = await (
+    await context.request.get("/api/v1/offerings/?division=mechanic")
+  ).json();
+  await page.goto("/mechanic");
+  const search = page.getByRole("searchbox", { name: "মেকানিক সেবা খুঁজুন" });
+  await search.fill("ব্রেক");
+  await expect(page.locator(".offering-card").first()).toContainText("ব্রেক");
+  await page.locator(".lang-switch").click();
+  await expect(
+    page.getByRole("searchbox", { name: "Search mechanic services" }),
+  ).toHaveValue("ব্রেক");
+  await expect(page.locator(".offering-card").first()).toContainText(/brake/i);
+  await page
+    .getByRole("searchbox", { name: "Search mechanic services" })
+    .fill("no-such-service-qa");
+  await expect(
+    page.getByRole("heading", { name: "No matching services" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Sort services" })
+    .selectOption("price_low");
+  const first = [...data.results].sort(
+    (a, b) => Number(a.price) - Number(b.price),
+  )[0];
+  await expect(
+    page.locator(".offering-card").first().locator("a").first(),
+  ).toHaveAttribute("href", "/catalog/" + first.id);
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await expect(
+    page.getByRole("combobox", { name: "Sort services" }),
+  ).toHaveValue("recommended");
+  if (data.results.length > 8) {
+    await expect(page.locator(".offering-card")).toHaveCount(8);
+    await page
+      .getByRole("button", { name: "Show more services", exact: true })
+      .click();
+    await expect(page.locator(".offering-card")).toHaveCount(
+      Math.min(16, data.results.length),
+    );
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
 });
