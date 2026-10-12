@@ -1,6 +1,7 @@
 "use client";
 import { TranslatedInput } from "@/components/translated-elements";
 
+import { MechanicFields } from "./mechanic-details";
 import { BookingTimes } from "./booking-times";
 import { UiText } from "@/components/ui-text";
 
@@ -918,6 +919,20 @@ export function BookingForm({ item }: { item: Offering }) {
           scheduled_at: new Date(`${data.scheduled_at}+06:00`).toISOString(),
           address: address(data),
           notes: data.notes,
+          ...(item.division_slug === "mechanic"
+            ? {
+                service_details: {
+                  vehicle_type: data.vehicle_type,
+                  vehicle_model: data.vehicle_model,
+                  registration: data.registration,
+                  problem_type: data.problem_type,
+                  mobility: data.mobility,
+                  odometer_km: data.odometer_km
+                    ? Number(data.odometer_km)
+                    : null,
+                },
+              }
+            : {}),
         },
         key,
       );
@@ -961,10 +976,10 @@ export function BookingForm({ item }: { item: Offering }) {
             "রবিবার",
           ].map((day, i) => (
             <p key={day}>
-              {day}:{" "}
+              <UiText text={day} />:{" "}
               {(item.service_weekly_hours[String(i)] || [])
                 .map((slot) => `${slot.open}–${slot.close}`)
-                .join(", ") || "বন্ধ / Closed"}
+                .join(", ") || <Text bn="বন্ধ" en="Closed" />}
             </p>
           ))}
         </div>
@@ -994,7 +1009,8 @@ export function BookingForm({ item }: { item: Offering }) {
             }
           />
         </p>
-        <AddressFields />
+        <AddressFields division={item.division_slug} />
+        {item.division_slug === "mechanic" && <MechanicFields />}
         <label className="field">
           <UiText text={"সমস্যার বিবরণ / Describe the issue"} />
           <textarea name="notes" maxLength={2000} />

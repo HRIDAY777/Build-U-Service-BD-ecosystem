@@ -1,6 +1,14 @@
 import { englishUi } from "./english-ui";
 
 export const bangla: Record<string, string> = {
+  "Save the mechanic work report before completing this booking.":
+    "বুকিং সম্পন্ন করার আগে মেকানিকের কাজের রিপোর্ট সংরক্ষণ করুন।",
+  "Reports can be saved while mechanic work is in progress.":
+    "মেকানিকের কাজ চলার সময়ে রিপোর্ট সংরক্ষণ করা যাবে।",
+  "Vehicle details are only supported for mechanic services.":
+    "যানবাহনের তথ্য শুধু মেকানিক সেবার জন্য দেওয়া যাবে।",
+  "This report is only available for mechanic bookings.":
+    "এই রিপোর্ট শুধু মেকানিক বুকিংয়ের জন্য।",
   "Redeeming…": "পুরস্কার নেওয়া হচ্ছে…",
   Redeem: "পুরস্কার নিন",
   "Awaiting fulfilment": "প্রদানের অপেক্ষায়",

@@ -92,6 +92,8 @@ class Booking(models.Model):
     duration_minutes = models.PositiveIntegerField(default=60)
     address = models.JSONField()
     notes = models.TextField(blank=True)
+    service_details = models.JSONField(default=dict, blank=True)
+    mechanic_report = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=30, default="pending", db_index=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
     idempotency_key = models.CharField(max_length=80)

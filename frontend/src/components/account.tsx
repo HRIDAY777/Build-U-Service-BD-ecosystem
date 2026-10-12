@@ -4,6 +4,12 @@ import { TranslatedInput } from "@/components/translated-elements";
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
+import {
+  MechanicSummary,
+  MechanicReportView,
+  type MechanicReport,
+  type MechanicDetails,
+} from "./mechanic-details";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
@@ -31,6 +37,8 @@ type RecordItem = {
   description?: string;
   scheduled_at?: string;
   duration_minutes?: number;
+  service_details?: MechanicDetails;
+  mechanic_report?: MechanicReport;
   preparation_minutes?: number | null;
   available_actions?: string[];
 };
@@ -563,6 +571,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     <UiText text={"মিনিট / minutes"} />
                   </p>
                 )}
+                <MechanicSummary details={r.service_details} />
+                <MechanicReportView report={r.mechanic_report} />
                 <div className="record-actions">
                   {tab === "deliveries" && (
                     <Link

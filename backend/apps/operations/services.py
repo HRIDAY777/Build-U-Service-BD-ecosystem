@@ -344,6 +344,8 @@ def transition(user, model, pk, new_status, details=None):
         and not (getattr(obj, "provider_id", None) or getattr(obj, "rider_id", None))
     ):
         raise ValidationError("Assign an eligible worker first.")
+    if kind == "booking" and new_status == "completed" and obj.offering.division.slug == "mechanic" and obj.service_details and not obj.mechanic_report:
+        raise ValidationError("Save the mechanic work report before completing this booking.")
     before = obj.status
     obj.status = new_status
     obj.save(
@@ -449,6 +451,8 @@ def book(user, data, key):
     ).first()
     if not offering:
         raise ValidationError("Service not available.")
+    if data.get("service_details") and offering.division.slug != "mechanic":
+        raise ValidationError("Vehicle details are only supported for mechanic services.")
     if data["scheduled_at"] <= timezone.now():
         raise ValidationError("Choose a future appointment.")
     if not appointment_allowed(offering.service_weekly_hours, offering.service_leave_dates,
@@ -462,6 +466,7 @@ def book(user, data, key):
         duration_minutes=offering.duration_minutes,
         address=data["address"],
         notes=data.get("notes", ""),
+        service_details=data.get("service_details", {}),
         price=offering.price,
         idempotency_key=key,
         request_hash=digest,

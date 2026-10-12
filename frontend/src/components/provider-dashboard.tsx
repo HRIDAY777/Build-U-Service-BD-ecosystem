@@ -2,6 +2,13 @@
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
+import {
+  MechanicSummary,
+  MechanicReportView,
+  MechanicReportEditor,
+  type MechanicReport,
+  type MechanicDetails,
+} from "./mechanic-details";
 import { ScheduleEditor } from "./schedule-editor";
 import { ProviderCalendar } from "./provider-calendar";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +20,8 @@ type Job = {
   service: string;
   scheduled_at: string;
   duration_minutes: number;
+  service_details?: MechanicDetails;
+  mechanic_report?: MechanicReport;
   status: string;
   address: { recipient: string; phone: string; line: string; area: string };
   notes: string;
@@ -235,6 +244,16 @@ export function ProviderDashboard() {
               {job.notes}
             </p>
           )}
+          <MechanicSummary details={job.service_details} />
+          <MechanicReportView report={job.mechanic_report} />
+          {job.service_details?.vehicle_type &&
+            ["in_progress", "waiting_for_parts"].includes(job.status) && (
+              <MechanicReportEditor
+                id={job.id}
+                report={job.mechanic_report}
+                onSaved={() => void act()}
+              />
+            )}
           <div className="search-row">
             {job.available_actions.map((state) => (
               <button

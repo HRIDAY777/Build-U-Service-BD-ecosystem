@@ -628,11 +628,28 @@ class RefundInput(serializers.Serializer):
     reason = serializers.CharField(max_length=2000)
 
 
+class MechanicDetailsInput(serializers.Serializer):
+    vehicle_type = serializers.ChoiceField(choices=["bicycle", "motorbike", "scooter", "car", "other"])
+    vehicle_model = serializers.CharField(max_length=120)
+    registration = serializers.CharField(max_length=40, required=False, allow_blank=True, default="")
+    problem_type = serializers.ChoiceField(choices=["inspection", "engine", "brakes", "tyres", "battery", "chain", "electrical", "other"])
+    mobility = serializers.ChoiceField(choices=["running", "not_running", "unsafe"])
+    odometer_km = serializers.IntegerField(min_value=0, max_value=2000000, required=False, allow_null=True, default=None)
+
+
 class BookingInput(serializers.Serializer):
     offering = serializers.IntegerField(min_value=1)
     scheduled_at = serializers.DateTimeField()
     address = AddressInput()
     notes = serializers.CharField(max_length=2000, required=False, allow_blank=True)
+    service_details = MechanicDetailsInput(required=False)
+
+
+class MechanicReportInput(serializers.Serializer):
+    diagnosis = serializers.CharField(max_length=2000)
+    work_performed = serializers.CharField(max_length=2000)
+    parts_used = serializers.CharField(max_length=1000, allow_blank=True, default="")
+    follow_up = serializers.CharField(max_length=1000, allow_blank=True, default="")
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -658,6 +675,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "duration_minutes",
             "address",
             "notes",
+            "service_details",
+            "mechanic_report",
             "status",
             "price",
             "provider",
@@ -689,6 +708,23 @@ class ProviderScheduleInput(serializers.Serializer):
 
 class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
+
+    @action(detail=True, methods=["put"])
+    def mechanic_report(self, request, pk=None):
+        with transaction.atomic():
+            booking = get_object_or_404(Booking.objects.select_for_update().select_related("offering__division"), pk=pk)
+            if booking.provider_id != request.user.pk and not request.user.has_perm("operations.change_booking"):
+                raise PermissionDenied()
+            if booking.offering.division.slug != "mechanic":
+                raise ValidationError("This report is only available for mechanic bookings.")
+            if booking.status not in {"in_progress", "waiting_for_parts"}:
+                raise ValidationError("Reports can be saved while mechanic work is in progress.")
+            serializer = MechanicReportInput(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            booking.mechanic_report = serializer.validated_data
+            booking.save(update_fields=["mechanic_report"])
+            audit(request.user, "booking.mechanic_report_saved", booking.pk)
+        return Response(self.get_serializer(booking).data)
 
     def get_queryset(self):
         qs = Booking.objects.select_related("offering").order_by("-created_at")

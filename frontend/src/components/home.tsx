@@ -218,7 +218,9 @@ export function Home({
               href={
                 d.kind === "delivery"
                   ? "/delivery"
-                  : `/catalog?division=${d.slug}`
+                  : d.slug === "mechanic"
+                    ? "/mechanic"
+                    : `/catalog?division=${d.slug}`
               }
             >
               <span className={`division-icon ${d.slug}`}>
@@ -271,7 +273,9 @@ export function Home({
                 href={
                   d.kind === "delivery"
                     ? "/delivery"
-                    : `/catalog?division=${d.slug}`
+                    : d.slug === "mechanic"
+                      ? "/mechanic"
+                      : `/catalog?division=${d.slug}`
                 }
                 key={d.id}
               >

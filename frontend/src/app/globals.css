@@ -1645,3 +1645,7 @@ footer {
 .location-picker {
   min-width: 0;
 }
+
+.mechanic-hero-photo { width: 100%; height: clamp(180px, 32vw, 360px); object-fit: cover; border-radius: 20px; margin-bottom: 24px; }
+.mechanic-fields { border: 1px solid var(--border, #ddd); border-radius: 16px; padding: 20px; margin: 20px 0; min-width: 0; }
+.mechanic-summary { padding: 12px 0; overflow-wrap: anywhere; }
