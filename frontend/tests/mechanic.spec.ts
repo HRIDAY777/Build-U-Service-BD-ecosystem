@@ -75,6 +75,22 @@ test("mechanic vehicle details survive booking and language changes", async ({
   await expect(record).toContainText("চালানো নিরাপদ নয়");
   const saved = await (await context.request.get("/api/v1/bookings/")).json();
   expect(saved.results[0].service_details.odometer_km).toBe(12000);
+  await record
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "problem.png",
+      mimeType: "image/png",
+      buffer: await page.screenshot(),
+    });
+  await record.getByRole("button", { name: "ছবি সংরক্ষণ" }).click();
+  await expect(record.locator(".mechanic-photo img")).toBeVisible();
+  const photo = await context.request.get(
+    "/api/v1/bookings/" + saved.results[0].id + "/problem-photo/",
+  );
+  expect(photo.status()).toBe(200);
+  expect(photo.headers()["content-type"]).toBe("image/jpeg");
+  await record.getByRole("button", { name: "ছবি সরান" }).click();
+  await expect(record.locator(".mechanic-photo img")).toHaveCount(0);
   await record.getByRole("button", { name: "বুকিংয়ের সময় পরিবর্তন" }).click();
   const newTime = new Date(Date.now() + 86400000 * 9)
     .toISOString()

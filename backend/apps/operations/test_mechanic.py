@@ -140,3 +140,50 @@ class MechanicBookingTests(TestCase):
         from .models import ProviderProfile
         ProviderProfile.objects.create(user=self.provider, available=False)
         self.assertEqual(self.client.post(url, {'scheduled_at': (new_time + timedelta(days=1)).isoformat()}, format='json').status_code, 400)
+
+    def test_problem_photo_validation_private_access_and_closed_booking(self):
+        import tempfile
+        from io import BytesIO
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            result = self.submit()
+            booking = Booking.objects.get(pk=result.data['id'])
+            url = '/api/v1/bookings/' + str(booking.pk) + '/problem-photo/'
+            def photo():
+                output = BytesIO()
+                Image.new('RGB', (20, 20), 'red').save(output, format='PNG')
+                return SimpleUploadedFile('problem.png', output.getvalue(), content_type='image/png')
+            self.assertEqual(self.client.post(url, {'photo': SimpleUploadedFile('fake.jpg', b'not an image')}, format='multipart').status_code, 400)
+            self.assertEqual(self.client.post(url, {'photo': SimpleUploadedFile('huge.jpg', b'x' * (5 * 1024 * 1024 + 1))}, format='multipart').status_code, 400)
+            uploaded = self.client.post(url, {'photo': photo()}, format='multipart')
+            self.assertEqual(uploaded.status_code, 200, uploaded.data)
+            self.assertTrue(uploaded.data['has_problem_photo'])
+            self.assertNotIn('problem_photo', uploaded.data)
+            image = self.client.get(url)
+            self.assertEqual(image.status_code, 200)
+            self.assertEqual(image['Content-Type'], 'image/jpeg')
+            self.assertEqual(image['Cache-Control'], 'private, no-store')
+            for close_file in image._resource_closers:
+                close_file()
+            self.client.force_authenticate(self.other)
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.post(url, {'photo': photo()}, format='multipart').status_code, 404)
+            booking.provider = self.provider
+            booking.save(update_fields=['provider'])
+            self.client.force_authenticate(self.provider)
+            image = self.client.get(url)
+            self.assertEqual(image.status_code, 200)
+            for close_file in image._resource_closers:
+                close_file()
+            self.assertEqual(self.client.delete(url).status_code, 403)
+            self.client.force_authenticate(self.customer)
+            with self.captureOnCommitCallbacks(execute=True):
+                self.assertEqual(self.client.delete(url).status_code, 200)
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.post(url, {'photo': photo()}, format='multipart').status_code, 200)
+            booking.refresh_from_db()
+            booking.status = 'completed'
+            booking.save()
+            self.assertEqual(self.client.delete(url).status_code, 400)
+            self.assertEqual(self.client.post(url, {'photo': photo()}, format='multipart').status_code, 400)

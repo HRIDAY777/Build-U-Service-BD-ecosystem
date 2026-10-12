@@ -17,3 +17,7 @@ Customers and operators with change_booking permission can POST scheduled_at to 
 Booking search and status filters apply to loaded records; the displayed count states that scope explicitly.
 
 Latest rescheduling validation: 110 operations backend tests and six account/mechanic browser tests passed, including real customer rescheduling persisted in PostgreSQL.
+
+## Private problem photo
+
+A mechanic booking supports one customer-uploaded problem photo (JPEG/PNG/WebP, up to 5 MB and 20 million pixels). POST /api/v1/bookings/{id}/problem-photo/ uploads or replaces it; DELETE removes it. GET streams a normalized JPEG with private/no-store caching. Only users authorized to view the booking can read it; only its customer or authorized operator can change it, before the booking closes. Uploads are decoded and re-encoded with orientation corrected, metadata removed and a 2000-pixel maximum side. File names and media URLs are not exposed in booking responses. Provider cards show the photo; customer cards offer upload/replace/remove controls. Video and multiple-photo galleries remain unimplemented.

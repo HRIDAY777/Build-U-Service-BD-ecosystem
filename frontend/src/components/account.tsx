@@ -1,6 +1,7 @@
 "use client";
 import { MechanicBookingProgress } from "./mechanic-booking-progress";
 import { BookingReschedule } from "./booking-reschedule";
+import { MechanicPhoto } from "./mechanic-photo";
 import { TranslatedInput } from "@/components/translated-elements";
 
 import { UiText } from "@/components/ui-text";
@@ -20,6 +21,8 @@ import { SecurityHistory } from "./security-history";
 import { ProviderPicker } from "./provider-dashboard";
 import { LocationPicker, LocalityInput, addressLine } from "./location-picker";
 type RecordItem = {
+  has_problem_photo?: boolean;
+  can_manage_photo?: boolean;
   offering?: number;
   can_reschedule?: boolean;
   id: string;
@@ -715,6 +718,14 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   <MechanicBookingProgress status={r.status} />
                 )}
                 <MechanicSummary details={r.service_details} />
+                {tab === "bookings" && r.service_details?.vehicle_type && (
+                  <MechanicPhoto
+                    id={r.id}
+                    hasPhoto={r.has_problem_photo}
+                    editable={r.can_manage_photo}
+                    onSaved={load}
+                  />
+                )}
                 <MechanicReportView report={r.mechanic_report} />
                 {tab === "bookings" &&
                   r.service_details?.vehicle_type &&

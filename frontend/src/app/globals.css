@@ -1811,3 +1811,12 @@ footer {
 .booking-list-tools p { color: #706478; margin: 12px 0 0; }
 .booking-list-tools .button { margin-top: 12px; }
 @media(max-width:650px) { .booking-list-inputs { grid-template-columns: 1fr; } .booking-list-tools { padding: 16px; } }
+
+.mechanic-photo { padding: 20px; border: 1px solid #e9dfed; border-radius: 16px; margin: 16px 0; }
+.mechanic-photo h3 { margin-top: 0; }
+.mechanic-photo a { display: grid; gap: 8px; width: fit-content; max-width: 100%; }
+.mechanic-photo img { object-fit: contain; height: auto; max-width: 100%; border-radius: 12px; background: #faf7fc; }
+.mechanic-photo form { display: grid; gap: 12px; margin-top: 16px; }
+.mechanic-photo label { display: grid; gap: 8px; }
+.mechanic-photo input { max-width: 100%; min-width: 0; }
+.mechanic-photo p { font-size: .85rem; color: #706478; margin: 0; }

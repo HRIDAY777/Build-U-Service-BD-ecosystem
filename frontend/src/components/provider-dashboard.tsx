@@ -10,12 +10,14 @@ import {
   type MechanicDetails,
 } from "./mechanic-details";
 import { ScheduleEditor } from "./schedule-editor";
+import { MechanicPhoto } from "./mechanic-photo";
 import { ProviderCalendar } from "./provider-calendar";
 import { useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
 
 type Job = {
+  has_problem_photo?: boolean;
   id: string;
   service: string;
   scheduled_at: string;
@@ -246,6 +248,7 @@ export function ProviderDashboard() {
           )}
           <MechanicSummary details={job.service_details} />
           <MechanicReportView report={job.mechanic_report} />
+          <MechanicPhoto id={job.id} hasPhoto={job.has_problem_photo} />
           {job.service_details?.vehicle_type &&
             ["in_progress", "waiting_for_parts"].includes(job.status) && (
               <MechanicReportEditor

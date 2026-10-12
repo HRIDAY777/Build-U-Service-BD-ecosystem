@@ -657,6 +657,18 @@ class MechanicReportInput(serializers.Serializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
+    has_problem_photo = serializers.SerializerMethodField()
+    can_manage_photo = serializers.SerializerMethodField()
+
+    def get_can_manage_photo(self, obj):
+        user = self.context["request"].user
+        return obj.status not in {"completed", "cancelled", "failed"} and (
+            obj.customer_id == user.pk or user.has_perm("operations.change_booking")
+        )
+
+    def get_has_problem_photo(self, obj):
+        return bool(obj.problem_photo)
+
     service = serializers.CharField(source="offering.name")
     can_reschedule = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
@@ -694,6 +706,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at",
             "available_actions",
             "can_reschedule",
+            "has_problem_photo",
+            "can_manage_photo",
         ]
         read_only_fields = fields
 
@@ -720,6 +734,65 @@ class ProviderScheduleInput(serializers.Serializer):
 
 class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
+
+    @action(detail=True, methods=["get", "post", "delete"], url_path="problem-photo")
+    def problem_photo(self, request, pk=None):
+        booking = self.get_object()
+        if booking.offering.division.slug != "mechanic":
+            raise ValidationError("শুধু মেকানিক বুকিংয়ে ছবি দিন / Photos are only supported for mechanic bookings.")
+        if request.method == "GET":
+            if not booking.problem_photo:
+                from rest_framework.exceptions import NotFound
+                raise NotFound()
+            response = FileResponse(booking.problem_photo.open("rb"), content_type="image/jpeg")
+            response["Cache-Control"] = "private, no-store"
+            response["X-Content-Type-Options"] = "nosniff"
+            return response
+        if booking.customer_id != request.user.pk and not request.user.has_perm("operations.change_booking"):
+            raise PermissionDenied()
+        from django.core.files.base import ContentFile
+        from io import BytesIO
+        from PIL import Image, ImageOps, UnidentifiedImageError
+        import uuid
+        content = None
+        if request.method == "POST":
+            file = request.FILES.get("photo")
+            if not file or file.size > 5 * 1024 * 1024:
+                raise ValidationError("সর্বোচ্চ ৫ এমবি ছবি দিন / Choose an image up to 5 MB.")
+            try:
+                with Image.open(file) as image:
+                    if image.format not in {"JPEG", "PNG", "WEBP"} or image.width * image.height > 20000000:
+                        raise ValueError()
+                    image.load()
+                    clean = ImageOps.exif_transpose(image).convert("RGB")
+                    clean.thumbnail((2000, 2000))
+                    output = BytesIO()
+                    clean.save(output, format="JPEG", quality=85)
+                    content = ContentFile(output.getvalue(), name=f"{uuid.uuid4()}.jpg")
+            except (OSError, ValueError, UnidentifiedImageError, Image.DecompressionBombError):
+                raise ValidationError("বৈধ JPG, PNG বা WebP ছবি দিন / Choose a valid JPG, PNG or WebP image.")
+        new_name = None
+        storage = booking.problem_photo.storage
+        try:
+            with transaction.atomic():
+                booking = Booking.objects.select_for_update().get(pk=booking.pk)
+                if booking.status in {"completed", "cancelled", "failed"}:
+                    raise ValidationError("এই বুকিংয়ের ছবি পরিবর্তন করা যাবে না / Photos cannot be changed for a closed booking.")
+                old_name = booking.problem_photo.name
+                if content:
+                    booking.problem_photo.save(content.name, content, save=False)
+                    new_name = booking.problem_photo.name
+                else:
+                    booking.problem_photo = ""
+                booking.save(update_fields=["problem_photo"])
+                audit(request.user, "booking.problem_photo_saved" if content else "booking.problem_photo_removed", booking.pk)
+                if old_name:
+                    transaction.on_commit(lambda: storage.delete(old_name), robust=True)
+        except Exception:
+            if new_name:
+                storage.delete(new_name)
+            raise
+        return Response(self.get_serializer(booking).data)
 
     @action(detail=True, methods=["post"])
     def reschedule(self, request, pk=None):
