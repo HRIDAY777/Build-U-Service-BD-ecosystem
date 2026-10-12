@@ -2,6 +2,7 @@
 import { TranslatedInput } from "@/components/translated-elements";
 
 import { MechanicFields } from "./mechanic-details";
+import { MechanicServiceDetail } from "./mechanic-service-detail";
 import { BookingTimes } from "./booking-times";
 import { UiText } from "@/components/ui-text";
 
@@ -407,6 +408,8 @@ export function OfferingDetail({ item }: { item: Offering }) {
   const service = ["electrician", "mechanic", "services"].includes(
     item.division_slug,
   );
+  if (item.division_slug === "mechanic")
+    return <MechanicServiceDetail item={item} />;
   return (
     <div className="page-wrap">
       <Link
