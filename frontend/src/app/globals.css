@@ -1649,3 +1649,56 @@ footer {
 .mechanic-hero-photo { width: 100%; height: clamp(180px, 32vw, 360px); object-fit: cover; border-radius: 20px; margin-bottom: 24px; }
 .mechanic-fields { border: 1px solid var(--border, #ddd); border-radius: 16px; padding: 20px; margin: 20px 0; min-width: 0; }
 .mechanic-summary { padding: 12px 0; overflow-wrap: anywhere; }
+
+/* Mechanic service experience */
+.mechanic-page { padding-top: 32px; }
+.mechanic-hero { display:grid; grid-template-columns:1.05fr 1fr; gap:48px; align-items:center; padding:42px; background:#f4eef6; border-radius:28px; }
+.mechanic-hero .eyebrow { display:flex; align-items:center; gap:8px; color:#772d90; }
+.mechanic-hero h1 { font-size:clamp(34px,4vw,54px); line-height:1.16; letter-spacing:-1.8px; margin:22px 0; max-width:590px; }
+.mechanic-hero-copy>p { color:#635a69; line-height:1.8; max-width:480px; }
+.mechanic-hero-actions { display:flex; align-items:center; flex-wrap:wrap; gap:24px; margin:28px 0; }
+.mechanic-hero-actions .button, .mechanic-browse .button { display:inline-flex; align-items:center; gap:12px; }
+.mechanic-subtle-link { display:inline-flex; align-items:center; gap:10px; font-size:14px; font-weight:600; text-decoration:none; }
+.mechanic-subtle-link:hover { color:#772d90; }
+.mechanic-vehicle-tags { display:flex; gap:16px; flex-wrap:wrap; padding-top:12px; color:#675c70; font-size:12px; }
+.mechanic-vehicle-tags>span { display:flex; align-items:center; gap:7px; }
+.mechanic-hero-visual { position:relative; padding-bottom:32px; min-width:0; }
+.mechanic-hero .mechanic-hero-photo { display:block; height:435px; margin:0; border-radius:20px; object-fit:cover; object-position:50% 45%; }
+.mechanic-photo-label { position:absolute; top:18px; left:18px; padding:9px 14px; border-radius:30px; background:#fffdf1e8; font-size:10px; font-weight:700; letter-spacing:1px; color:#32283c; }
+.mechanic-visual-note { position:absolute; bottom:0; left:22px; right:22px; display:flex; align-items:center; gap:14px; padding:20px; border-radius:16px; background:#fff; box-shadow:0 12px 28px #35224010; }
+.mechanic-note-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:13px; background:#f4eef6; color:#772d90; flex-shrink:0; }
+.mechanic-visual-note strong { display:block; font-size:15px; }
+.mechanic-visual-note small { display:block; margin-top:5px; color:#77747f; font-size:12px; }
+.mechanic-benefits { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid #ebe8ee; padding:30px 20px; gap:24px; }
+.mechanic-benefits>div { display:flex; align-items:center; gap:14px; }
+.mechanic-benefits svg { color:#772d90; flex-shrink:0; }
+.mechanic-benefits strong { display:block; font-size:14px; }
+.mechanic-benefits small { display:block; color:#77747f; margin-top:5px; font-size:12px; }
+.mechanic-services { padding-top:52px; scroll-margin-top:100px; }
+.mechanic-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:28px; margin-bottom:26px; }
+.mechanic-section-heading h2 { margin:10px 0 0; font-size:clamp(25px,3vw,34px); letter-spacing:-.8px; }
+.mechanic-section-heading>p { max-width:340px; color:#77747f; font-size:14px; line-height:1.7; margin:0; }
+.mechanic-services .offering-grid { gap:22px; }
+.mechanic-services .offering-card { border:1px solid #ebe8ee; border-radius:18px; overflow:hidden; transition:box-shadow .2s,transform .2s; }
+.mechanic-services .offering-card:hover { box-shadow:0 12px 30px #3522400e; transform:translateY(-3px); }
+.mechanic-browse { display:flex; justify-content:center; margin-top:28px; }
+.mechanic-process { margin-top:60px; padding:36px; border-radius:24px; background:#faf9f6; scroll-margin-top:100px; }
+.mechanic-process ol { display:grid; grid-template-columns:repeat(4,1fr); gap:28px; list-style:none; margin:32px 0 0; padding:0; }
+.mechanic-step-number { display:grid; place-items:center; width:38px; height:38px; border:1px solid #dfd2e5; border-radius:50%; color:#772d90; font-size:12px; font-weight:700; background:#fff; }
+.mechanic-process h3 { font-size:16px; margin:18px 0 9px; }
+.mechanic-process li p { font-size:13px; color:#77747f; line-height:1.7; margin:0; }
+.mechanic-pricing-note { display:flex; align-items:flex-start; gap:14px; padding:22px 6px; color:#77747f; font-size:12px; line-height:1.8; }
+.mechanic-pricing-note svg { flex-shrink:0; margin-top:3px; color:#772d90; }
+.mechanic-pricing-note p { margin:0; }
+.mechanic-pricing-note strong { color:#514358; }
+.mechanic-fields { display:grid; grid-template-columns:1fr 1fr; gap:18px; border-color:#e6dcec; background:#fcfaff; padding:24px; }
+.mechanic-fields legend { padding:0 8px; color:#772d90; font-weight:600; font-size:16px; }
+.mechanic-fields .field { margin:0; }
+.mechanic-fields>.subtle { grid-column:1/-1; margin:0; padding-top:12px; border-top:1px solid #e6dcec; font-size:12px; line-height:1.8; }
+.mechanic-summary { border-top:1px solid #ebe8ee; margin-top:16px; }
+.mechanic-summary h3 { font-size:15px; color:#772d90; }
+@media(max-width:900px) { .mechanic-hero { gap:28px; padding:28px; } .mechanic-hero .mechanic-hero-photo { height:380px; } .mechanic-process ol { grid-template-columns:1fr 1fr; } }
+@media(max-width:650px) { .mechanic-page { padding-top:18px; } .mechanic-hero { grid-template-columns:1fr; padding:24px 20px; gap:26px; border-radius:20px; } .mechanic-hero h1 { letter-spacing:-.8px; font-size:35px; } .mechanic-hero .mechanic-hero-photo { height:300px; } .mechanic-hero-actions { gap:20px; } .mechanic-visual-note { left:12px; right:12px; padding:16px; } .mechanic-benefits { grid-template-columns:1fr; gap:20px; padding:28px 8px; } .mechanic-section-heading { align-items:flex-start; flex-direction:column; gap:14px; } .mechanic-services { padding-top:34px; } .mechanic-process { padding:24px 20px; margin-top:40px; } .mechanic-process ol { gap:26px 18px; } .mechanic-fields { grid-template-columns:1fr; padding:18px; } }
+@media(prefers-reduced-motion:reduce) { .mechanic-services .offering-card { transition:none; } .mechanic-services .offering-card:hover { transform:none; } }
+
+.mechanic-services .card-mechanic { background:#f3eff6; color:#9b74a8; }
