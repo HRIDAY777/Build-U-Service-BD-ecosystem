@@ -898,6 +898,7 @@ export function CheckoutForm() {
 }
 export function BookingForm({ item }: { item: Offering }) {
   const { user } = useApp();
+  const mechanic = item.division_slug === "mechanic";
   const router = useRouter();
   const [scheduled, setScheduled] = useState("");
   const [busy, setBusy] = useState(false);
@@ -944,17 +945,25 @@ export function BookingForm({ item }: { item: Offering }) {
     }
   }
   return (
-    <>
-      <span className="eyebrow">
-        <UiText text={"LET’S TAKE CARE OF IT"} />
-      </span>
-      <h1>
-        <Text bn={item.name_bn} en={item.name} />
-      </h1>
-      <p className="page-intro">
-        ৳{item.price} · {item.duration_minutes}
-        <UiText text={"minutes · Payment after service"} />
-      </p>
+    <div className={mechanic ? "mechanic-booking" : undefined}>
+      {mechanic && (
+        <Link className="mechanic-back-link" href="/mechanic">
+          <span aria-hidden="true">←</span>
+          <Text bn="মেকানিক সেবায় ফিরে যান" en="Back to mechanic services" />
+        </Link>
+      )}
+      <div className={mechanic ? "mechanic-booking-heading" : undefined}>
+        <span className="eyebrow">
+          <UiText text={"LET’S TAKE CARE OF IT"} />
+        </span>
+        <h1>
+          <Text bn={item.name_bn} en={item.name} />
+        </h1>
+        <p className="page-intro">
+          ৳{item.price} · {item.duration_minutes}
+          <UiText text={"minutes · Payment after service"} />
+        </p>
+      </div>
       {(item.service_leave_dates || []).length > 0 && (
         <p>
           <UiText text={"বন্ধের তারিখ / Closed dates:"} />
@@ -984,57 +993,126 @@ export function BookingForm({ item }: { item: Offering }) {
           ))}
         </div>
       )}
-      <form className="form-panel" onSubmit={submit}>
-        <label className="field">
-          <UiText text={"তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)"} />
-          <input
-            type="datetime-local"
-            name="scheduled_at"
-            required
-            value={scheduled}
-            onInput={(e) => setScheduled(e.currentTarget.value)}
+      <div className={mechanic ? "mechanic-booking-grid" : undefined}>
+        <form className="form-panel" onSubmit={submit}>
+          {mechanic && (
+            <div className="mechanic-form-heading">
+              <span className="eyebrow">
+                <Text bn="আপনার বুকিং" en="YOUR BOOKING" />
+              </span>
+              <h2>
+                <Text bn="সময় ও ঠিকানা জানান" en="Tell us when and where" />
+              </h2>
+              <p>
+                <Text
+                  bn="তথ্য পূরণ করে অনুরোধ পাঠান। টিম সময় নিশ্চিত করবে।"
+                  en="Send your details and preferred time. Our team confirms the appointment."
+                />
+              </p>
+            </div>
+          )}
+          <label className="field">
+            <UiText
+              text={"তারিখ ও সময় (বাংলাদেশ) / Date & time (Bangladesh)"}
+            />
+            <input
+              type="datetime-local"
+              name="scheduled_at"
+              required
+              value={scheduled}
+              onInput={(e) => setScheduled(e.currentTarget.value)}
+            />
+          </label>
+          <BookingTimes
+            key={scheduled.slice(0, 10)}
+            id={item.id}
+            day={scheduled.slice(0, 10)}
+            onSelect={setScheduled}
           />
-        </label>
-        <BookingTimes
-          key={scheduled.slice(0, 10)}
-          id={item.id}
-          day={scheduled.slice(0, 10)}
-          onSelect={setScheduled}
-        />
 
-        <p className="subtle">
-          <UiText
-            text={
-              "Times use Bangladesh time (Asia/Dhaka). The team confirms your appointment."
-            }
-          />
-        </p>
-        <AddressFields division={item.division_slug} />
-        {item.division_slug === "mechanic" && <MechanicFields />}
-        <label className="field">
-          <UiText text={"সমস্যার বিবরণ / Describe the issue"} />
-          <textarea name="notes" maxLength={2000} />
-        </label>
-        {error && (
-          <p role="alert" className="error">
-            <UiText text={error} />
+          <p className="subtle">
+            <UiText
+              text={
+                "Times use Bangladesh time (Asia/Dhaka). The team confirms your appointment."
+              }
+            />
           </p>
+          <AddressFields division={item.division_slug} />
+          {item.division_slug === "mechanic" && <MechanicFields />}
+          <label className="field">
+            <UiText text={"সমস্যার বিবরণ / Describe the issue"} />
+            <textarea name="notes" maxLength={2000} />
+          </label>
+          {error && (
+            <p role="alert" className="error">
+              <UiText text={error} />
+            </p>
+          )}
+          {user ? (
+            <button className="button" disabled={busy}>
+              {busy ? (
+                <UiText text={"Booking…"} />
+              ) : (
+                <UiText text={"বুকিং করুন / Request booking"} />
+              )}
+            </button>
+          ) : (
+            <Link className="button" href="/login">
+              <UiText text={"Sign in to book"} />
+            </Link>
+          )}
+        </form>
+        {mechanic && (
+          <aside className="mechanic-booking-aside">
+            <Photo
+              src={offeringPhoto(item) || "/images/photos/mechanic.jpg"}
+              alt={`${item.name_bn} / ${item.name}`}
+            />
+            <div className="mechanic-booking-aside-body">
+              <span className="eyebrow">
+                <Text bn="নির্বাচিত সেবা" en="SELECTED SERVICE" />
+              </span>
+              <h2>
+                <Text bn={item.name_bn} en={item.name} />
+              </h2>
+              <dl>
+                <div>
+                  <dt>
+                    <Text bn="সেবার মূল্য" en="Service fee" />
+                  </dt>
+                  <dd>৳{item.price}</dd>
+                </div>
+                <div>
+                  <dt>
+                    <Text bn="নির্ধারিত সময়" en="Service duration" />
+                  </dt>
+                  <dd>
+                    {item.duration_minutes} <Text bn="মিনিট" en="minutes" />
+                  </dd>
+                </div>
+              </dl>
+              <p>
+                <Text
+                  bn="বাড়তি মেরামত বা যন্ত্রাংশের খরচ কাজের আগে নিশ্চিত করতে হবে।"
+                  en="Confirm additional repair and parts costs before work."
+                />
+              </p>
+              <div className="mechanic-aside-next">
+                <strong>
+                  <Text bn="এরপর কী হবে?" en="What happens next?" />
+                </strong>
+                <p>
+                  <Text
+                    bn="টিম এলাকা ও সময় যাচাই করবে। বুকিংয়ের অগ্রগতি ও কাজের রিপোর্ট আপনার অ্যাকাউন্টে দেখতে পাবেন।"
+                    en="The team reviews your area and time. Follow progress and review the work report in your account."
+                  />
+                </p>
+              </div>
+            </div>
+          </aside>
         )}
-        {user ? (
-          <button className="button" disabled={busy}>
-            {busy ? (
-              <UiText text={"Booking…"} />
-            ) : (
-              <UiText text={"বুকিং করুন / Request booking"} />
-            )}
-          </button>
-        ) : (
-          <Link className="button" href="/login">
-            <UiText text={"Sign in to book"} />
-          </Link>
-        )}
-      </form>
-    </>
+      </div>
+    </div>
   );
 }
 export function DeliveryForm() {

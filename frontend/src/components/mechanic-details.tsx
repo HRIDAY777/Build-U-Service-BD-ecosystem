@@ -153,7 +153,7 @@ export type MechanicReport = {
 export function MechanicReportView({ report }: { report?: MechanicReport }) {
   if (!report?.diagnosis) return null;
   return (
-    <section className="mechanic-summary">
+    <section className="mechanic-summary mechanic-report-view">
       <h3>
         <Text bn="মেকানিকের কাজের রিপোর্ট" en="Mechanic work report" />
       </h3>
@@ -189,7 +189,7 @@ export function MechanicReportEditor({
     [error, setError] = useState("");
   return (
     <form
-      className="form-panel"
+      className="form-panel mechanic-report-editor"
       onSubmit={async (e) => {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.currentTarget));

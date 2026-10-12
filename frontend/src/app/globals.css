@@ -1702,3 +1702,41 @@ footer {
 @media(prefers-reduced-motion:reduce) { .mechanic-services .offering-card { transition:none; } .mechanic-services .offering-card:hover { transform:none; } }
 
 .mechanic-services .card-mechanic { background:#f3eff6; color:#9b74a8; }
+
+/* Mechanic booking and report cards */
+.mechanic-back-link { display:inline-flex; gap:10px; align-items:center; font-size:13px; color:#776681; margin-bottom:24px; text-decoration:none; }
+.mechanic-back-link:hover { color:#772d90; }
+.mechanic-booking-heading { padding:26px 30px; background:#f5eff7; border-radius:20px; margin-bottom:28px; }
+.mechanic-booking-heading h1 { font-size:clamp(28px,3vw,40px); margin:14px 0; }
+.mechanic-booking-heading .page-intro { font-size:15px; margin:0; color:#6f6177; }
+.mechanic-booking-grid { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:28px; align-items:start; }
+.mechanic-booking-grid>.form-panel { width:100%; max-width:none; padding:30px; border-radius:20px; }
+.mechanic-form-heading { margin-bottom:26px; padding-bottom:20px; border-bottom:1px solid #ebe8ee; }
+.mechanic-form-heading h2 { margin:10px 0; font-size:24px; }
+.mechanic-form-heading p { margin:0; font-size:13px; color:#77747f; line-height:1.8; }
+.mechanic-booking .field input, .mechanic-booking .field textarea, .mechanic-booking .field select, .mechanic-report-editor .field textarea { border-radius:10px; }
+.mechanic-booking .field input:focus-visible, .mechanic-booking .field textarea:focus-visible, .mechanic-booking .field select:focus-visible, .mechanic-report-editor textarea:focus-visible { outline:2px solid #9b74a8; outline-offset:2px; }
+.mechanic-booking-aside { position:sticky; top:100px; overflow:hidden; border:1px solid #ebe8ee; border-radius:20px; background:#fff; }
+.mechanic-booking-aside>.subject-photo { width:100%; height:210px; object-fit:cover; display:block; }
+.mechanic-booking-aside-body { padding:24px; }
+.mechanic-booking-aside h2 { font-size:20px; line-height:1.5; margin:12px 0 18px; }
+.mechanic-booking-aside dl { margin:0; border-top:1px solid #ebe8ee; border-bottom:1px solid #ebe8ee; padding:12px 0; }
+.mechanic-booking-aside dl>div { display:flex; align-items:baseline; justify-content:space-between; gap:14px; padding:8px 0; font-size:13px; }
+.mechanic-booking-aside dt { color:#77747f; }
+.mechanic-booking-aside dd { margin:0; font-weight:600; color:#772d90; }
+.mechanic-booking-aside-body>p, .mechanic-aside-next p { font-size:12px; color:#77747f; line-height:1.8; }
+.mechanic-aside-next { background:#faf7fc; border-radius:12px; padding:16px; margin-top:20px; }
+.mechanic-aside-next strong { font-size:13px; }
+.mechanic-aside-next p { margin-bottom:0; }
+.mechanic-summary { background:#fcfaff; border:1px solid #eee5f2; border-radius:14px; padding:18px; margin:18px 0; }
+.mechanic-summary h3 { margin:0 0 12px; }
+.mechanic-summary p { font-size:13px; line-height:1.8; margin:7px 0; white-space:pre-wrap; }
+.mechanic-report-view { background:#f7faf8; border-color:#dfeae3; }
+.mechanic-report-view h3 { color:#38654b; }
+.mechanic-report-view p strong { display:block; color:#698072; font-size:11px; font-weight:600; }
+.mechanic-report-editor { max-width:none; background:#faf7fc; border-radius:16px; margin:20px 0; }
+.mechanic-report-editor h3 { margin:0 0 22px; font-size:17px; color:#772d90; }
+@media(max-width:850px) { .mechanic-booking-grid { grid-template-columns:1fr; } .mechanic-booking-aside { position:static; order:-1; } .mechanic-booking-aside>.subject-photo { display:none; } .mechanic-booking-aside-body { padding:22px; } .mechanic-booking-aside h2 { margin:8px 0 12px; } .mechanic-booking-aside dl { display:flex; gap:28px; } .mechanic-booking-aside dl>div { flex:1; gap:10px; } }
+@media(max-width:650px) { .mechanic-booking-heading { padding:24px 20px; } .mechanic-booking-grid>.form-panel { padding:22px 18px; } .mechanic-booking-aside dl { flex-direction:column; gap:0; } .mechanic-summary { padding:16px; } .mechanic-report-editor { padding:20px 16px; } }
+
+@media(max-width:850px) { .mechanic-booking-aside { order:0; } }
