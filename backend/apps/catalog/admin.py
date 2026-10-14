@@ -3,6 +3,7 @@ from apps.operations.admin import ReadOnlyAdmin
 from .models import PartnerApplication, PartnerDocument, PartnerExpiryReminder
 from apps.operations.services import audit
 from .models import Division, Organization, Offering, ProductVariant, Category, ServiceArea, FoodOptionGroup, FoodOption
+from .models import ShopBrand, ShopCollection, OfferingMedia
 
 
 @admin.register(PartnerApplication)
@@ -33,7 +34,12 @@ class AuditedAdmin(admin.ModelAdmin):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 0
-    fields = ["label", "attributes", "sku", "price", "sale_price", "cost_price", "stock", "active"]
+    fields = ["label", "attributes", "sku", "barcode", "price", "sale_price", "cost_price", "stock", "active"]
+
+
+class OfferingMediaInline(admin.TabularInline):
+    model = OfferingMedia
+    extra = 0
 
 
 class FoodOptionGroupInline(admin.TabularInline):
@@ -59,7 +65,7 @@ class OfferingAdmin(AuditedAdmin):
     list_filter = ["division", "active", "prescription_required"]
     search_fields = ["name", "name_bn", "sku"]
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [ProductVariantInline, FoodOptionGroupInline]
+    inlines = [ProductVariantInline, FoodOptionGroupInline, OfferingMediaInline]
     fields = [
         "division",
         "organization",
@@ -70,6 +76,7 @@ class OfferingAdmin(AuditedAdmin):
         "description",
         "description_bn",
         "sku",
+        "barcode", "brand", "collections",
         "price",
         "sale_price",
         "cost_price",
@@ -96,6 +103,8 @@ class OrganizationAdmin(AuditedAdmin):
 
 admin.site.register(Division, AuditedAdmin)
 admin.site.register(Category, AuditedAdmin)
+admin.site.register(ShopBrand, AuditedAdmin)
+admin.site.register(ShopCollection, AuditedAdmin)
 @admin.register(ServiceArea)
 class ServiceAreaAdmin(AuditedAdmin):
     class Media:

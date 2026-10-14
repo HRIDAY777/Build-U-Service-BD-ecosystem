@@ -1,4 +1,4 @@
-# Feature audit — updated 10 October 2026
+# Feature audit — updated 13 October 2026
 
 See `MASTER_PROMPT_AUDIT.md` for the 19 original build phases and detailed remaining work.
 
@@ -37,7 +37,7 @@ This is a count of **27 working local feature groups**, not 26 individual requir
 
 These items remain open even where a related basic feature works:
 
-1. Catalog supports product/variant labels, attributes, SKU, regular/sale/cost pricing and stock; checkout applies the sale price and cost price is private. Required/optional food modifiers, owner editing, server pricing and order snapshots are implemented. Barcode and branch-specific menus remain open. Restaurant operating rules now support pause/resume, validated weekly/overnight/all-day hours, minimum subtotal and preparation snapshots; see `RESTAURANT_OPERATIONS.md`.
+1. Catalog supports product/variant labels, attributes, SKU, barcode, regular/sale/cost pricing and stock; checkout applies the sale price and cost price is private. U Shop adds subcategories, brands, collections, ordered image/video media, discovery and partner management. Required/optional food modifiers, owner editing, server pricing and order snapshots are implemented. Branch-specific menus remain open. Restaurant operating rules now support pause/resume, validated weekly/overnight/all-day hours, minimum subtotal and preparation snapshots; see `RESTAURANT_OPERATIONS.md` and `U_SHOP.md`.
 2. Service/provider weekly hours, leave, a private seven-day calendar and duration snapshots are implemented. Assignment checks these schedules, availability and overlaps. Service-hour-based customer time suggestions are implemented. Skills/eligibility matching and provider-capacity-based suggestions/reservations remain open; see `SERVICE_SCHEDULING.md`.
 3. Wallet, loyalty expiry, referral rewards, actual reward delivery and advanced promotion rules. Staff can mark redemptions fulfilled in admin; handing the reward to the customer remains a manual operation.
 4. Partner onboarding documents, review/approval and expiry controls.
@@ -77,6 +77,10 @@ Event requests now preserve a bundle and per-service tier selection as validated
 
 
 Extended local demo now includes 144 extra offerings, 12 fictional businesses, 18 new categories, 32 variants, 110 food options and 152 active Dhaka city/district service areas. Partner catalog pagination exposes all assigned items. Coverage and fees are demonstration settings; see `EXTENDED_DEMO_DATA.md`.
+
+## U Shop completion audit — 13 October 2026
+
+The original U Shop list contains 33 capabilities. **31 are complete locally**. Live online payment execution and live refund transfer are integration-ready and require an approved merchant provider, credentials and HTTPS callbacks. U Shop now includes subcategories, brands, collections, product/variant barcodes, ordered image/video media, related products, recommendations, frequently bought together, recently viewed, bilingual display, and scoped partner product/variant/media management. See `U_SHOP.md` for the complete 33-item evidence table and production boundaries.
 
 ## Project plans and enquiry (group 27)
 

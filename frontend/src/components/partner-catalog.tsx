@@ -6,6 +6,7 @@ import { api, Offering, PageResult } from "@/lib/api";
 import { ScheduleEditor } from "./schedule-editor";
 import { FoodOptionEditor } from "./food-option-editor";
 import { PartnerRestaurants } from "./partner-restaurants";
+import { ShopProductEditor } from "./shop-product-editor";
 export function PartnerCatalog() {
   const [items, setItems] = useState<Offering[]>([]);
   const [error, setError] = useState("");
@@ -116,6 +117,9 @@ export function PartnerCatalog() {
             <UiText text={"Available stock:"} />
             {item.stock}
           </p>
+          {item.division_slug === "shop" && (
+            <ShopProductEditor id={item.id} onChanged={() => void load()} />
+          )}
           <form
             className="form-grid"
             onSubmit={(e) => update(e, item.id, true)}
@@ -130,6 +134,21 @@ export function PartnerCatalog() {
                 required
               />
             </label>
+            {!!item.variants?.length && (
+              <label className="field">
+                <UiText text={"Variant / ভ্যারিয়েন্ট"} />
+                <select name="variant_id" required defaultValue="">
+                  <option value="" disabled>
+                    <UiText text={"Choose a variant / ভ্যারিয়েন্ট বাছুন"} />
+                  </option>
+                  {item.variants.map((variant) => (
+                    <option key={variant.id} value={variant.id}>
+                      {variant.label} · {variant.stock}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="field">
               <UiText text={"Reason"} />
               <input name="reason" required maxLength={100} />

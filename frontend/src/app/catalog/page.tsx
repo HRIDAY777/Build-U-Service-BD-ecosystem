@@ -10,7 +10,9 @@ type Category = {
   division_slug: string;
   name: string;
   name_bn: string;
+  parent: number | null;
 };
+type ShopFilter = { id: number; name: string; name_bn: string; slug?: string };
 export default async function Catalog({
   searchParams,
 }: {
@@ -36,26 +38,55 @@ export default async function Catalog({
   ]) {
     if (params[key]) query.set(key, params[key]);
   }
+  if (params.division === "shop") {
+    for (const key of ["brand", "collection"]) {
+      if (params[key]) query.set(key, params[key]);
+    }
+  }
   function divisionUrl(division: string) {
     const next = new URLSearchParams(query);
     next.delete("page");
     next.delete("category");
     next.delete("organization");
+    next.delete("brand");
+    next.delete("collection");
     if (division) next.set("division", division);
     else next.delete("division");
     return `/catalog?${next}`;
   }
-  const [divisions, items, categories] = await Promise.all([
-    serverGet<PageResult<Division>>("divisions/"),
-    serverGet<PageResult<Offering>>(`offerings/?${query}`),
-    serverGet<Category[]>(
-      `categories/?${new URLSearchParams(params.division ? { division: params.division } : {})}`,
-    ),
-  ]);
+  const [divisions, items, categories, brands, collections] = await Promise.all(
+    [
+      serverGet<PageResult<Division>>("divisions/"),
+      serverGet<PageResult<Offering>>(`offerings/?${query}`),
+      serverGet<Category[]>(
+        `categories/?${new URLSearchParams(params.division ? { division: params.division } : {})}`,
+      ),
+      params.division === "shop"
+        ? serverGet<ShopFilter[]>("shop-brands/")
+        : null,
+      params.division === "shop"
+        ? serverGet<ShopFilter[]>("shop-collections/")
+        : null,
+    ],
+  );
   const restaurant =
     params.organization && /^\d+$/.test(params.organization)
       ? await serverGet<Restaurant>(`organizations/${params.organization}/`)
       : null;
+  const topLevelCategories = (categories || []).filter(
+    (category) => category.parent === null,
+  );
+  const topLevelIds = new Set(topLevelCategories.map((category) => category.id));
+  const orderedCategories = [
+    ...topLevelCategories.flatMap((parent) => [
+      parent,
+      ...(categories || []).filter((category) => category.parent === parent.id),
+    ]),
+    ...(categories || []).filter(
+      (category) =>
+        category.parent !== null && !topLevelIds.has(category.parent),
+    ),
+  ];
   return (
     <div className="page-wrap">
       <span className="eyebrow">
@@ -113,16 +144,49 @@ export default async function Catalog({
             <option value="">
               <UiText text={"All categories / সব ক্যাটাগরি"} />
             </option>
-            {categories?.map((category) => (
+            {orderedCategories.map((category) => (
               <option key={category.id} value={category.id}>
                 <Text
-                  bn={category.name_bn || category.name}
-                  en={category.name}
+                  bn={`${category.parent ? "— " : ""}${category.name_bn || category.name}`}
+                  en={`${category.parent ? "— " : ""}${category.name}`}
                 />
               </option>
             ))}
           </select>
         </label>
+        {params.division === "shop" && (
+          <label className="field">
+            <Text bn="ব্র্যান্ড" en="Brand" />
+            <select name="brand" defaultValue={params.brand || ""}>
+              <option value="">
+                <Text bn="সব ব্র্যান্ড" en="All brands" />
+              </option>
+              {brands?.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  <Text bn={brand.name_bn || brand.name} en={brand.name} />
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {params.division === "shop" && (
+          <label className="field">
+            <Text bn="কালেকশন" en="Collection" />
+            <select name="collection" defaultValue={params.collection || ""}>
+              <option value="">
+                <Text bn="সব কালেকশন" en="All collections" />
+              </option>
+              {collections?.map((collection) => (
+                <option key={collection.id} value={collection.id}>
+                  <Text
+                    bn={collection.name_bn || collection.name}
+                    en={collection.name}
+                  />
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="field">
           <Text bn="সর্বনিম্ন দাম (৳)" en="Minimum price (৳)" />
           <input

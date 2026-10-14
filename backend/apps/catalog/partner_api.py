@@ -3,13 +3,24 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from .service_schedule import validate_leave_dates
 from .restaurant_rules import validate_weekly_hours
 from django.db import transaction
+from django.db.models import Prefetch
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 from apps.operations.models import InventoryMovement
 from apps.operations.services import audit
-from .models import Offering, Organization, FoodOptionGroup, FoodOption
+from .models import (
+    Category,
+    FoodOption,
+    FoodOptionGroup,
+    Offering,
+    OfferingMedia,
+    Organization,
+    ProductVariant,
+    ShopBrand,
+    ShopCollection,
+)
 from .api import OfferingSerializer, OrganizationSerializer
 
 
@@ -54,9 +65,97 @@ class OfferingEdit(serializers.Serializer):
     active = serializers.BooleanField(required=False)
 
 
+class ShopDetailsEdit(serializers.Serializer):
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.select_related("division"),
+        allow_null=True,
+        required=False,
+    )
+    brand = serializers.PrimaryKeyRelatedField(
+        queryset=ShopBrand.objects.filter(active=True),
+        allow_null=True,
+        required=False,
+    )
+    collections = serializers.PrimaryKeyRelatedField(
+        queryset=ShopCollection.objects.filter(active=True),
+        many=True,
+        required=False,
+    )
+    barcode = serializers.CharField(max_length=80, allow_blank=True, required=False)
+    name = serializers.CharField(max_length=180, required=False)
+    name_bn = serializers.CharField(max_length=180, required=False)
+    description = serializers.CharField(max_length=5000, required=False)
+    description_bn = serializers.CharField(
+        max_length=5000, allow_blank=True, required=False
+    )
+    price = serializers.DecimalField(
+        max_digits=12, decimal_places=2, min_value=Decimal("0"), required=False
+    )
+    sale_price = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        allow_null=True,
+        required=False,
+    )
+    cost_price = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        allow_null=True,
+        required=False,
+    )
+    image = serializers.CharField(max_length=1000, allow_blank=True, required=False)
+    active = serializers.BooleanField(required=False)
+
+    def validate(self, data):
+        offering = self.context["offering"]
+        category = data.get("category")
+        if category and category.division_id != offering.division_id:
+            raise serializers.ValidationError(
+                {"category": "Choose a category from this product division."}
+            )
+        return data
+
+
+class ShopVariantEdit(serializers.Serializer):
+    id = serializers.IntegerField(min_value=1, required=False)
+    label = serializers.CharField(max_length=120)
+    attributes = serializers.JSONField(default=dict)
+    sku = serializers.CharField(max_length=80)
+    barcode = serializers.CharField(max_length=80, allow_blank=True, default="")
+    price = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0)
+    sale_price = serializers.DecimalField(
+        max_digits=12, decimal_places=2, min_value=0, allow_null=True, default=None
+    )
+    cost_price = serializers.DecimalField(
+        max_digits=12, decimal_places=2, min_value=0, allow_null=True, default=None
+    )
+    stock = serializers.IntegerField(min_value=0, max_value=1000000)
+    active = serializers.BooleanField(default=True)
+
+    def validate_attributes(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Attributes must be an object.")
+        if len(value) > 20:
+            raise serializers.ValidationError("Use up to 20 variant attributes.")
+        return value
+
+
+class ShopMediaEdit(serializers.Serializer):
+    id = serializers.IntegerField(min_value=1, required=False)
+    kind = serializers.ChoiceField(choices=["image", "video"])
+    url = serializers.CharField(max_length=1000)
+    alt = serializers.CharField(max_length=180, allow_blank=True, default="")
+    alt_bn = serializers.CharField(max_length=180, allow_blank=True, default="")
+    position = serializers.IntegerField(min_value=0, max_value=32767, default=0)
+    active = serializers.BooleanField(default=True)
+
+
 class StockInput(serializers.Serializer):
     delta = serializers.IntegerField(min_value=-100000, max_value=100000)
     reason = serializers.CharField(max_length=100)
+    variant_id = serializers.IntegerField(min_value=1, allow_null=True, required=False)
 
 
 class FoodChoiceEdit(serializers.Serializer):
@@ -92,6 +191,79 @@ def food_settings(offering):
             for group in offering.food_option_groups.all().order_by("id")]
 
 
+def ensure_shop_product(offering):
+    if offering.division.slug != "shop":
+        raise ValidationError("U Shop product management is only available for U Shop.")
+
+
+def validate_model(instance):
+    try:
+        instance.full_clean()
+    except DjangoValidationError as error:
+        detail = getattr(error, "message_dict", None) or error.messages
+        raise ValidationError(detail) from error
+
+
+def shop_details_data(offering):
+    return {
+        "id": offering.pk,
+        "category": offering.category_id,
+        "brand": offering.brand_id,
+        "collections": list(
+            offering.collections.filter(active=True)
+            .order_by("name", "pk")
+            .values_list("pk", flat=True)
+        ),
+        "barcode": offering.barcode,
+        "name": offering.name,
+        "name_bn": offering.name_bn,
+        "description": offering.description,
+        "description_bn": offering.description_bn,
+        "price": str(offering.price),
+        "sale_price": str(offering.sale_price) if offering.sale_price is not None else None,
+        "cost_price": str(offering.cost_price) if offering.cost_price is not None else None,
+        "image": offering.image,
+        "active": offering.active,
+    }
+
+
+def shop_variants_data(offering):
+    return [
+        {
+            "id": variant.pk,
+            "label": variant.label,
+            "attributes": variant.attributes,
+            "sku": variant.sku,
+            "barcode": variant.barcode,
+            "price": str(variant.price),
+            "sale_price": str(variant.sale_price)
+            if variant.sale_price is not None
+            else None,
+            "cost_price": str(variant.cost_price)
+            if variant.cost_price is not None
+            else None,
+            "stock": variant.stock,
+            "active": variant.active,
+        }
+        for variant in offering.variants.all().order_by("id")
+    ]
+
+
+def shop_media_data(offering):
+    return [
+        {
+            "id": media.pk,
+            "kind": media.kind,
+            "url": media.url,
+            "alt": media.alt,
+            "alt_bn": media.alt_bn,
+            "position": media.position,
+            "active": media.active,
+        }
+        for media in offering.media.all().order_by("position", "pk")
+    ]
+
+
 class ServiceScheduleInput(serializers.Serializer):
     weekly_hours = serializers.JSONField()
     leave_dates = serializers.JSONField()
@@ -116,10 +288,171 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfferingSerializer
 
     def get_queryset(self):
-        qs = Offering.objects.select_related("division", "organization").order_by("id")
+        qs = (
+            Offering.objects.select_related("division", "organization", "brand")
+            .prefetch_related(
+                Prefetch(
+                    "variants",
+                    queryset=ProductVariant.objects.filter(active=True).order_by("id"),
+                    to_attr="active_variants",
+                )
+            )
+            .order_by("id")
+        )
         if self.request.user.has_perm("catalog.change_offering"):
             return qs
         return qs.filter(organization__owner=self.request.user, organization__approved=True)
+
+    @action(detail=True, methods=["get", "patch"], url_path="shop-details")
+    @transaction.atomic
+    def shop_details(self, request, pk=None):
+        scoped = self.get_object()
+        ensure_shop_product(scoped)
+        offering = (
+            Offering.objects.select_for_update(of=("self",))
+            .select_related("division", "brand", "category")
+            .get(pk=scoped.pk)
+        )
+        if request.method == "GET":
+            return Response(shop_details_data(offering))
+        serializer = ShopDetailsEdit(
+            data=request.data,
+            partial=True,
+            context={"offering": offering},
+        )
+        serializer.is_valid(raise_exception=True)
+        values = dict(serializer.validated_data)
+        collections = values.pop("collections", None)
+        before = {
+            key: str(getattr(offering, key))
+            for key in values
+        }
+        for key, value in values.items():
+            setattr(offering, key, value)
+        validate_model(offering)
+        if values:
+            offering.save(update_fields=[*values.keys(), "updated_at"])
+        if collections is not None:
+            offering.collections.set(collections)
+        audit(
+            request.user,
+            "shop.product_updated",
+            offering.pk,
+            before=before,
+            fields=[*values.keys(), *(["collections"] if collections is not None else [])],
+        )
+        return Response(shop_details_data(offering))
+
+    @action(detail=True, methods=["get", "put"], url_path="shop-variants")
+    @transaction.atomic
+    def shop_variants(self, request, pk=None):
+        scoped = self.get_object()
+        ensure_shop_product(scoped)
+        offering = Offering.objects.select_for_update().select_related("division").get(
+            pk=scoped.pk
+        )
+        if request.method == "GET":
+            return Response(shop_variants_data(offering))
+        payload = serializers.ListSerializer(
+            child=ShopVariantEdit(), max_length=50, data=request.data
+        )
+        payload.is_valid(raise_exception=True)
+        rows = payload.validated_data
+        for field in ("label", "sku", "barcode"):
+            values = [row[field] for row in rows if row.get(field)]
+            if len(values) != len(set(values)):
+                raise ValidationError({field: f"Duplicate {field} values are not allowed."})
+        existing = {
+            variant.pk: variant
+            for variant in ProductVariant.objects.select_for_update()
+            .filter(offering=offering)
+            .order_by("id")
+        }
+        kept = set()
+        changed_stock = 0
+        for row in rows:
+            variant_id = row.get("id")
+            if variant_id and (variant_id not in existing or variant_id in kept):
+                raise ValidationError("Unsupported or duplicated product variant.")
+            variant = existing[variant_id] if variant_id else ProductVariant(offering=offering)
+            old_stock = variant.stock if variant.pk else 0
+            for field in (
+                "label",
+                "attributes",
+                "sku",
+                "barcode",
+                "price",
+                "sale_price",
+                "cost_price",
+                "stock",
+                "active",
+            ):
+                setattr(variant, field, row[field])
+            validate_model(variant)
+            variant.save()
+            kept.add(variant.pk)
+            delta = variant.stock - old_stock
+            if delta:
+                InventoryMovement.objects.create(
+                    offering=offering,
+                    variant=variant,
+                    delta=delta,
+                    reason="partner_variant_sync",
+                )
+                changed_stock += 1
+        ProductVariant.objects.filter(offering=offering).exclude(pk__in=kept).update(
+            active=False
+        )
+        audit(
+            request.user,
+            "shop.variants_updated",
+            offering.pk,
+            variants=len(kept),
+            stock_movements=changed_stock,
+        )
+        return Response(shop_variants_data(offering))
+
+    @action(detail=True, methods=["get", "put"], url_path="shop-media")
+    @transaction.atomic
+    def shop_media(self, request, pk=None):
+        scoped = self.get_object()
+        ensure_shop_product(scoped)
+        offering = Offering.objects.select_for_update().select_related("division").get(
+            pk=scoped.pk
+        )
+        if request.method == "GET":
+            return Response(shop_media_data(offering))
+        payload = serializers.ListSerializer(
+            child=ShopMediaEdit(), max_length=12, data=request.data
+        )
+        payload.is_valid(raise_exception=True)
+        existing = {
+            media.pk: media
+            for media in OfferingMedia.objects.select_for_update()
+            .filter(offering=offering)
+            .order_by("id")
+        }
+        kept = set()
+        for row in payload.validated_data:
+            media_id = row.get("id")
+            if media_id and (media_id not in existing or media_id in kept):
+                raise ValidationError("Unsupported or duplicated product media.")
+            media = existing[media_id] if media_id else OfferingMedia(offering=offering)
+            for field in ("kind", "url", "alt", "alt_bn", "position", "active"):
+                setattr(media, field, row[field])
+            validate_model(media)
+            media.save()
+            kept.add(media.pk)
+        OfferingMedia.objects.filter(offering=offering).exclude(pk__in=kept).update(
+            active=False
+        )
+        audit(
+            request.user,
+            "shop.media_updated",
+            offering.pk,
+            media=len(kept),
+        )
+        return Response(shop_media_data(offering))
 
     @action(detail=True, methods=["get", "put"])
     @transaction.atomic
@@ -209,10 +542,51 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
         with transaction.atomic():
             offering = Offering.objects.select_for_update().get(pk=offering.pk)
             delta=serializer.validated_data["delta"]
-            if offering.stock+delta<0:
-                raise ValidationError("Stock cannot be negative.")
-            offering.stock+=delta
-            offering.save(update_fields=["stock"])
-            InventoryMovement.objects.create(offering=offering,delta=delta,reason=serializer.validated_data["reason"])
-            audit(request.user,"inventory.adjusted",offering.pk,delta=delta,reason=serializer.validated_data["reason"])
+            variant_id = serializer.validated_data.get("variant_id")
+            variants = ProductVariant.objects.select_for_update().filter(
+                offering=offering, active=True
+            )
+            if variants.exists():
+                if not variant_id:
+                    raise ValidationError(
+                        {"variant_id": "Choose a variant for this product."}
+                    )
+                variant = variants.filter(pk=variant_id).first()
+                if not variant:
+                    raise ValidationError(
+                        {"variant_id": "Choose an active variant from this product."}
+                    )
+                if variant.stock + delta < 0:
+                    raise ValidationError("Stock cannot be negative.")
+                variant.stock += delta
+                variant.save(update_fields=["stock"])
+                InventoryMovement.objects.create(
+                    offering=offering,
+                    variant=variant,
+                    delta=delta,
+                    reason=serializer.validated_data["reason"],
+                )
+            else:
+                if variant_id:
+                    raise ValidationError(
+                        {"variant_id": "This product does not use active variants."}
+                    )
+                if offering.stock+delta<0:
+                    raise ValidationError("Stock cannot be negative.")
+                offering.stock+=delta
+                offering.save(update_fields=["stock"])
+                variant = None
+                InventoryMovement.objects.create(
+                    offering=offering,
+                    delta=delta,
+                    reason=serializer.validated_data["reason"],
+                )
+            audit(
+                request.user,
+                "inventory.adjusted",
+                offering.pk,
+                delta=delta,
+                variant_id=variant.pk if variant else None,
+                reason=serializer.validated_data["reason"],
+            )
         return Response(self.get_serializer(offering).data)

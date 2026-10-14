@@ -1,11 +1,34 @@
+import re
 import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
+from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
 from .restaurant_rules import validate_weekly_hours
 from .service_schedule import validate_leave_dates
+
+
+def validate_public_media_url(value):
+    if value.startswith("https://"):
+        try:
+            URLValidator(schemes=["https"])(value)
+        except ValidationError as error:
+            raise ValidationError("Enter a valid HTTPS URL.") from error
+        return
+    if value.startswith(("/images/", "/videos/")):
+        valid_local_path = re.fullmatch(
+            r"/(?:images|videos)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+",
+            value,
+        ) and not any(part in {".", ".."} for part in value.split("/"))
+        if valid_local_path:
+            return
+        raise ValidationError("Enter a valid bundled media path.")
+    raise ValidationError(
+        "Use an HTTPS URL or a bundled /images/ or /videos/ path."
+    )
 
 
 class PartnerApplication(models.Model):
@@ -98,9 +121,43 @@ class Category(models.Model):
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     name_bn = models.CharField(max_length=100)
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="subcategories")
+
+    def clean(self):
+        super().clean()
+        if self.parent_id:
+            if self.parent_id == self.pk or self.parent.division_id != self.division_id or self.parent.parent_id:
+                raise ValidationError({"parent": "Choose a top-level category in the same division."})
+            if self.pk and self.subcategories.exists():
+                raise ValidationError({"parent": "A category with children must remain top-level."})
+
+    def __str__(self):
+        return self.name
+
+
+class ShopBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    name_bn = models.CharField(max_length=100, blank=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ShopCollection(models.Model):
+    name = models.CharField(max_length=100)
+    name_bn = models.CharField(max_length=100, blank=True)
+    slug = models.SlugField(unique=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Offering(models.Model):
+    brand = models.ForeignKey(ShopBrand, null=True, blank=True, on_delete=models.SET_NULL)
+    collections = models.ManyToManyField(ShopCollection, blank=True, related_name="products")
+    barcode = models.CharField(max_length=80, blank=True, db_index=True)
     division = models.ForeignKey(Division, on_delete=models.PROTECT)
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
@@ -119,7 +176,7 @@ class Offering(models.Model):
     duration_minutes = models.PositiveIntegerField(default=60)
     service_weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
     service_leave_dates = models.JSONField(default=list, blank=True, validators=[validate_leave_dates])
-    image = models.URLField(blank=True)
+    image = models.CharField(max_length=1000, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -134,6 +191,7 @@ class Offering(models.Model):
                 condition=Q(cost_price__isnull=True) | Q(cost_price__gte=0),
                 name="offering_cost_price_nonnegative",
             ),
+            models.UniqueConstraint(fields=["barcode"], condition=~Q(barcode=""), name="offering_barcode_unique"),
         ]
         indexes = [models.Index(fields=["division", "active"])]
 
@@ -144,8 +202,29 @@ class Offering(models.Model):
     def __str__(self):
         return self.name
 
+    def clean(self):
+        super().clean()
+        if self.category_id and self.category.division_id != self.division_id:
+            raise ValidationError({"category": "Choose a category in the same division."})
+        if self.brand_id and self.division.slug != "shop":
+            raise ValidationError({"brand": "Brands apply only to U Shop products."})
+        if self.image:
+            try:
+                validate_public_media_url(self.image)
+            except ValidationError as error:
+                raise ValidationError({"image": error.messages}) from error
+        if self.barcode and ProductVariant.objects.filter(barcode=self.barcode).exists():
+            raise ValidationError(
+                {"barcode": "This barcode is already used by a product variant."}
+            )
+        if self.pk and self.division.slug != "shop" and self.collections.exists():
+            raise ValidationError(
+                {"collections": "Collections apply only to U Shop products."}
+            )
+
 
 class ProductVariant(models.Model):
+    barcode = models.CharField(max_length=80, blank=True, db_index=True)
     offering = models.ForeignKey(Offering, on_delete=models.CASCADE, related_name="variants")
     label = models.CharField(max_length=120)
     attributes = models.JSONField(default=dict, blank=True)
@@ -169,6 +248,7 @@ class ProductVariant(models.Model):
                 name="variant_cost_price_nonnegative",
             ),
             models.UniqueConstraint(fields=["offering", "label"], name="offering_variant_label_unique"),
+            models.UniqueConstraint(fields=["barcode"], condition=~Q(barcode=""), name="variant_barcode_unique"),
         ]
 
     @property
@@ -177,6 +257,49 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.offering.name} - {self.label}"
+
+    def clean(self):
+        super().clean()
+        if self.barcode and Offering.objects.filter(barcode=self.barcode).exists():
+            raise ValidationError(
+                {"barcode": "This barcode is already used by a product."}
+            )
+
+
+class OfferingMedia(models.Model):
+    offering = models.ForeignKey(Offering, on_delete=models.CASCADE, related_name="media")
+    kind = models.CharField(max_length=8, choices=[("image", "Image"), ("video", "Video")])
+    url = models.CharField(max_length=1000)
+    alt = models.CharField(max_length=180, blank=True)
+    alt_bn = models.CharField(max_length=180, blank=True)
+    position = models.PositiveSmallIntegerField(default=0)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["position", "pk"]
+
+    def clean(self):
+        super().clean()
+        try:
+            validate_public_media_url(self.url)
+        except ValidationError as error:
+            raise ValidationError({"url": error.messages}) from error
+        if self.offering_id and self.offering.division.slug != "shop":
+            raise ValidationError({"offering": "Choose a U Shop product."})
+
+
+@receiver(m2m_changed, sender=Offering.collections.through)
+def validate_shop_collection_assignment(sender, instance, action, reverse, pk_set, **kwargs):
+    if action != "pre_add" or not pk_set:
+        return
+    if reverse:
+        invalid = Offering.objects.filter(pk__in=pk_set).exclude(
+            division__slug="shop"
+        )
+        if invalid.exists():
+            raise ValidationError("Collections apply only to U Shop products.")
+    elif instance.division.slug != "shop":
+        raise ValidationError("Collections apply only to U Shop products.")
 
 
 class FoodOptionGroup(models.Model):

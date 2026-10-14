@@ -16,6 +16,7 @@ import { LocationPicker, addressLine } from "./location-picker";
 import { Photo } from "./photo";
 import { offeringPhoto } from "@/lib/photos";
 import { cartLineKey, cartUnitPrice } from "@/lib/cart";
+import { ShopMediaGallery } from "./shop-media-gallery";
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "Something went wrong. Please try again.";
 function fields(form: HTMLFormElement) {
@@ -379,6 +380,31 @@ export function LoginForm() {
     </div>
   );
 }
+const SHOP_ATTRIBUTE_BN: Record<string, string> = {
+  size: "মাপ",
+  color: "রঙ",
+};
+const SHOP_VALUE_BN: Record<string, string> = {
+  Black: "কালো",
+  Blue: "নীল",
+  Brown: "বাদামি",
+  Green: "সবুজ",
+  Grey: "ধূসর",
+  Orange: "কমলা",
+  Pink: "গোলাপি",
+  Purple: "বেগুনি",
+  Red: "লাল",
+  White: "সাদা",
+  Yellow: "হলুদ",
+};
+function shopVariantLabel(label: string, lang: "bn" | "en") {
+  if (lang === "en") return label;
+  return Object.entries(SHOP_VALUE_BN).reduce(
+    (translated, [english, bangla]) => translated.split(english).join(bangla),
+    label,
+  );
+}
+
 export function OfferingDetail({ item }: { item: Offering }) {
   const { lang, add } = useApp();
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
@@ -416,12 +442,20 @@ export function OfferingDetail({ item }: { item: Offering }) {
         className="text-link"
         href={`/catalog?division=${item.division_slug}`}
       >
-        <UiText text={"← Back to"} />
-        {item.division_slug}
+        {item.division_slug === "shop" ? (
+          <Text bn="← ইউ শপে ফিরুন" en="← Back to U Shop" />
+        ) : (
+          <>
+            <UiText text={"← Back to"} />
+            {item.division_slug}
+          </>
+        )}
       </Link>
       <div className="detail-grid" style={{ marginTop: 30 }}>
         <div className={`offering-image card-${item.division_slug}`}>
-          {offeringPhoto(item) ? (
+          {item.division_slug === "shop" ? (
+            <ShopMediaGallery item={item} />
+          ) : offeringPhoto(item) ? (
             <Photo
               src={offeringPhoto(item)}
               alt={lang === "bn" ? item.name_bn : item.name}
@@ -438,6 +472,13 @@ export function OfferingDetail({ item }: { item: Offering }) {
         </div>
         <div>
           <span className="eyebrow">{item.merchant}</span>
+          {item.division_slug === "shop" && item.brand_name && (
+            <p className="shop-product-brand">
+              {lang === "bn"
+                ? item.brand_name_bn || item.brand_name
+                : item.brand_name}
+            </p>
+          )}
           <h1>{lang === "bn" ? item.name_bn : item.name}</h1>
           <p>{lang === "bn" ? item.description_bn : item.description}</p>
           <div className="detail-price">
@@ -446,6 +487,43 @@ export function OfferingDetail({ item }: { item: Offering }) {
             )}
             ৳{(Number(currentPrice) + optionPrice).toLocaleString()}
           </div>
+          {item.division_slug === "shop" &&
+            (item.sku || item.barcode || item.collections?.length > 0) && (
+              <dl className="shop-product-meta">
+                {item.sku && (
+                  <div>
+                    <dt>
+                      <Text bn="SKU" en="SKU" />
+                    </dt>
+                    <dd>{item.sku}</dd>
+                  </div>
+                )}
+                {item.barcode && (
+                  <div>
+                    <dt>
+                      <Text bn="বারকোড" en="Barcode" />
+                    </dt>
+                    <dd>{item.barcode}</dd>
+                  </div>
+                )}
+                {item.collections?.length > 0 && (
+                  <div>
+                    <dt>
+                      <Text bn="কালেকশন" en="Collections" />
+                    </dt>
+                    <dd>
+                      {item.collections
+                        .map((collection) =>
+                          lang === "bn"
+                            ? collection.name_bn || collection.name
+                            : collection.name,
+                        )
+                        .join(", ")}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
           {item.prescription_required && (
             <p className="notice">
               <UiText
@@ -489,9 +567,13 @@ export function OfferingDetail({ item }: { item: Offering }) {
                         value={variant.id}
                         disabled={!variant.stock}
                       >
-                        {variant.label} ·{" "}
+                        {shopVariantLabel(variant.label, lang)} ·{" "}
                         {Object.entries(variant.attributes)
-                          .map(([key, value]) => `${key}: ${value}`)
+                          .map(([key, value]) =>
+                            lang === "bn"
+                              ? `${SHOP_ATTRIBUTE_BN[key] || key}: ${SHOP_VALUE_BN[String(value)] || value}`
+                              : `${key}: ${value}`,
+                          )
                           .join(", ")}{" "}
                         · ৳{Number(variant.current_price).toLocaleString()}
                       </option>

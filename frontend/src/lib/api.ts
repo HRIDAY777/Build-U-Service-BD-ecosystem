@@ -11,6 +11,18 @@ export type Offering = {
   id: number;
   slug: string;
   sku: string;
+  barcode: string;
+  brand: number | null;
+  brand_name: string;
+  brand_name_bn: string;
+  collections: { id: number; name: string; name_bn: string; slug: string }[];
+  media: {
+    id: number;
+    kind: "image" | "video";
+    url: string;
+    alt: string;
+    alt_bn: string;
+  }[];
   division_slug: string;
   organization: number | null;
   merchant: string;
@@ -49,6 +61,7 @@ export type ProductVariant = {
   label: string;
   attributes: Record<string, string | number | boolean>;
   sku: string;
+  barcode: string;
   price: string;
   sale_price: string | null;
   current_price: string;

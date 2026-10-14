@@ -6,7 +6,19 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from apps.catalog.models import Division, Category, Organization, Offering, ServiceArea, ProductVariant, FoodOptionGroup, FoodOption
+from apps.catalog.models import (
+    Category,
+    Division,
+    FoodOption,
+    FoodOptionGroup,
+    Offering,
+    OfferingMedia,
+    Organization,
+    ProductVariant,
+    ServiceArea,
+    ShopBrand,
+    ShopCollection,
+)
 
 # Indicative demo prices; no real merchant, clinical claim or fulfillment promise.
 CATALOG = {
@@ -91,6 +103,47 @@ CATALOG = {
 }
 PHOTOS={slug:f"/images/photos/{slug}.jpg" for slug in CATALOG}
 
+SHOP_SUBCATEGORIES = {
+    "Cotton T-shirt": ("Casual clothing", "দৈনন্দিন পোশাক"),
+    "Polo shirt": ("Casual clothing", "দৈনন্দিন পোশাক"),
+    "Cotton panjabi": ("Traditional menswear", "ঐতিহ্যবাহী পুরুষ পোশাক"),
+    "Cotton kurti": ("Women's clothing", "নারীদের পোশাক"),
+    "Canvas backpack": ("Everyday bags", "দৈনন্দিন ব্যাগ"),
+    "Reusable shopping bag": ("Everyday bags", "দৈনন্দিন ব্যাগ"),
+    "Lunch box": ("Food containers", "খাবার রাখার পাত্র"),
+    "Ceramic mug": ("Drinkware", "পানীয়ের পাত্র"),
+    "Steel flask": ("Drinkware", "পানীয়ের পাত্র"),
+    "Kitchen apron": ("Kitchen textiles", "রান্নাঘরের কাপড়"),
+    "Notebook set": ("Writing supplies", "লেখার সামগ্রী"),
+    "Pen set": ("Writing supplies", "লেখার সামগ্রী"),
+    "Desk organiser": ("Desk organisation", "ডেস্ক গুছানো"),
+    "LED desk lamp": ("Lighting", "আলো"),
+    "Bedsheet set": ("Bedding", "বিছানার সামগ্রী"),
+    "Bath towel": ("Bath linens", "গোসলের কাপড়"),
+    "Umbrella": ("Weather accessories", "আবহাওয়ার অনুষঙ্গ"),
+    "Phone stand": ("Mobile accessories", "মোবাইল অনুষঙ্গ"),
+    "USB cable": ("Mobile accessories", "মোবাইল অনুষঙ্গ"),
+    "Storage basket": ("Home storage", "ঘর গুছানো"),
+}
+
+SHOP_BRAND_BY_CATEGORY = {
+    "Clothing": "U Service Lifestyle",
+    "Bags": "U Service Lifestyle",
+    "Kitchen": "U Service Home",
+    "Home essentials": "U Service Home",
+    "Stationery": "U Service Essentials",
+    "Accessories": "U Service Essentials",
+}
+
+SHOP_COLLECTION_BY_CATEGORY = {
+    "Clothing": "Everyday essentials",
+    "Bags": "Everyday essentials",
+    "Accessories": "Everyday essentials",
+    "Stationery": "Work and study",
+    "Kitchen": "Home refresh",
+    "Home essentials": "Home refresh",
+}
+
 
 ITEM_PHOTOS = {
     "Chicken biryani": "food", "Fried rice": "vegetable",
@@ -151,13 +204,37 @@ class Command(BaseCommand):
         divisions={d.slug:d for d in Division.objects.filter(active=True)}
         if set(CATALOG)-divisions.keys():
             raise CommandError("Seed the base divisions first.")
-        counts={"offerings":0,"organizations":0,"categories":0,"areas":0,"variants":0,"food_groups":0,"food_options":0}
+        counts={"offerings":0,"organizations":0,"categories":0,"areas":0,"variants":0,"food_groups":0,"food_options":0,"brands":0,"collections":0,"media":0}
+        shop_brands = {}
+        for name, name_bn in [
+            ("U Service Lifestyle", "ইউ সার্ভিস লাইফস্টাইল"),
+            ("U Service Home", "ইউ সার্ভিস হোম"),
+            ("U Service Essentials", "ইউ সার্ভিস এসেনশিয়ালস"),
+        ]:
+            brand, created = ShopBrand.objects.get_or_create(
+                name=name, defaults={"name_bn": name_bn}
+            )
+            shop_brands[name] = brand
+            counts["brands"] += created
+        shop_collections = {}
+        for name, name_bn, collection_slug in [
+            ("Everyday essentials", "প্রতিদিনের প্রয়োজন", "everyday-essentials"),
+            ("Work and study", "কাজ ও পড়াশোনা", "work-and-study"),
+            ("Home refresh", "ঘর সাজানো", "home-refresh"),
+            ("New arrivals", "নতুন পণ্য", "new-arrivals"),
+        ]:
+            collection, created = ShopCollection.objects.get_or_create(
+                slug=collection_slug,
+                defaults={"name": name, "name_bn": name_bn},
+            )
+            shop_collections[name] = collection
+            counts["collections"] += created
         for slug, rows in CATALOG.items():
             for branch, area in enumerate(["Dhanmondi","Uttara"],1):
                 org, created=Organization.objects.get_or_create(name=f"DEMO Plus {slug.title()} {area}", division=divisions[slug], defaults={"owner":owner,"approved":True,"area":area,"address":f"Demo address: Road {branch}, {area}, Dhaka (fictional)","description":"Fictional business for local testing only."})
                 counts["organizations"]+=created
                 for index,(name,bn,price,category_name,category_bn) in enumerate(rows,1):
-                    category,created=Category.objects.get_or_create(division=divisions[slug],name=category_name,defaults={"name_bn":category_bn})
+                    category,created=Category.objects.get_or_create(division=divisions[slug],parent__isnull=True,name=category_name,defaults={"name_bn":category_bn})
                     counts["categories"]+=created
                     key=f"extended-{slug}-{branch}-{index}"
                     service=divisions[slug].kind=="service"
@@ -173,6 +250,57 @@ class Command(BaseCommand):
                         updates["description_bn"] = profile["description_bn"]
                     if updates:
                         Offering.objects.filter(pk=item.pk).update(**updates)
+                    if slug == "shop":
+                        subcategory_name, subcategory_bn = SHOP_SUBCATEGORIES[name]
+                        subcategory, subcategory_created = Category.objects.get_or_create(
+                            division=divisions[slug],
+                            parent=category,
+                            name=subcategory_name,
+                            defaults={"name_bn": subcategory_bn},
+                        )
+                        counts["categories"] += subcategory_created
+                        metadata_updates = {}
+                        if created or item.category_id == category.pk:
+                            metadata_updates["category"] = subcategory
+                        if not item.barcode:
+                            metadata_updates["barcode"] = f"8801000{branch}{index:05d}"
+                        if not item.brand_id:
+                            metadata_updates["brand"] = shop_brands[
+                                SHOP_BRAND_BY_CATEGORY[category_name]
+                            ]
+                        if metadata_updates:
+                            Offering.objects.filter(pk=item.pk).update(**metadata_updates)
+                        item.collections.add(
+                            shop_collections[
+                                SHOP_COLLECTION_BY_CATEGORY[category_name]
+                            ]
+                        )
+                        if index <= 6:
+                            item.collections.add(shop_collections["New arrivals"])
+                        if profile["image"]:
+                            _, media_created = OfferingMedia.objects.get_or_create(
+                                offering=item,
+                                kind="image",
+                                url=profile["image"],
+                                defaults={
+                                    "alt": f"{name} product photo",
+                                    "alt_bn": f"{bn} পণ্যের ছবি",
+                                    "position": 0,
+                                },
+                            )
+                            counts["media"] += media_created
+                            if profile["image"] != PHOTOS["shop"]:
+                                _, media_created = OfferingMedia.objects.get_or_create(
+                                    offering=item,
+                                    kind="image",
+                                    url=PHOTOS["shop"],
+                                    defaults={
+                                        "alt": "U Shop demo store context",
+                                        "alt_bn": "ইউ শপ ডেমো দোকানের পরিবেশ",
+                                        "position": 1,
+                                    },
+                                )
+                                counts["media"] += media_created
                     if slug=="food" and index<=11:
                         for title,title_bn,minimum,maximum,choices in [("Portion","পরিমাণ",1,1,[("Regular","সাধারণ",0),("Large","বড়",80)]),("Extras","অতিরিক্ত",0,2,[("Salad","সালাদ",30),("Drink","পানীয়",50),("Dessert","মিষ্টান্ন",60)])]:
                             group,created=FoodOptionGroup.objects.get_or_create(offering=item,name=title,defaults={"name_bn":title_bn,"min_choices":minimum,"max_choices":maximum})
@@ -182,8 +310,14 @@ class Command(BaseCommand):
                                 counts["food_options"]+=created
                     if slug=="shop" and index<=4:
                         for size,color in [("M","Black"),("L","Black"),("M","Blue"),("L","Blue")]:
-                            _,created=ProductVariant.objects.get_or_create(sku=f"DEMO-{key.upper()}-{size}-{color.upper()}",defaults={"offering":item,"label":f"{size} / {color}","attributes":{"size":size,"color":color},"price":price,"stock":10})
+                            variant,created=ProductVariant.objects.get_or_create(sku=f"DEMO-{key.upper()}-{size}-{color.upper()}",defaults={"offering":item,"label":f"{size} / {color}","attributes":{"size":size,"color":color},"price":price,"stock":10})
                             counts["variants"]+=created
+                            if not variant.barcode:
+                                size_code = 1 if size == "M" else 2
+                                color_code = 1 if color == "Black" else 2
+                                ProductVariant.objects.filter(pk=variant.pk).update(
+                                    barcode=f"880200{branch}{index:02d}{size_code}{color_code}00"
+                                )
         data=json.loads((Path(__file__).resolve().parents[2]/"static/catalog/locations.json").read_text(encoding="utf-8"))
         dhaka=next(d for v in data["divisions"] for d in v["districts"] if d["name"]=="Dhaka")
         areas={}

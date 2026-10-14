@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import WishlistShare
 from .wishlist import check_wishlist_alerts, offering_snapshot
-from .models import Category, Division, Organization, Offering, ProductVariant, ServiceArea, WishlistItem, FoodOptionGroup, FoodOption
+from .models import Category, Division, Organization, Offering, ProductVariant, ServiceArea, WishlistItem, FoodOptionGroup, FoodOption, ShopBrand, ShopCollection, OfferingMedia
 
 
 class DivisionSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductVariant
-        fields = ["id", "label", "attributes", "sku", "price", "sale_price", "current_price", "stock"]
+        fields = ["id", "label", "attributes", "sku", "barcode", "price", "sale_price", "current_price", "stock"]
         read_only_fields = fields
 
 
@@ -47,7 +47,42 @@ class FoodOptionGroupSerializer(serializers.ModelSerializer):
         return FoodOptionSerializer(choices, many=True).data
 
 
+class MediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfferingMedia
+        fields = ["id", "kind", "url", "alt", "alt_bn"]
+
+
 class OfferingSerializer(serializers.ModelSerializer):
+    brand_name = serializers.CharField(source="brand.name", read_only=True, default="")
+    brand_name_bn = serializers.CharField(source="brand.name_bn", read_only=True, default="")
+    media = serializers.SerializerMethodField()
+    collections = serializers.SerializerMethodField()
+
+    def get_media(self, obj):
+        view = self.context.get("view")
+        if obj.division.slug != "shop" or getattr(view, "action", None) != "retrieve":
+            return []
+        media = getattr(obj, "public_media", None)
+        if media is None:
+            media = obj.media.filter(active=True).filter(
+                Q(url__startswith="https://")
+                | Q(url__startswith="/images/")
+                | Q(url__startswith="/videos/")
+            )[:12]
+        else:
+            media = media[:12]
+        return MediaSerializer(media, many=True).data
+
+    def get_collections(self, obj):
+        view = self.context.get("view")
+        if obj.division.slug != "shop" or getattr(view, "action", None) != "retrieve":
+            return []
+        collections = getattr(obj, "public_collections", None)
+        if collections is None:
+            collections = obj.collections.filter(active=True).order_by("name", "pk")
+        return [{"id": value.pk, "name": value.name, "name_bn": value.name_bn, "slug": value.slug} for value in collections]
+
     division_slug = serializers.CharField(source="division.slug", read_only=True)
     merchant = serializers.CharField(source="organization.name", read_only=True, default="U Service BD")
     variants = serializers.SerializerMethodField()
@@ -89,6 +124,7 @@ class OfferingSerializer(serializers.ModelSerializer):
             "name_bn",
             "slug",
             "sku",
+            "barcode", "brand", "brand_name", "brand_name_bn", "collections", "media",
             "description",
             "description_bn",
             "price",
@@ -116,7 +152,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ["id", "division_slug", "name", "name_bn"]
+        fields = ["id", "division_slug", "name", "name_bn", "parent"]
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -132,6 +168,8 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CatalogFilters(serializers.Serializer):
+    brand = serializers.IntegerField(min_value=1, required=False)
+    collection = serializers.IntegerField(min_value=1, required=False)
     category = serializers.IntegerField(min_value=1, required=False)
     organization = serializers.IntegerField(min_value=1, required=False)
     min_price = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0, required=False)
@@ -150,6 +188,50 @@ class CatalogFilters(serializers.Serializer):
 class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = OfferingSerializer
+
+    @action(detail=True, methods=["get"])
+    def discovery(self, request, pk=None):
+        from django.db.models import Count
+        from apps.operations.models import OrderItem
+        item = self.get_object()
+        if item.division.slug != "shop":
+            raise ValidationError("Product discovery is only available for U Shop.")
+        raw = request.query_params.get("recent", "")
+        pieces = raw.split(",") if raw else []
+        if len(pieces) > 12 or any(not piece.isdigit() or len(piece) > 10 for piece in pieces):
+            raise ValidationError("Choose up to 12 valid recently viewed product IDs.")
+        recent_ids = list(dict.fromkeys(int(piece) for piece in pieces if int(piece) != item.pk))
+        public = self.get_queryset().filter(division=item.division).exclude(pk=item.pk)
+        recent_map = {product.pk: product for product in public.filter(pk__in=recent_ids)}
+        recent = [recent_map[product_id] for product_id in recent_ids if product_id in recent_map]
+        # Rank only fulfilled orders. Never return customer/order identities.
+        available = public.filter(Q(variants__active=True, variants__stock__gt=0) | Q(variants__isnull=True, stock__gt=0)).distinct()
+        popular_ids = list(OrderItem.objects.filter(
+                               order__status="delivered",
+                               offering_id__in=available.values("pk"),
+                           )
+                           .exclude(offering=item).values("offering_id").annotate(count=Count("order_id", distinct=True))
+                           .order_by("-count", "offering_id").values_list("offering_id", flat=True)[:40])
+        related = available.filter(category_id=item.category_id) if item.category_id else available.none()
+        popular_map = {product.pk: product for product in available.filter(pk__in=popular_ids)}
+        recommended = [popular_map[product_id] for product_id in popular_ids if product_id in popular_map][:4]
+        if len(recommended) < 4:
+            recommended += list(available.exclude(pk__in=[product.pk for product in recommended]).order_by("-updated_at", "id")[:4-len(recommended)])
+        order_ids = OrderItem.objects.filter(offering=item, order__status="delivered").values("order_id")
+        together_ids = list(OrderItem.objects.filter(
+                                order_id__in=order_ids,
+                                offering_id__in=available.values("pk"),
+                            ).exclude(offering=item)
+                            .values("offering_id").annotate(count=Count("order_id", distinct=True)).filter(count__gte=2)
+                            .order_by("-count", "offering_id").values_list("offering_id", flat=True)[:20])
+        together_map = {product.pk: product for product in available.filter(pk__in=together_ids)}
+        together = [together_map[product_id] for product_id in together_ids if product_id in together_map][:4]
+        return Response({
+            "related": self.get_serializer(related[:4], many=True).data,
+            "recommended": self.get_serializer(recommended, many=True).data,
+            "bought_together": self.get_serializer(together, many=True).data,
+            "recent": self.get_serializer(recent, many=True).data,
+        }, headers={"Cache-Control": "no-store"})
 
     @action(detail=True, methods=["get"])
     def booking_times(self, request, pk=None):
@@ -173,7 +255,7 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
         qs = (
             Offering.objects.filter(active=True, division__active=True)
             .filter(Q(organization__isnull=True) | Q(organization__approved=True))
-            .select_related("division", "organization")
+            .select_related("division", "organization", "brand")
             .prefetch_related(
                 Prefetch("food_option_groups", queryset=FoodOptionGroup.objects.filter(active=True).prefetch_related(
                     Prefetch("options", queryset=FoodOption.objects.filter(active=True).order_by("id"), to_attr="public_options")
@@ -182,10 +264,31 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
                     "variants",
                     queryset=ProductVariant.objects.filter(active=True).order_by("id"),
                     to_attr="active_variants",
-                )
+                ),
             )
             .order_by("id")
         )
+        if getattr(self, "action", None) == "retrieve":
+            qs = qs.prefetch_related(
+                Prefetch(
+                    "media",
+                    queryset=OfferingMedia.objects.filter(active=True)
+                    .filter(
+                        Q(url__startswith="https://")
+                        | Q(url__startswith="/images/")
+                        | Q(url__startswith="/videos/")
+                    )
+                    .order_by("position", "pk"),
+                    to_attr="public_media",
+                ),
+                Prefetch(
+                    "collections",
+                    queryset=ShopCollection.objects.filter(active=True).order_by(
+                        "name", "pk"
+                    ),
+                    to_attr="public_collections",
+                ),
+            )
         if self.request.query_params.get("division"):
             qs = qs.filter(division__slug=self.request.query_params["division"])
         if self.request.query_params.get("q"):
@@ -195,7 +298,10 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
                 | Q(name_bn__icontains=term)
                 | Q(description__icontains=term)
                 | Q(description_bn__icontains=term)
-            )
+                | Q(sku__icontains=term)
+                | Q(barcode=term)
+                | Q(variants__active=True, variants__barcode=term)
+            ).distinct()
         filters = CatalogFilters(
             data={key: value for key, value in self.request.query_params.items() if value != ""}
         )
@@ -204,7 +310,11 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
         if "organization" in values:
             qs = qs.filter(organization_id=values["organization"])
         if "category" in values:
-            qs = qs.filter(category_id=values["category"], category__division__active=True)
+            qs = qs.filter(Q(category_id=values["category"]) | Q(category__parent_id=values["category"]), category__division__active=True)
+        if "brand" in values:
+            qs = qs.filter(brand_id=values["brand"], brand__active=True)
+        if "collection" in values:
+            qs = qs.filter(collections__pk=values["collection"], collections__active=True)
         if "min_price" in values:
             qs = qs.filter(price__gte=values["min_price"])
         if "max_price" in values:
@@ -379,3 +489,28 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.query_params.get("area"):
             qs = qs.filter(area__icontains=self.request.query_params["area"][:100])
         return qs
+
+class ShopBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopBrand
+        fields = ["id", "name", "name_bn"]
+
+
+class ShopBrandViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
+    serializer_class = ShopBrandSerializer
+    pagination_class = None
+    queryset = ShopBrand.objects.filter(active=True).order_by("name", "pk")
+
+
+class ShopCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopCollection
+        fields = ["id", "name", "name_bn", "slug"]
+
+
+class ShopCollectionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
+    serializer_class = ShopCollectionSerializer
+    pagination_class = None
+    queryset = ShopCollection.objects.filter(active=True).order_by("name", "pk")

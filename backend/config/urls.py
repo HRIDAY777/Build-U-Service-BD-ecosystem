@@ -20,6 +20,7 @@ from apps.content.api import PageViewSet, FAQViewSet
 from apps.automation.api import AssistantView
 from apps.catalog.partner_api import PartnerOfferingViewSet, PartnerRestaurantViewSet
 from apps.catalog.api import SharedWishlistView
+from apps.catalog.api import ShopBrandViewSet, ShopCollectionViewSet
 from apps.operations.payments import PaymentMethodsView, PaymentStartView, PaymentIPNView, PaymentReturnView
 
 from apps.engagement.project_api import ManagedProjectViewSet, ProjectApplicationViewSet
@@ -35,6 +36,8 @@ for prefix, view, basename in [
     ("addresses", AddressViewSet, "address"),
     ("divisions", DivisionViewSet, "division"),
     ("categories", CategoryViewSet, "category"),
+    ("shop-brands", ShopBrandViewSet, "shop-brand"),
+    ("shop-collections", ShopCollectionViewSet, "shop-collection"),
     ("offerings", OfferingViewSet, "offering"),
     ("areas", AreaViewSet, "area"),
     ("wishlist", WishlistViewSet, "wishlist"),
