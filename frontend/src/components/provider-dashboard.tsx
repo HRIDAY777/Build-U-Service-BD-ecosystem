@@ -14,7 +14,7 @@ import { MechanicPhoto } from "./mechanic-photo";
 import { ProviderCalendar } from "./provider-calendar";
 import { useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
-import { useApp } from "./provider";
+import { Text, useApp } from "./provider";
 
 type Job = {
   has_problem_photo?: boolean;
@@ -315,9 +315,11 @@ export function ProviderDashboard() {
 
 export function ProviderPicker({ bookingId }: { bookingId: string }) {
   const { user } = useApp();
+  const [revision, setRevision] = useState(0);
   const [stored, setStored] = useState<{
     owner: number;
     booking: string;
+    revision: number;
     workers: { id: number; name: string }[];
   } | null>(null);
   const [error, setError] = useState("");
@@ -335,19 +337,21 @@ export function ProviderPicker({ bookingId }: { bookingId: string }) {
         if (!result.next) break;
         page++;
       }
-      if (current) { setStored({ owner: user.id, booking: bookingId, workers }); setError(""); }
+      if (current) { setStored({ owner: user.id, booking: bookingId, revision, workers }); setError(""); }
     })().catch((e) => {
       if (current) setError(String(e.message));
     });
     return () => {
       current = false;
     };
-  }, [user, bookingId]);
-  const workers = stored?.owner === user?.id && stored?.booking === bookingId ? stored?.workers || [] : [];
+  }, [user, bookingId, revision]);
+  const loaded = stored?.owner === user?.id && stored?.booking === bookingId && stored?.revision === revision;
+  const workers = loaded ? stored?.workers || [] : [];
   return (
-    <label className="field">
+    <div className="field">
+      <label>
       <UiText text={"প্রোভাইডার বাছুন"} />
-      <select name="worker" required defaultValue="">
+      <select key={`${bookingId}-${revision}`} name="worker" required defaultValue="" disabled={!loaded || !!error || !workers.length}>
         <option value="">
           <UiText text={"নাম বাছুন"} />
         </option>
@@ -357,11 +361,15 @@ export function ProviderPicker({ bookingId }: { bookingId: string }) {
           </option>
         ))}
       </select>
+      </label>
+      {!error && !loaded && <small role="status"><Text bn="উপলব্ধ কর্মী খোঁজা হচ্ছে…" en="Finding available providers…" /></small>}
+      {loaded && !error && !workers.length && <small role="status"><Text bn="এই সময়ে কোনো উপলব্ধ কর্মী পাওয়া যায়নি। সময়সূচি বদলে বা পরে আবার চেষ্টা করুন।" en="No providers are available at this time. Change the appointment or try again later." /></small>}
+      <button type="button" className="text-link" onClick={() => { setError(""); setRevision((value) => value + 1); }}><Text bn="কর্মীর তালিকা আবার দেখুন" en="Refresh available providers" /></button>
       {error && (
         <small role="alert">
           <UiText text={error} />
         </small>
       )}
-    </label>
+    </div>
   );
 }
