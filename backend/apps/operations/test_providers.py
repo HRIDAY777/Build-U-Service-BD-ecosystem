@@ -55,6 +55,29 @@ class ProviderTests(TestCase):
         data.update(kwargs)
         return Booking.objects.create(**data)
 
+    def test_booking_specific_provider_choices_exclude_conflicts_and_leave(self):
+        from zoneinfo import ZoneInfo
+        target = self.booking("provider-choices")
+        self.client.force_authenticate(self.manager)
+        endpoint = f"/api/v1/bookings/providers/?booking={target.pk}"
+        self.assertEqual(self.client.get(endpoint).data["count"], 1)
+        conflict = self.booking("occupied", provider=self.provider,
+                                scheduled_at=target.scheduled_at + timedelta(minutes=30))
+        self.assertEqual(self.client.get(endpoint).data["count"], 0)
+        conflict.status = "completed"
+        conflict.save(update_fields=["status"])
+        self.assertEqual(self.client.get(endpoint).data["count"], 1)
+        profile = ProviderProfile.objects.create(user=self.provider, leave_dates=[
+            target.scheduled_at.astimezone(ZoneInfo("Asia/Dhaka")).date().isoformat()
+        ])
+        self.assertEqual(self.client.get(endpoint).data["count"], 0)
+        profile.leave_dates = []
+        profile.save(update_fields=["leave_dates"])
+        self.assertEqual(self.client.get(endpoint).data["count"], 1)
+        self.assertEqual(self.client.get("/api/v1/bookings/providers/?booking=invalid").status_code, 400)
+        self.client.force_authenticate(self.customer)
+        self.assertEqual(self.client.get(endpoint).status_code, 403)
+
     def test_profile_permissions_and_availability_block_new_assignment(self):
         self.client.force_authenticate(self.customer)
         self.assertEqual(self.client.get("/api/v1/bookings/provider_profile/").status_code, 403)

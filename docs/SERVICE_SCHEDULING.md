@@ -19,6 +19,8 @@ Still open: skills and area matching, provider-capacity-aware slot suggestions a
 
 ## Suggested service times
 
+Operations provider selection now requests `GET /api/v1/bookings/providers/?booking=<id>` for each confirmed/assigned booking. The result excludes providers on leave, outside their working hours, offline, or overlapping another active appointment. This is a preview; assignment still locks and revalidates availability to prevent concurrent conflicts. It does not establish skill certification or area matching. Customer time suggestions still reflect service hours only.
+
 On the booking form, choose a date in the date/time field and press View day times. Starts are suggested every 15 minutes, for up to 90 days ahead. Only future starts whose entire duration fits an opening period and avoids closed dates appear. Clicking a time fills the booking field in Bangladesh time. Overnight opening windows are included. Refreshing the list reads current server settings; submitting still rechecks hours and leave.
 
 A service without configured hours asks for a preferred time rather than inventing available slots. A closed day displays no times. Public `GET /api/v1/offerings/{id}/booking_times/?date=YYYY-MM-DD` returns only service-hour suggestions, duration and confirmation status, with no provider/customer/job details and no cache storage. These suggestions do not claim that a worker is free and do not reserve capacity.

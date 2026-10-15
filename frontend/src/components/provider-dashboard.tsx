@@ -313,10 +313,11 @@ export function ProviderDashboard() {
   );
 }
 
-export function ProviderPicker() {
+export function ProviderPicker({ bookingId }: { bookingId: string }) {
   const { user } = useApp();
   const [stored, setStored] = useState<{
     owner: number;
+    booking: string;
     workers: { id: number; name: string }[];
   } | null>(null);
   const [error, setError] = useState("");
@@ -328,21 +329,21 @@ export function ProviderPicker() {
       const workers: { id: number; name: string }[] = [];
       while (true) {
         const result = await api<PageResult<{ id: number; name: string }>>(
-          `bookings/providers/?page=${page}`,
+          `bookings/providers/?${new URLSearchParams({ page: String(page), booking: bookingId })}`,
         );
         workers.push(...result.results);
         if (!result.next) break;
         page++;
       }
-      if (current) setStored({ owner: user.id, workers });
+      if (current) { setStored({ owner: user.id, booking: bookingId, workers }); setError(""); }
     })().catch((e) => {
       if (current) setError(String(e.message));
     });
     return () => {
       current = false;
     };
-  }, [user]);
-  const workers = stored?.owner === user?.id ? stored?.workers || [] : [];
+  }, [user, bookingId]);
+  const workers = stored?.owner === user?.id && stored?.booking === bookingId ? stored?.workers || [] : [];
   return (
     <label className="field">
       <UiText text={"প্রোভাইডার বাছুন"} />

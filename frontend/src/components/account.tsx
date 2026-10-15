@@ -862,7 +862,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       }}
                     >
                       {tab === "bookings" ? (
-                        <ProviderPicker />
+                        <ProviderPicker bookingId={String(r.id)} />
                       ) : (
                         <TranslatedInput
                           name="worker"

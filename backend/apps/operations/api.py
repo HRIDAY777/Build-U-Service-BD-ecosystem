@@ -891,6 +891,29 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
             .order_by("username")
             .distinct()
         )
+        booking_id = request.query_params.get("booking")
+        if booking_id:
+            from datetime import timedelta
+            booking_id = serializers.UUIDField().run_validation(booking_id)
+            booking = get_object_or_404(self.get_queryset(), pk=booking_id)
+            if booking.status not in {"confirmed", "assigned"}:
+                raise ValidationError("This booking is not ready for assignment.")
+            end = booking.scheduled_at + timedelta(minutes=booking.duration_minutes)
+            conflicts = Booking.objects.filter(
+                provider_id__in=workers.values("pk"), scheduled_at__lt=end
+            ).exclude(pk=booking.pk).exclude(status__in=["cancelled", "completed", "failed"])
+            busy = {job.provider_id for job in conflicts
+                    if job.scheduled_at + timedelta(minutes=job.duration_minutes) > booking.scheduled_at}
+            profiles = {profile.user_id: profile for profile in ProviderProfile.objects.filter(
+                user_id__in=workers.values("pk")
+            )}
+            eligible = [worker.pk for worker in workers if worker.pk not in busy and (
+                worker.pk not in profiles or appointment_allowed(
+                    profiles[worker.pk].weekly_hours, profiles[worker.pk].leave_dates,
+                    booking.scheduled_at, booking.duration_minutes
+                )
+            )]
+            workers = workers.filter(pk__in=eligible)
         page = self.paginate_queryset(workers)
         return self.get_paginated_response(
             [{"id": worker.pk, "name": worker.get_full_name() or worker.username} for worker in page]
