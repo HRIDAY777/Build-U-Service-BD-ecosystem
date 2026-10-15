@@ -11,6 +11,10 @@ import {
   UserRound,
   X,
   MapPin,
+  House,
+  LayoutGrid,
+  PackageCheck,
+  Heart,
 } from "lucide-react";
 import { useState } from "react";
 import { useApp, Text } from "./provider";
@@ -38,10 +42,12 @@ export function Header() {
           <BrandLogo eager />
         </Link>
         <nav
+          id="main-navigation"
           className={open ? "nav open" : "nav"}
           aria-label={lang === "bn" ? "প্রধান মেনু" : "Main navigation"}
           onClick={() => setOpen(false)}
         >
+          <Link href="/"><House size={16} /><Text bn="হোম" en="Home" /></Link>
           <Link href="/catalog">
             <Text bn="আমাদের সেবা" en="Explore services" />
           </Link>
@@ -98,12 +104,21 @@ export function Header() {
           <TranslatedButton
             className="mobile-menu icon-button"
             aria-label="Toggle navigation"
+            aria-expanded={open}
+            aria-controls="main-navigation"
             onClick={() => setOpen(!open)}
           >
             {open ? <X /> : <Menu />}
           </TranslatedButton>
         </div>
       </header>
+      <nav className="mobile-dock" aria-label={lang === "bn" ? "দ্রুত মেনু" : "Quick navigation"}>
+        <Link href="/"><House size={21} /><Text bn="হোম" en="Home" /></Link>
+        <Link href="/catalog"><LayoutGrid size={21} /><Text bn="সেবা" en="Services" /></Link>
+        <Link href="/account"><PackageCheck size={21} /><Text bn="অর্ডার" en="Orders" /></Link>
+        <Link href="/wishlist"><Heart size={21} /><Text bn="পছন্দ" en="Saved" /></Link>
+        <Link href={user ? "/account" : "/login"}><UserRound size={21} /><Text bn="অ্যাকাউন্ট" en="Account" /></Link>
+      </nav>
     </>
   );
 }

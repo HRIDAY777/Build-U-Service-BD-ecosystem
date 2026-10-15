@@ -77,7 +77,7 @@ export function Home({
   }
   return (
     <>
-      <section className="hero">
+      <section className="hero hero-next">
         <div className="hero-copy">
           <div className="eyebrow">
             <span className="small-line" />
@@ -99,6 +99,10 @@ export function Home({
               en="From your favourite meal to a happier home. Find the services you need, with people you can count on."
             />
           </p>
+          <div className="hero-actions">
+            <Link href="#all-services" className="button"><Text bn="সেবা বেছে নিন" en="Find your service" /><ArrowUpRight size={18} /></Link>
+            <Link href="/delivery" className="button secondary"><Truck size={18} /><Text bn="পার্সেল পাঠান" en="Send a parcel" /></Link>
+          </div>
           <form className="hero-search" onSubmit={search}>
             <Search size={22} />
             <TranslatedInput
@@ -241,7 +245,18 @@ export function Home({
           />
         </div>
       )}
-      <section className="section">
+      <section className="home-shortcuts section" aria-label={lang === "bn" ? "দ্রুত শুরু করুন" : "Quick start"}>
+        <div><span className="eyebrow"><Text bn="আপনি কী করতে চান?" en="YOUR NEXT MOVE" /></span><h2><Text bn="শুরু হোক এক ক্লিকেই।" en="Your day. One tap away." /></h2></div>
+        <div className="home-shortcut-grid">
+          {[
+            { href: "/catalog?division=shop", icon: ShoppingBag, bn: "কেনাকাটা করুন", en: "Shop essentials", subBn: "পণ্য খুঁজুন ও অর্ডার করুন", subEn: "Find products and place an order" },
+            { href: "/mechanic", icon: Wrench, bn: "মেকানিক বুক করুন", en: "Book a mechanic", subBn: "সময় ও ঠিকানা দিয়ে বুকিং", subEn: "Choose a service, time and address" },
+            { href: "/events", icon: HeartHandshake, bn: "অনুষ্ঠান সাজান", en: "Plan an event", subBn: "প্যাকেজ দেখুন ও পরিকল্পনা করুন", subEn: "Explore packages and start planning" },
+            { href: "/account", icon: Truck, bn: "অর্ডার দেখুন", en: "Track your orders", subBn: "অর্ডার ও বুকিংয়ের আপডেট", subEn: "Your orders and booking updates" },
+          ].map(({ href, icon: Icon, bn, en, subBn, subEn }) => <Link href={href} key={href}><span className="shortcut-icon"><Icon size={24} /></span><strong><Text bn={bn} en={en} /></strong><small><Text bn={subBn} en={subEn} /></small><ArrowUpRight size={18} className="shortcut-arrow" /></Link>)}
+        </div>
+      </section>
+      <section className="section" id="all-services">
         <div className="section-heading">
           <div>
             <span className="eyebrow">
