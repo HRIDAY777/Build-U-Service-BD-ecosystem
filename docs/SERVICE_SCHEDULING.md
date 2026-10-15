@@ -23,6 +23,8 @@ Operations provider selection now requests `GET /api/v1/bookings/providers/?book
 
 The picker shows loading and empty-result messages and offers a bilingual refresh action. Refresh clears the previous selection and disables the picker until the latest result loads; failed refreshes do not leave stale choices selectable.
 
+The provider calendar starts with today's Bangladesh date and supports previous week, next week and return-to-today navigation. Changing the range clears old results and errors; failed refreshes also clear old results. Dates and the seven-day range follow the selected Bengali/English UI language while all appointment times remain in Asia/Dhaka.
+
 On the booking form, choose a date in the date/time field and press View day times. Starts are suggested every 15 minutes, for up to 90 days ahead. Only future starts whose entire duration fits an opening period and avoids closed dates appear. Clicking a time fills the booking field in Bangladesh time. Overnight opening windows are included. Refreshing the list reads current server settings; submitting still rechecks hours and leave.
 
 A service without configured hours asks for a preferred time rather than inventing available slots. A closed day displays no times. Public `GET /api/v1/offerings/{id}/booking_times/?date=YYYY-MM-DD` returns only service-hour suggestions, duration and confirmation status, with no provider/customer/job details and no cache storage. These suggestions do not claim that a worker is free and do not reserve capacity.
