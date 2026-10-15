@@ -7,6 +7,8 @@ import { ScheduleEditor } from "./schedule-editor";
 import { FoodOptionEditor } from "./food-option-editor";
 import { PartnerRestaurants } from "./partner-restaurants";
 import { ShopProductEditor } from "./shop-product-editor";
+import { ShopProductCreate } from "./shop-product-create";
+import { Text } from "./provider";
 export function PartnerCatalog() {
   const [items, setItems] = useState<Offering[]>([]);
   const [error, setError] = useState("");
@@ -57,15 +59,12 @@ export function PartnerCatalog() {
   return (
     <>
       <PartnerRestaurants />
+      <ShopProductCreate />
       <h2>
         <UiText text={"Your catalog & inventory"} />
       </h2>
       <p className="subtle">
-        <UiText
-          text={
-            "Approved organization owners can update their own items. Contact administration to onboard a merchant or add a new catalog item."
-          }
-        />
+        <Text bn="অনুমোদিত দোকানের মালিক নিজের পণ্য সম্পাদনা ও নতুন U Shop পণ্য যোগ করতে পারেন। অন্য বিভাগের নতুন আইটেমের জন্য প্রশাসনের সঙ্গে যোগাযোগ করুন।" en="Approved owners can edit their items and add U Shop products. Contact administration for new items in other divisions." />
       </p>
       {error && (
         <p className="error">

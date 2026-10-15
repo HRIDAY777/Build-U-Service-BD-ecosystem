@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .service_schedule import validate_leave_dates
 from .restaurant_rules import validate_weekly_hours
@@ -286,6 +287,52 @@ class ServiceScheduleInput(serializers.Serializer):
 
 class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfferingSerializer
+
+    def shop_organizations(self):
+        organizations = Organization.objects.filter(
+            approved=True, division__slug="shop", division__active=True
+        ).order_by("name", "pk")
+        if not self.request.user.has_perm("catalog.add_offering"):
+            organizations = organizations.filter(owner=self.request.user)
+        return organizations
+
+    @action(detail=False, methods=["get", "post"], url_path="new-shop-product")
+    @transaction.atomic
+    def new_shop_product(self, request):
+        organizations = self.shop_organizations()
+        if request.method == "GET":
+            return Response(list(organizations.values("id", "name")))
+        class CreateInput(serializers.Serializer):
+            organization = serializers.IntegerField(min_value=1)
+            name = serializers.CharField(max_length=180)
+            name_bn = serializers.CharField(max_length=180)
+            description = serializers.CharField(max_length=5000)
+            description_bn = serializers.CharField(max_length=5000)
+            price = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0)
+            stock = serializers.IntegerField(min_value=0, max_value=1000000, default=0)
+
+        serializer = CreateInput(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        values = dict(serializer.validated_data)
+        organization = organizations.select_for_update().filter(
+            pk=values.pop("organization")
+        ).first()
+        if not organization:
+            raise ValidationError("Choose an approved U Shop business you manage.")
+        token = uuid4().hex
+        offering = Offering(
+            organization=organization, division=organization.division,
+            slug=f"shop-{token}", sku=f"SHOP-{token.upper()}",
+            active=False, **values,
+        )
+        validate_model(offering)
+        offering.save()
+        if offering.stock:
+            InventoryMovement.objects.create(
+                offering=offering, delta=offering.stock, reason="partner_product_created"
+            )
+        audit(request.user, "shop.product_created", offering.pk)
+        return Response({"id": offering.pk, "name": offering.name}, status=201)
 
     def get_queryset(self):
         qs = (

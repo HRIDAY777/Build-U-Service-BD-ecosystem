@@ -114,6 +114,35 @@ class PartnerShopManagementTests(TestCase):
     def endpoint(self, product, action):
         return f"/api/v1/partner-offerings/{product.pk}/{action}/"
 
+    def test_create_shop_draft_is_scoped_and_not_public(self):
+        endpoint = "/api/v1/partner-offerings/new-shop-product/"
+        shops = self.client.get(endpoint)
+        self.assertEqual([row["id"] for row in shops.data], [self.organization.pk])
+        payload = {
+            "organization": self.organization.pk,
+            "name": "New product", "name_bn": "নতুন পণ্য",
+            "description": "Product details", "description_bn": "পণ্যের বিবরণ",
+            "price": "250.00", "stock": 7,
+        }
+        response = self.client.post(endpoint, payload, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        product = Offering.objects.get(pk=response.data["id"])
+        self.assertFalse(product.active)
+        self.assertEqual(product.organization, self.organization)
+        self.assertEqual(product.stock, 7)
+        self.assertTrue(InventoryMovement.objects.filter(offering=product, delta=7).exists())
+        self.assertEqual(self.client.get(f"/api/v1/offerings/{product.pk}/").status_code, 404)
+        before = Offering.objects.count()
+        for organization in [self.other_product.organization_id, self.food_product.organization_id]:
+            response = self.client.post(endpoint, {**payload, "organization": organization}, format="json")
+            self.assertEqual(response.status_code, 400)
+        self.assertEqual(Offering.objects.count(), before)
+        self.organization.approved = False
+        self.organization.save(update_fields=["approved"])
+        self.assertEqual(self.client.post(endpoint, payload, format="json").status_code, 400)
+        self.client.force_authenticate(user=None)
+        self.assertIn(self.client.post(endpoint, payload, format="json").status_code, [401, 403])
+
     def test_owner_updates_shop_details_and_scope_is_enforced(self):
         endpoint = self.endpoint(self.product, "shop-details")
         self.assertEqual(self.client.get(endpoint).status_code, 200)
