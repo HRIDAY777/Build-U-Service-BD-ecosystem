@@ -114,6 +114,28 @@ class PartnerShopManagementTests(TestCase):
     def endpoint(self, product, action):
         return f"/api/v1/partner-offerings/{product.pk}/{action}/"
 
+    def test_archived_variants_do_not_consume_active_capacity(self):
+        ProductVariant.objects.bulk_create([
+            ProductVariant(offering=self.product, label=f"Old {index}",
+                           sku=f"ARCHIVE-{index}", price=10, active=False)
+            for index in range(50)
+        ])
+        endpoint = self.endpoint(self.product, "shop-variants")
+        archived = self.client.get(endpoint).data
+        new = {"label": "New size", "sku": "NEW-SIZE", "price": "20.00",
+               "stock": 2, "active": True}
+        response = self.client.put(endpoint, [*archived, new], format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data), 51)
+        self.assertEqual(self.product.variants.filter(active=True).count(), 1)
+        # A later save must accept the archived rows returned by the API.
+        response = self.client.put(endpoint, response.data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        oversized = [{**new, "label": f"Active {index}", "sku": f"ACTIVE-{index}"}
+                     for index in range(51)]
+        self.assertEqual(self.client.put(endpoint, oversized, format="json").status_code, 400)
+        self.assertEqual(self.product.variants.count(), 51)
+
     def test_catalog_search_and_drafts_preserve_owner_scope(self):
         self.product.active = False
         self.product.barcode = "OWNER-SEARCH-123"

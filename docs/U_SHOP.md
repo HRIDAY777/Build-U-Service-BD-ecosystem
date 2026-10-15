@@ -50,7 +50,7 @@ U Shop has **31 of the 33 requested capabilities working locally**. The remainin
 - Partner catalog lists newest products first, supports name/SKU/barcode search and active/draft filters, and refreshes immediately after creating a product. Filtering always retains owner access restrictions.
 - Approved shop owners can create a bilingual draft product from the partner catalog, with an initial stock movement. Drafts remain hidden publicly until activated. The generated SKU and slug are unique; product details, variants and media can be completed immediately after creation.
 - Partners can edit their own U Shop product details, subcategory, brand, collections, barcode, regular/sale/cost price and primary image.
-- Partners can manage up to 50 variants and 12 ordered image/video records per product.
+- Partners can manage up to 50 active variants and 12 ordered image/video records per product. Inactive variants retain their order history and do not consume the active variant capacity; up to 50 new variants can be added per save.
 - Removed gallery entries are deleted from the gallery metadata so repeated replacements do not consume its capacity. Switching videos reloads the player for the selected source.
 - Stock adjustments require the selected variant when a product uses variants, and every change creates an inventory movement.
 - Ownership checks prevent one partner from reading or changing another partner's products.

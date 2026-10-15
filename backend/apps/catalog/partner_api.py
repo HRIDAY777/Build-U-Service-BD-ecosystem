@@ -415,10 +415,16 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
         if request.method == "GET":
             return Response(shop_variants_data(offering))
         payload = serializers.ListSerializer(
-            child=ShopVariantEdit(), max_length=50, data=request.data
+            child=ShopVariantEdit(),
+            max_length=offering.variants.count() + 50,
+            data=request.data,
         )
         payload.is_valid(raise_exception=True)
         rows = payload.validated_data
+        if sum(row["active"] for row in rows) > 50:
+            raise ValidationError("Use up to 50 active variants per product.")
+        if sum(not row.get("id") for row in rows) > 50:
+            raise ValidationError("Add up to 50 new variants at a time.")
         for field in ("label", "sku", "barcode"):
             values = [row[field] for row in rows if row.get(field)]
             if len(values) != len(set(values)):

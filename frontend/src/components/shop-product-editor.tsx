@@ -347,7 +347,7 @@ export function ShopProductEditor({
             <h4><Text bn="মাপ, রঙ ও ভ্যারিয়েন্ট" en="Size, color and variants" /></h4>
             <p><Text bn="ভ্যারিয়েন্ট থাকলে প্রতিটির নিজস্ব SKU, বারকোড, দাম ও স্টক দিন।" en="Give each variant its own SKU, barcode, price and stock." /></p>
           </div>
-          <button type="button" className="button secondary" disabled={busy || variants.length >= 50} onClick={() => setVariants((rows) => [...rows, editableVariant({ label: "", attributes: {}, sku: "", barcode: "", price: details.price, sale_price: null, cost_price: null, stock: 0, active: true })])}>
+          <button type="button" className="button secondary" disabled={busy || variants.filter((row) => row.active).length >= 50 || variants.filter((row) => !row.id).length >= 50} onClick={() => setVariants((rows) => [...rows, editableVariant({ label: "", attributes: {}, sku: "", barcode: "", price: details.price, sale_price: null, cost_price: null, stock: 0, active: true })])}>
             <Text bn="ভ্যারিয়েন্ট যোগ করুন" en="Add variant" />
           </button>
         </div>
