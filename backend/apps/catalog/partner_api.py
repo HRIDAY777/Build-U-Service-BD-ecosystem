@@ -504,9 +504,9 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
             validate_model(media)
             media.save()
             kept.add(media.pk)
-        OfferingMedia.objects.filter(offering=offering).exclude(pk__in=kept).update(
-            active=False
-        )
+        # Media has no order/history references. Removed gallery entries must
+        # not accumulate and consume the editor's 12-entry capacity.
+        OfferingMedia.objects.filter(offering=offering).exclude(pk__in=kept).delete()
         audit(
             request.user,
             "shop.media_updated",

@@ -369,3 +369,19 @@ class PartnerShopManagementTests(TestCase):
             ),
             previous,
         )
+
+    def test_replacing_full_gallery_does_not_exhaust_media_capacity(self):
+        endpoint = self.endpoint(self.product, "shop-media")
+        for generation in range(3):
+            response = self.client.put(endpoint, [
+                {"kind": "image", "url": f"/images/gallery-{generation}-{index}.jpg",
+                 "position": index, "active": True}
+                for index in range(12)
+            ], format="json")
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(len(response.data), 12)
+            self.assertEqual(OfferingMedia.objects.filter(offering=self.product).count(), 12)
+        response = self.client.put(endpoint, [], format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+        self.assertFalse(OfferingMedia.objects.filter(offering=self.product).exists())

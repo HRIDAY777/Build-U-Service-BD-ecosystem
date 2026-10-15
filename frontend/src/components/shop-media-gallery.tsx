@@ -46,7 +46,7 @@ export function ShopMediaGallery({ item }: { item: Offering }) {
     >
       <div className="shop-gallery-stage">
         {selected.kind === "video" ? (
-          <video controls preload="metadata" playsInline aria-label={alt}>
+          <video key={selected.url} controls preload="metadata" playsInline aria-label={alt}>
             <source src={selected.url} />
             <Text
               bn="আপনার ব্রাউজারে ভিডিওটি চালানো যাচ্ছে না।"
