@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from .service_schedule import validate_leave_dates
 from .restaurant_rules import validate_weekly_hours
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -346,9 +346,23 @@ class PartnerOfferingViewSet(viewsets.ReadOnlyModelViewSet):
             )
             .order_by("id")
         )
-        if self.request.user.has_perm("catalog.change_offering"):
-            return qs
-        return qs.filter(organization__owner=self.request.user, organization__approved=True)
+        if not self.request.user.has_perm("catalog.change_offering"):
+            qs = qs.filter(organization__owner=self.request.user, organization__approved=True)
+        if self.action == "list":
+            term = self.request.query_params.get("q", "").strip()[:180]
+            if term:
+                qs = qs.filter(
+                    Q(name__icontains=term) | Q(name_bn__icontains=term)
+                    | Q(sku__icontains=term) | Q(barcode__icontains=term)
+                    | Q(variants__sku__icontains=term) | Q(variants__barcode__icontains=term)
+                ).distinct()
+            state = self.request.query_params.get("state", "")
+            if state not in ("", "active", "draft"):
+                raise ValidationError({"state": "Choose active or draft."})
+            if state:
+                qs = qs.filter(active=state == "active")
+            qs = qs.order_by("-id")
+        return qs
 
     @action(detail=True, methods=["get", "patch"], url_path="shop-details")
     @transaction.atomic

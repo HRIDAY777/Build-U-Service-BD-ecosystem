@@ -16,12 +16,14 @@ export function PartnerCatalog() {
   const [page, setPage] = useState(1);
   const [next, setNext] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({ q: "", state: "" });
+  const [revision, setRevision] = useState(0);
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const result = await api<PageResult<Offering>>(
-        `partner-offerings/?page=${page}`,
+        `partner-offerings/?${new URLSearchParams({ ...filters, page: String(page) })}`,
       );
       setItems(result.results);
       setNext(!!result.next);
@@ -30,10 +32,10 @@ export function PartnerCatalog() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, filters]);
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, revision]);
   async function update(
     e: FormEvent<HTMLFormElement>,
     id: number,
@@ -59,13 +61,27 @@ export function PartnerCatalog() {
   return (
     <>
       <PartnerRestaurants />
-      <ShopProductCreate />
+      <ShopProductCreate onCreated={() => {
+        setPage(1);
+        setFilters({ q: "", state: "" });
+        setRevision((value) => value + 1);
+      }} />
       <h2>
         <UiText text={"Your catalog & inventory"} />
       </h2>
       <p className="subtle">
         <Text bn="অনুমোদিত দোকানের মালিক নিজের পণ্য সম্পাদনা ও নতুন U Shop পণ্য যোগ করতে পারেন। অন্য বিভাগের নতুন আইটেমের জন্য প্রশাসনের সঙ্গে যোগাযোগ করুন।" en="Approved owners can edit their items and add U Shop products. Contact administration for new items in other divisions." />
       </p>
+      <form key={revision} className="form-grid" onSubmit={(event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        setPage(1);
+        setFilters({ q: String(data.get("q") || ""), state: String(data.get("state") || "") });
+      }}>
+        <label className="field"><Text bn="নাম, SKU বা বারকোড দিয়ে খুঁজুন" en="Search by name, SKU or barcode" /><input name="q" maxLength={180} /></label>
+        <label className="field"><Text bn="পণ্যের অবস্থা" en="Product status" /><select name="state"><option value=""><Text bn="সব পণ্য" en="All products" /></option><option value="active"><Text bn="সক্রিয়" en="Active" /></option><option value="draft"><Text bn="খসড়া / নিষ্ক্রিয়" en="Draft / inactive" /></option></select></label>
+        <button className="button" disabled={loading}><Text bn="পণ্য খুঁজুন" en="Find products" /></button>
+      </form>
       {error && (
         <p className="error">
           <UiText text={error} />
@@ -78,7 +94,7 @@ export function PartnerCatalog() {
       )}
       {!loading && !items.length && (
         <p>
-          <UiText text={"No catalog items are assigned to your business."} />
+          <Text bn="এই তালিকায় কোনো পণ্য পাওয়া যায়নি। প্রয়োজন হলে খোঁজার লেখা বা অবস্থার ফিল্টার বদলান।" en="No products found in this list. Try changing the search or status filter." />
         </p>
       )}
       {items.map((item) => (

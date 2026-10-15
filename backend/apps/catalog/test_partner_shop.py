@@ -114,6 +114,22 @@ class PartnerShopManagementTests(TestCase):
     def endpoint(self, product, action):
         return f"/api/v1/partner-offerings/{product.pk}/{action}/"
 
+    def test_catalog_search_and_drafts_preserve_owner_scope(self):
+        self.product.active = False
+        self.product.barcode = "OWNER-SEARCH-123"
+        self.product.save(update_fields=["active", "barcode"])
+        endpoint = "/api/v1/partner-offerings/"
+        for query in ["q=OWNER-SEARCH-123", "q=PARTNER-SHIRT&state=draft", "q=শার্ট&state=draft"]:
+            response = self.client.get(f"{endpoint}?{query}")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual([row["id"] for row in response.data["results"]], [self.product.pk])
+        self.assertEqual(self.client.get(f"{endpoint}?q=OTHER-PARTNER-SHIRT").data["count"], 0)
+        self.assertEqual(self.client.get(f"{endpoint}?state=invalid").status_code, 400)
+        response = self.client.get(endpoint)
+        ids = [row["id"] for row in response.data["results"]]
+        self.assertEqual(ids, sorted(ids, reverse=True))
+        self.assertNotIn(self.product.pk, [row["id"] for row in self.client.get(f"{endpoint}?state=active").data["results"]])
+
     def test_create_shop_draft_is_scoped_and_not_public(self):
         endpoint = "/api/v1/partner-offerings/new-shop-product/"
         shops = self.client.get(endpoint)

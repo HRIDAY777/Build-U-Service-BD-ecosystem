@@ -47,6 +47,7 @@ U Shop has **31 of the 33 requested capabilities working locally**. The remainin
 
 ## Partner and staff management
 
+- Partner catalog lists newest products first, supports name/SKU/barcode search and active/draft filters, and refreshes immediately after creating a product. Filtering always retains owner access restrictions.
 - Approved shop owners can create a bilingual draft product from the partner catalog, with an initial stock movement. Drafts remain hidden publicly until activated. The generated SKU and slug are unique; product details, variants and media can be completed immediately after creation.
 - Partners can edit their own U Shop product details, subcategory, brand, collections, barcode, regular/sale/cost price and primary image.
 - Partners can manage up to 50 variants and 12 ordered image/video records per product.

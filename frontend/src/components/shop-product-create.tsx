@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { Text, useApp } from "./provider";
 import { ShopProductEditor } from "./shop-product-editor";
 
-export function ShopProductCreate() {
+export function ShopProductCreate({ onCreated }: { onCreated?: () => void }) {
   const { lang } = useApp();
   const [shops, setShops] = useState<{ id: number; name: string }[]>([]);
   const [created, setCreated] = useState<{ id: number; name: string } | null>(null);
@@ -30,6 +30,7 @@ export function ShopProductCreate() {
         Object.fromEntries(new FormData(form)),
       );
       setCreated(result);
+      onCreated?.();
       form.reset();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to create product");
@@ -54,7 +55,7 @@ export function ShopProductCreate() {
     {created && <div role="region" aria-label={lang === "bn" ? "নতুন পণ্য সম্পাদনা" : "Edit new product"}>
       <p role="status"><Text bn="খসড়া তৈরি হয়েছে:" en="Draft created:" /> {created.name}</p>
       <ShopProductEditor key={created.id} id={created.id} />
-      <p><Text bn="স্টক সমন্বয়ের জন্য পেজটি আবার খুলে পণ্যটি তালিকায় দেখুন।" en="Reload the page to find this product in the catalog for stock adjustments." /></p>
+      <p><Text bn="স্টক সমন্বয়ের জন্য নিচের তালিকার প্রথমে নতুন পণ্যটি দেখুন।" en="Find the new product first in the list below to adjust stock." /></p>
     </div>}
   </section>;
 }
