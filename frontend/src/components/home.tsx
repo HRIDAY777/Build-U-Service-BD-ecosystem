@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Layers,
   HeartHandshake,
-  Check,
   Plus,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -34,6 +33,7 @@ import { Photo } from "./photo";
 import { divisionPhotos } from "@/lib/photos";
 import { DistrictGallery } from "./district-photo";
 import { BrandLogo } from "./brand-logo";
+import { AnimatedBrand } from "./animated-brand";
 export const divisionIcons: Record<string, typeof Truck> = {
   food: UtensilsCrossed,
   pharmacy: Pill,
@@ -151,66 +151,9 @@ export function Home({
             </span>
           </div>
         </div>
-        <div className="hero-art">
-          <div className="art-caption">
-            <span className="status-dot" />
-            <UiText text={"MADE FOR YOUR EVERYDAY"} />
-          </div>
-          <div className="hero-mosaic">
-            <Photo
-              src={divisionPhotos.food}
-              alt="বাংলাদেশের খাবার / Bangladeshi food"
-              eager
-            />
-            <Photo
-              src={divisionPhotos.services}
-              alt="ঘরের যত্ন / Home cleaning"
-            />
-            <Photo
-              src={divisionPhotos.shop}
-              alt="কটন ব্যাগ / Cotton tote bag"
-            />
-            <span className="mosaic-stamp">
-              <UiText text={"প্রতিদিনের গল্প"} />
-              <br />
-              <strong>
-                <UiText text={"এক জায়গায়।"} />
-              </strong>
-            </span>
-          </div>
-          <div className="floating-card food-float">
-            <span className="float-icon peach">
-              <UtensilsCrossed size={23} />
-            </span>
-            <div>
-              <strong>
-                <Text bn="মনভরা খাবার" en="Good food, good mood" />
-              </strong>
-              <small>
-                <Text
-                  bn="আপনার পছন্দ, আপনার দরজায়"
-                  en="Your favourites, at your door"
-                />
-              </small>
-            </div>
-          </div>
-          <div className="floating-card home-float">
-            <span className="float-icon mint">
-              <Check size={24} />
-            </span>
-            <div>
-              <strong>
-                <Text bn="ঘরের যত্নে আমরা" en="Home, taken care of" />
-              </strong>
-              <small>
-                <Text
-                  bn="দৈনন্দিন কাজে বিশ্বস্ত সঙ্গী"
-                  en="A helping hand you can trust"
-                />
-              </small>
-            </div>
-          </div>
-          <span className="art-spark">✳</span>
+        <div className="hero-art hero-brand-art">
+          <AnimatedBrand />
+
         </div>
       </section>
       <section className="division-strip" aria-label="Business divisions">

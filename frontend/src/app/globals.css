@@ -1878,6 +1878,32 @@ footer {
 .shortcut-arrow { position: absolute; right: 22px; top: 24px; color: #8f7197; }
 #all-services { scroll-margin-top: 110px; }
 .mobile-dock { display: none; }
+.hero-brand-art { padding: 0; background: none; border-radius: 0; min-width: 0; }
+.brand-scene { position: relative; isolation: isolate; width: 100%; overflow: hidden; border: 1px solid #e8d9ee; border-radius: 36px; padding: 28px; background: radial-gradient(circle at 50% 30%, #fff 0%, #f5eaf9 45%, #ead6ef 100%); box-shadow: 0 24px 64px #6c32781a, inset 0 1px #fff; }
+.brand-scene-label { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 10px; letter-spacing: 1.3px; color: #82518e; font-weight: 700; }
+.brand-perspective { height: 350px; position: relative; perspective: 1000px; display: grid; place-items: center; }
+.brand-object { position: relative; width: 88%; aspect-ratio: 1.8; transform-style: preserve-3d; animation: brand-float 9s ease-in-out infinite; z-index: 3; }
+.brand-face, .brand-depth { position: absolute; inset: 0; border-radius: 24px; }
+.brand-face { display: grid; place-items: center; background: #fff; border: 1px solid #ffffff; padding: 26px; overflow: hidden; transform: translateZ(7px); box-shadow: 0 2px 4px #fff9; backface-visibility: hidden; }
+.brand-face .company-logo { width: 100%; max-width: none; height: auto; max-height: 100%; object-fit: contain; }
+.brand-depth { background: linear-gradient(120deg, #b564bc, #673279); box-shadow: 0 1px 0 #c68ed0; }
+.depth-1 { transform: translateZ(4px); }.depth-2 { transform: translateZ(0); }.depth-3 { transform: translateZ(-4px); }.depth-4 { transform: translateZ(-8px); }.depth-5 { transform: translateZ(-12px); }.depth-6 { transform: translateZ(-16px); box-shadow: 15px 30px 45px #63287430; }
+.brand-face-shine { position: absolute; inset: -50%; background: linear-gradient(110deg, transparent 40%, #fff8 49%, transparent 58%); transform: translateX(-70%); animation: brand-shine 9s ease-in-out infinite; pointer-events: none; }
+.brand-pedestal { position: absolute; bottom: 24px; width: 72%; height: 34px; border-radius: 50%; background: #78378823; filter: blur(13px); animation: brand-shadow 9s ease-in-out infinite; }
+.brand-orbit { position: absolute; width: 95%; height: 76%; border-radius: 50%; border: 1px solid #b77bc344; transform: rotate(-25deg); pointer-events: none; }
+.orbit-two { width: 82%; height: 93%; transform: rotate(37deg); border-style: dashed; }
+.brand-satellite { position: absolute; font-size: 42px; color: #ae66b5; animation: brand-spark 7s ease-in-out infinite; }
+.satellite-one { top: 30px; right: 10px; }.satellite-two { bottom: 24px; left: 12px; font-size: 30px; animation-delay: -3s; }
+.brand-scene-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #7a5b82; }
+.brand-motion-toggle { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d9bfdf; border-radius: 30px; padding: 8px 12px; background: #ffffffb3; color: #71417e; font-size: 11px; }
+.brand-motion-toggle:focus-visible { outline: 3px solid #8b459d; outline-offset: 3px; }
+.brand-scene.is-paused * { animation-play-state: paused !important; }
+@keyframes brand-float { 0%,100% { transform: translateY(2px) rotateX(9deg) rotateY(-17deg) rotateZ(-3deg); } 50% { transform: translateY(-17px) rotateX(-6deg) rotateY(17deg) rotateZ(3deg); } }
+@keyframes brand-shadow { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(.84); opacity: .55; } }
+@keyframes brand-shine { 0%,25% { transform: translateX(-70%); } 65%,100% { transform: translateX(70%); } }
+@keyframes brand-spark { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-13px) rotate(20deg); } }
+@media(max-width:650px) { .brand-scene { padding: 22px 16px; border-radius: 26px; } .brand-perspective { height: 260px; } .brand-face { padding: 18px; border-radius: 18px; } .brand-depth { border-radius: 18px; } .brand-scene-label { font-size: 8px; letter-spacing: .7px; } }
+@media(prefers-reduced-motion:reduce) { .brand-scene * { animation: none !important; } .brand-object { transform: rotateX(4deg) rotateY(-8deg); } .brand-face-shine { display: none; } }
 @media(max-width:1150px) { .nav { gap: 10px; font-size: 11px; } .header { gap: 14px; padding-left: 3%; padding-right: 3%; } .header-actions { gap: 12px; } }
 @media(max-width:850px) { .home-shortcut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media(max-width:650px) {
