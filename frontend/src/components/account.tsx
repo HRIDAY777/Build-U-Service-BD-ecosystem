@@ -1,5 +1,6 @@
 "use client";
 import { MechanicQuote, type MechanicQuoteData } from "./mechanic-quote";
+import { TicketCategory } from "./support-routing";
 import { MechanicBookingProgress } from "./mechanic-booking-progress";
 import { BookingReschedule } from "./booking-reschedule";
 import { MechanicPhoto } from "./mechanic-photo";
@@ -1001,6 +1002,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
       {tab === "support" && (
         <>
           <form className="form-panel" onSubmit={support}>
+            <TicketCategory />
             <h2>
               <UiText text={"How can we help?"} />
             </h2>

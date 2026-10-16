@@ -52,7 +52,8 @@ class LeadAdmin(AuditedAdmin):
 
 @admin.register(SupportTicket)
 class SupportAdmin(ReadOnlyAdmin):
-    list_display = ["id", "customer", "subject", "status", "created_at"]
+    list_display = ["id", "customer", "subject", "status", "category", "priority", "assigned_to", "created_at"]
+    list_filter = ["status", "category", "priority"]
     readonly_fields = ["customer", "subject", "message", "created_at"]
 
     def has_add_permission(self, request):

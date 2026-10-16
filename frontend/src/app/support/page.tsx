@@ -1,5 +1,12 @@
 "use client";
 import { UiText } from "@/components/ui-text";
+import { Text } from "@/components/provider";
+import {
+  TicketCategory,
+  TicketRouting,
+  ticketCategories,
+  ticketPriorities,
+} from "@/components/support-routing";
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
@@ -15,6 +22,11 @@ type Ticket = {
   created_at: string;
   is_owner: boolean;
   can_respond: boolean;
+  can_route: boolean;
+  category: string;
+  priority: string;
+  assigned_to: number | null;
+  assigned_name: string;
 };
 type Message = {
   id: number;
@@ -133,6 +145,11 @@ export default function SupportPage() {
   const { user, toast } = useApp();
   const [tickets, setTickets] = useState<PageResult<Ticket> | null>(null);
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState({
+    status: "",
+    category: "",
+    priority: "",
+  });
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -141,13 +158,17 @@ export default function SupportPage() {
     setLoading(true);
     setError("");
     try {
-      setTickets(await api<PageResult<Ticket>>(`tickets/?page=${page}`));
+      setTickets(
+        await api<PageResult<Ticket>>(
+          `tickets/?page=${page}&${new URLSearchParams(filter)}`,
+        ),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to load tickets");
     } finally {
       setLoading(false);
     }
-  }, [user, page]);
+  }, [user, page, filter]);
   useEffect(() => {
     load();
   }, [load]);
@@ -201,6 +222,7 @@ export default function SupportPage() {
           <UiText text={"Subject / বিষয়"} />
           <input name="subject" required maxLength={180} />
         </label>
+        <TicketCategory />
         <label className="field">
           <UiText text={"How can we help? / বিস্তারিত"} />
           <textarea name="message" required maxLength={5000} />
@@ -212,6 +234,44 @@ export default function SupportPage() {
       <h2>
         <UiText text={"Tickets / অনুরোধসমূহ"} />
       </h2>
+      <div className="search-row">
+        {(
+          [
+            [
+              "status",
+              "অবস্থা",
+              "Status",
+              [
+                ["open", "নতুন", "Open"],
+                ["in_progress", "চলমান", "In progress"],
+                ["resolved", "সমাধান হয়েছে", "Resolved"],
+              ],
+            ],
+            ["category", "সমস্যার ধরন", "Issue category", ticketCategories],
+            ["priority", "জরুরিতা", "Priority", ticketPriorities],
+          ] as [keyof typeof filter, string, string, string[][]][]
+        ).map(([key, bn, en, options]) => (
+          <label className="field" key={key}>
+            <Text bn={bn} en={en} />
+            <select
+              value={filter[key]}
+              onChange={(e) => {
+                setFilter({ ...filter, [key]: e.target.value });
+                setPage(1);
+              }}
+            >
+              <option value="">
+                <Text bn="সব" en="All" />
+              </option>
+              {options.map(([value, labelBn, labelEn]) => (
+                <option key={value} value={value}>
+                  <Text bn={labelBn} en={labelEn} />
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
       {loading ? (
         <p>
           <UiText text={"Loading…"} />
@@ -229,6 +289,32 @@ export default function SupportPage() {
             #{ticket.id} · {ticket.subject}
           </h3>
           <span className="status">{ticket.status.replaceAll("_", " ")}</span>
+          <p>
+            {[
+              ticketCategories.find((item) => item[0] === ticket.category),
+              ticketPriorities.find((item) => item[0] === ticket.priority),
+            ]
+              .filter(Boolean)
+              .map((item) => (
+                <span key={item![0]}>
+                  <Text bn={item![1]} en={item![2]} /> ·{" "}
+                </span>
+              ))}
+            <Text bn="দায়িত্বে:" en="Assigned:" />{" "}
+            {ticket.assigned_name || (
+              <Text bn="সাপোর্ট টিম" en="Support team" />
+            )}
+          </p>
+          {ticket.can_route && ticket.status !== "resolved" && (
+            <TicketRouting
+              key={`${ticket.id}-${ticket.category}-${ticket.priority}-${ticket.assigned_to}`}
+              id={ticket.id}
+              category={ticket.category}
+              priority={ticket.priority}
+              assignedTo={ticket.assigned_to}
+              onSaved={() => void load()}
+            />
+          )}
           <p>{new Date(ticket.created_at).toLocaleString()}</p>
           <p style={{ whiteSpace: "pre-wrap" }}>{ticket.message}</p>
           <h4>

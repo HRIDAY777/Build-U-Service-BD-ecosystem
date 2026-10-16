@@ -20,6 +20,15 @@ class Lead(models.Model):
 
 
 class SupportTicket(models.Model):
+    category = models.CharField(max_length=20, default="general", choices=[
+        ("general", "General"), ("order", "Order"), ("booking", "Booking"),
+        ("delivery", "Delivery"), ("payment", "Payment"), ("account", "Account"),
+    ])
+    priority = models.CharField(max_length=10, default="normal", choices=[
+        ("low", "Low"), ("normal", "Normal"), ("high", "High"), ("urgent", "Urgent"),
+    ])
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                   on_delete=models.SET_NULL, related_name="support_assignments")
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     subject = models.CharField(max_length=180)
     message = models.TextField()

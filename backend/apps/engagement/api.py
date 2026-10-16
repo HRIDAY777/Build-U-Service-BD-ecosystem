@@ -43,6 +43,15 @@ class TicketSerializer(serializers.ModelSerializer):
     message = serializers.CharField(max_length=5000)
     is_owner = serializers.SerializerMethodField()
     can_respond = serializers.SerializerMethodField()
+    assigned_name = serializers.SerializerMethodField()
+    can_route = serializers.SerializerMethodField()
+
+    def get_can_route(self, obj):
+        user = self.context["request"].user
+        return user.is_staff and user.has_perms(["engagement.view_supportticket", "engagement.change_supportticket"])
+
+    def get_assigned_name(self, obj):
+        return (obj.assigned_to.get_full_name() or "Support team") if obj.assigned_to_id else ""
 
     def get_is_owner(self, obj):
         return obj.customer_id == self.context["request"].user.pk
@@ -53,8 +62,8 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SupportTicket
-        fields = ["id", "subject", "message", "status", "response", "created_at", "is_owner", "can_respond"]
-        read_only_fields = ["id", "status", "response", "created_at"]
+        fields = ["id", "subject", "message", "status", "response", "created_at", "is_owner", "can_respond", "can_route", "category", "priority", "assigned_to", "assigned_name"]
+        read_only_fields = ["id", "status", "response", "created_at", "priority", "assigned_to", "assigned_name"]
 
 
 class SupportMessageSerializer(serializers.ModelSerializer):
@@ -69,10 +78,61 @@ class TicketViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "head", "options"]
 
     def get_queryset(self):
-        tickets = SupportTicket.objects.order_by("-created_at", "-pk")
+        tickets = SupportTicket.objects.select_related("assigned_to").order_by("-created_at", "-pk")
+        for field, choices in [("status", ["open", "in_progress", "resolved"]),
+                               ("category", [key for key, _ in SupportTicket._meta.get_field("category").choices]),
+                               ("priority", [key for key, _ in SupportTicket._meta.get_field("priority").choices])]:
+            value = self.request.query_params.get(field)
+            if value:
+                value = serializers.ChoiceField(choices=choices).run_validation(value)
+                tickets = tickets.filter(**{field: value})
+        if self.request.query_params.get("assigned_to_me") == "1":
+            tickets = tickets.filter(assigned_to=self.request.user)
         if self.request.user.is_staff and self.request.user.has_perm("engagement.view_supportticket"):
             return tickets
         return tickets.filter(customer=self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def responders(self, request):
+        if not request.user.is_staff or not request.user.has_perms(["engagement.view_supportticket", "engagement.change_supportticket"]):
+            raise PermissionDenied()
+        candidates = get_user_model().objects.filter(is_active=True, is_staff=True).order_by("pk")
+        eligible = [
+            {"id": user.pk, "name": user.get_full_name() or user.username}
+            for user in candidates if user.has_perms(["engagement.view_supportticket", "engagement.change_supportticket"])
+        ]
+        return self.get_paginated_response(self.paginate_queryset(eligible))
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def route_ticket(self, request, pk=None):
+        if not request.user.is_staff or not request.user.has_perms(["engagement.view_supportticket", "engagement.change_supportticket"]):
+            raise PermissionDenied()
+        ticket = self.get_object()
+        ticket = SupportTicket.objects.select_for_update().get(pk=ticket.pk)
+        if ticket.status == "resolved":
+            raise ValidationError("Reopen the ticket before routing it.")
+        class RoutingInput(serializers.Serializer):
+            category = serializers.ChoiceField(choices=SupportTicket._meta.get_field("category").choices)
+            priority = serializers.ChoiceField(choices=SupportTicket._meta.get_field("priority").choices)
+            assigned_to = serializers.IntegerField(min_value=1, allow_null=True)
+        form = RoutingInput(data=request.data)
+        form.is_valid(raise_exception=True)
+        values = form.validated_data
+        assignee = None
+        if values["assigned_to"] is not None:
+            assignee = get_user_model().objects.filter(pk=values["assigned_to"], is_active=True, is_staff=True).first()
+            if not assignee or not assignee.has_perms(["engagement.view_supportticket", "engagement.change_supportticket"]):
+                raise ValidationError("Choose an active support team member.")
+        previous = {"category": ticket.category, "priority": ticket.priority, "assigned_to": ticket.assigned_to_id}
+        if previous == values:
+            return Response(self.get_serializer(ticket).data)
+        ticket.category, ticket.priority, ticket.assigned_to = values["category"], values["priority"], assignee
+        ticket.save(update_fields=["category", "priority", "assigned_to"])
+        audit(request.user, "support.routed", ticket.pk, before=previous, after=values)
+        if assignee and previous["assigned_to"] != assignee.pk:
+            Notification.objects.create(user=assignee, title="Support ticket assigned", body=f"Ticket #{ticket.pk}")
+        return Response(self.get_serializer(ticket).data)
 
     @transaction.atomic
     def perform_create(self, serializer):

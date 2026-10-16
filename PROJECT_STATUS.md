@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — support classification and routing
+
+Added customer-selected issue categories, staff-only priority/assignment, eligible responder discovery, validated scoped filters, audited atomic routing and in-app assignee notices. Bilingual Support routing/filter controls and category selection in Account are implemented. Existing conversation/reopen contracts are preserved. This does not implement SLA/escalation or external messaging. See docs/SUPPORT_ROUTING.md.
+
+Verification: four PostgreSQL routing tests and three existing support conversation/reply/reopen regressions passed. A controlled mobile browser fixture passed for routing and both languages (not live staff authentication). TypeScript/lint/production build, Ruff and migration drift passed; engagement.0009 applied locally. Local API restarted and returned HTTP 200.
+
 ## 16 October 2026 — mechanic quotations and customer consent
 
 Added itemized extra-cost quotations, server totals, version checks, locked customer acceptance/rejection, audited revision snapshots and in-app notices. Every revision requires fresh consent; work-start/completion transitions enforce it. Bilingual provider editing and customer review are available in existing job/account cards. Original booked prices remain unchanged; this is not payment execution or parts inventory. Additive migration operations.0021 applied locally. See docs/MECHANIC.md for API and boundaries.
