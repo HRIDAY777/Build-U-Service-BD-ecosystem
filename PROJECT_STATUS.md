@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — private mechanic quotation history
+
+Added paginated private quote/decision snapshots to customer/provider/operations cards with localized Bangladesh timestamps. The endpoint checks booking access and whitelists quote fields instead of exposing raw audit metadata or actors. Historical versions are read-only. No migration is needed.
+
+Verified: six PostgreSQL quote regressions passed, including decision preservation, redaction, pagination and revoked provider access. Two controlled browser workflows passed (customer/provider history/consent and operations/read-only controls). TypeScript/lint/production build and Ruff passed. Local API restarted and returned HTTP 200. No full-site revalidation is claimed.
+
 ## 16 October 2026 — mechanic operations controls
 
 Portal bookings now provide permission-aware quote/report editors; customer decision controls follow ownership and current quote state. Provider quote editors use the same server capability. Portal booking transitions use server available_actions, preserving consent gates and preventing stale client transition rules. Read-only viewers receive no editing capabilities. No migration is required.

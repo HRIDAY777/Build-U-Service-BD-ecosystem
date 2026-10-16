@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.test import TestCase, override_settings
@@ -126,3 +127,36 @@ class MechanicQuoteTests(TestCase):
         self.booking.save(update_fields=["status"])
         self.client.force_authenticate(operator)
         self.assertTrue(self.client.get(detail_url).data["can_report"])
+
+    def test_private_quote_history_preserves_decisions_redacts_metadata_and_paginates(self):
+        quote = self.publish()
+        self.client.force_authenticate(self.customer)
+        self.client.post(self.url, {"revision": quote["revision"], "decision": "accepted"}, format="json")
+        self.client.force_authenticate(self.provider)
+        self.body["revision"] = quote["revision"]
+        self.body["items"][0]["unit_price"] = "300.00"
+        self.publish()
+        event = AuditLog.objects.filter(action="booking.mechanic_quote_updated").latest("pk")
+        event.metadata["private_secret"] = "never-expose"
+        event.metadata["quote"]["internal_note"] = "never-expose"
+        event.metadata["quote"]["items"][0]["internal_cost"] = "never-expose"
+        event.save(update_fields=["metadata"])
+        AuditLog.objects.create(actor=self.provider, action="unrelated", entity=str(self.booking.pk), metadata={"private_secret": "never-expose"})
+        history = f"/api/v1/bookings/{self.booking.pk}/mechanic_quote_history/"
+        self.client.force_authenticate(self.customer)
+        with patch("rest_framework.pagination.PageNumberPagination.page_size", 2):
+            response = self.client.get(history)
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(response.data["count"], 3)
+            self.assertEqual([row["quote"]["status"] for row in response.data["results"]], ["pending", "accepted"])
+            self.assertTrue(response.data["next"])
+            self.assertEqual(len(self.client.get(history + "?page=2").data["results"]), 1)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertNotIn("never-expose", str(response.data))
+        self.assertNotIn("actor", str(response.data))
+        self.client.force_authenticate(self.stranger)
+        self.assertEqual(self.client.get(history).status_code, 404)
+        self.booking.provider = self.stranger
+        self.booking.save(update_fields=["provider"])
+        self.client.force_authenticate(self.provider)
+        self.assertEqual(self.client.get(history).status_code, 404)

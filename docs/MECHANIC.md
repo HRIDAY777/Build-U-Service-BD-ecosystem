@@ -1,5 +1,11 @@
 # Mechanic booking and work reports
 
+## Private quotation history
+
+`GET /api/v1/bookings/{id}/mechanic_quote_history/?page=1` provides newest-first paginated quotation snapshots and customer decision events. Access follows private booking access (owning customer, current assigned provider or authorized booking viewer). It reads only booking.mechanic_quote_updated events for that booking, whitelists quote/item fields, and excludes actor identifiers, previous/raw metadata and internal fields. Responses are private/no-store. Earlier accepted/rejected versions remain visible after a revised proposal. Current assignee access changes with assignment; this is not a public share link.
+
+Customer, provider and operations quote cards have an on-demand bilingual history button with pagination and Bangladesh timestamps. History is read-only; decisions still require the current quote revision. A status/revision change resets the displayed history so stale decisions are not retained. No migration is needed; events already recorded by the quotation workflow are reused.
+
 ## Repair and parts quotations — 16 October 2026
 
 Assigned mechanics can send an itemized additional-cost quote from their provider job card. Each item has a description, quantity (1–100) and nonnegative two-decimal unit price; up to 20 items are allowed. The server calculates line totals and the additional total. The original booked service price is preserved. Customers review the current quote in Account → Bookings and accept or reject it. All controls and fixed labels support Bangla and English; entered descriptions stay original.

@@ -6,6 +6,24 @@ test("repair quotation editor and customer consent work in both languages on mob
 }) => {
   let customer = false;
   let quote: MechanicQuoteData = {};
+  await page.route(
+    "**/api/v1/bookings/quote-ui/mechanic_quote_history/?page=1",
+    (r) =>
+      r.fulfill({
+        json: {
+          count: 2,
+          next: null,
+          results: [
+            { id: 2, recorded_at: "2026-10-16T11:00:00Z", quote },
+            {
+              id: 1,
+              recorded_at: "2026-10-16T10:00:00Z",
+              quote: { ...quote, status: "pending" },
+            },
+          ],
+        },
+      }),
+  );
   const job = () => ({
     id: "quote-ui",
     service: "Brake repair",
@@ -104,6 +122,20 @@ test("repair quotation editor and customer consent work in both languages on mob
   await expect(
     page.getByRole("button", { name: "Accept these costs", exact: true }),
   ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "View quotation history", exact: true })
+    .click();
+  await expect(page.locator(".mechanic-quote-history")).toContainText(
+    "Customer accepted",
+  );
+  await expect(page.locator(".mechanic-quote-history")).toContainText(
+    "Quotation sent",
+  );
+  await expect(
+    page
+      .locator(".mechanic-quote-history")
+      .getByRole("button", { name: "Next page", exact: true }),
+  ).toBeDisabled();
   await page.locator(".lang-switch").click();
   await expect(page.locator(".mechanic-quote")).toContainText("সম্মত");
   expect(

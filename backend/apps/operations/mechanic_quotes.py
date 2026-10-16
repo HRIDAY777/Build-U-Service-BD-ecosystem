@@ -27,6 +27,20 @@ class QuoteDecision(serializers.Serializer):
     decision = serializers.ChoiceField(choices=["accepted", "rejected"])
 
 
+def public_quote(snapshot):
+    """Expose quote facts only, never the surrounding audit metadata or actor."""
+    if not isinstance(snapshot, dict):
+        return {}
+    result = {key: snapshot[key] for key in (
+        "revision", "status", "note", "extra_total", "created_at", "decided_at",
+    ) if key in snapshot}
+    result["items"] = [
+        {key: item[key] for key in ("description", "quantity", "unit_price", "total") if key in item}
+        for item in snapshot.get("items", []) if isinstance(item, dict)
+    ]
+    return result
+
+
 @transaction.atomic
 def update_quote(user, booking_id, method, data):
     booking = Booking.objects.select_for_update().select_related("offering__division").get(pk=booking_id)

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { Text, useApp } from "./provider";
 import { UiText } from "./ui-text";
+import { MechanicQuoteHistory } from "./mechanic-quote-history";
 
 export type MechanicQuoteData = {
   revision?: string;
@@ -101,6 +102,7 @@ export function MechanicQuote({
             </strong>
           </p>
           {quote.note && <p>{quote.note}</p>}
+          <MechanicQuoteHistory key={`${quote.revision}-${quote.status}`} id={id} />
           {customer && quote.status === "pending" && (
             <div className="search-row">
               <button

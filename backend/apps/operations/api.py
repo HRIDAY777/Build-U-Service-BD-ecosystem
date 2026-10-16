@@ -774,6 +774,21 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         booking = update_quote(request.user, booking.pk, request.method, request.data)
         return Response(self.get_serializer(booking).data)
 
+    @action(detail=True, methods=["get"])
+    def mechanic_quote_history(self, request, pk=None):
+        from .mechanic_quotes import public_quote
+        booking = self.get_object()
+        if booking.offering.division.slug != "mechanic":
+            raise ValidationError("Quotation history is only available for mechanic bookings.")
+        events = AuditLog.objects.filter(entity=str(booking.pk), action="booking.mechanic_quote_updated").order_by("-created_at", "-pk")
+        page = self.paginate_queryset(events)
+        response = self.get_paginated_response([
+            {"id": event.pk, "recorded_at": event.created_at, "quote": public_quote(event.metadata.get("quote"))}
+            for event in page
+        ])
+        response["Cache-Control"] = "private, no-store"
+        return response
+
     @action(detail=True, methods=["get", "post", "delete"], url_path="problem-photo")
     def problem_photo(self, request, pk=None):
         booking = self.get_object()
