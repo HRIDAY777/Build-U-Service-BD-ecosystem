@@ -26,6 +26,8 @@ test("repair quotation editor and customer consent work in both languages on mob
       mobility: "unsafe",
     },
     mechanic_quote: quote,
+    can_quote: !customer,
+    can_decide_quote: customer && quote.status === "pending",
     available_actions: [],
     notes: "",
   });

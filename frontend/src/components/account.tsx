@@ -12,6 +12,7 @@ import Link from "next/link";
 import {
   MechanicSummary,
   MechanicReportView,
+  MechanicReportEditor,
   type MechanicReport,
   type MechanicDetails,
 } from "./mechanic-details";
@@ -49,6 +50,9 @@ type RecordItem = {
   service_details?: MechanicDetails;
   mechanic_report?: MechanicReport;
   mechanic_quote?: MechanicQuoteData;
+  can_quote?: boolean;
+  can_decide_quote?: boolean;
+  can_report?: boolean;
   preparation_minutes?: number | null;
   available_actions?: string[];
 };
@@ -730,7 +734,8 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   />
                 )}
                 <MechanicReportView report={r.mechanic_report} />
-                {tab === "bookings" && <MechanicQuote key={`${r.id}-${r.mechanic_quote?.revision || ""}`} id={r.id} quote={r.mechanic_quote} customer={!["completed", "cancelled", "failed"].includes(r.status)} onSaved={() => void load()} />}
+                {tab === "bookings" && <MechanicQuote key={`${r.id}-${r.mechanic_quote?.revision || ""}`} id={r.id} quote={r.mechanic_quote} editor={operations && !!r.can_quote} customer={!!r.can_decide_quote} onSaved={() => void load()} />}
+                {tab === "bookings" && operations && r.can_report && <MechanicReportEditor id={r.id} report={r.mechanic_report} onSaved={() => void load()} />}
                 {tab === "bookings" &&
                   r.service_details?.vehicle_type &&
                   r.can_reschedule &&
@@ -823,7 +828,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                       </button>
                     )}
                   {operations &&
-                    (tab === "deliveries"
+                    (["deliveries", "bookings"].includes(tab)
                       ? r.available_actions
                       : nextStates[r.status]
                     )

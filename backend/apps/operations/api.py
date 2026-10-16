@@ -663,6 +663,26 @@ class MechanicReportInput(serializers.Serializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
+    can_quote = serializers.SerializerMethodField()
+    can_decide_quote = serializers.SerializerMethodField()
+    can_report = serializers.SerializerMethodField()
+
+    def get_can_quote(self, obj):
+        user = self.context["request"].user
+        return obj.offering.division.slug == "mechanic" and obj.status in {
+            "confirmed", "assigned", "on_the_way", "arrived", "in_progress", "waiting_for_parts",
+        } and (obj.provider_id == user.pk or user.has_perm("operations.change_booking"))
+
+    def get_can_decide_quote(self, obj):
+        return obj.customer_id == self.context["request"].user.pk and obj.status not in {
+            "completed", "cancelled", "failed", "pending",
+        } and obj.mechanic_quote.get("status") == "pending"
+
+    def get_can_report(self, obj):
+        user = self.context["request"].user
+        return obj.offering.division.slug == "mechanic" and obj.status in {"in_progress", "waiting_for_parts"} and (
+            obj.provider_id == user.pk or user.has_perm("operations.change_booking")
+        )
     has_problem_photo = serializers.SerializerMethodField()
     can_manage_photo = serializers.SerializerMethodField()
 
@@ -709,6 +729,9 @@ class BookingSerializer(serializers.ModelSerializer):
             "service_details",
             "mechanic_report",
             "mechanic_quote",
+            "can_quote",
+            "can_decide_quote",
+            "can_report",
             "status",
             "price",
             "provider",
@@ -863,7 +886,7 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         return Response(self.get_serializer(booking).data)
 
     def get_queryset(self):
-        qs = Booking.objects.select_related("offering").order_by("-created_at")
+        qs = Booking.objects.select_related("offering__division").order_by("-created_at")
         if self.request.query_params.get("assigned_to_me") == "1":
             qs = qs.filter(provider=self.request.user)
         status = self.request.query_params.get("status")

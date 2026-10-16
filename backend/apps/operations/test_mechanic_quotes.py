@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -96,3 +96,33 @@ class MechanicQuoteTests(TestCase):
         division.slug = "electrician"
         division.save(update_fields=["slug"])
         self.assertEqual(self.client.put(self.url, self.body, format="json").status_code, 400)
+
+    def test_role_capabilities_and_operator_quote_editing(self):
+        quote = self.publish()
+        detail_url = f"/api/v1/bookings/{self.booking.pk}/"
+        self.client.force_authenticate(self.customer)
+        data = self.client.get(detail_url).data
+        self.assertTrue(data["can_decide_quote"])
+        self.assertFalse(data["can_quote"])
+        self.assertFalse(data["can_report"])
+        operator = get_user_model().objects.create_user(username="quote-operator", email="qo@example.invalid", is_staff=True)
+        operator.user_permissions.add(*Permission.objects.filter(content_type__app_label="operations", codename__in=["view_booking", "change_booking"]))
+        self.client.force_authenticate(operator)
+        data = self.client.get(detail_url).data
+        self.assertTrue(data["can_quote"])
+        self.assertFalse(data["can_decide_quote"])
+        self.assertFalse(data["can_report"])
+        self.body["revision"] = quote["revision"]
+        self.assertEqual(self.client.put(self.url, self.body, format="json").status_code, 200)
+        viewer = get_user_model().objects.create_user(username="quote-viewer", email="qv@example.invalid", is_staff=True)
+        viewer.user_permissions.add(Permission.objects.get(content_type__app_label="operations", codename="view_booking"))
+        self.client.force_authenticate(viewer)
+        data = self.client.get(detail_url).data
+        self.assertFalse(data["can_quote"])
+        self.assertFalse(data["can_decide_quote"])
+        self.assertFalse(data["can_report"])
+        self.assertEqual(self.client.put(self.url, self.body, format="json").status_code, 403)
+        self.booking.status = "in_progress"
+        self.booking.save(update_fields=["status"])
+        self.client.force_authenticate(operator)
+        self.assertTrue(self.client.get(detail_url).data["can_report"])

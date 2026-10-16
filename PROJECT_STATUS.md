@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — mechanic operations controls
+
+Portal bookings now provide permission-aware quote/report editors; customer decision controls follow ownership and current quote state. Provider quote editors use the same server capability. Portal booking transitions use server available_actions, preserving consent gates and preventing stale client transition rules. Read-only viewers receive no editing capabilities. No migration is required.
+
+Verified: 24 PostgreSQL mechanic/quote/provider tests, two controlled browser workflows (operations/read-only and provider/customer), TypeScript/lint/production build and Ruff passed. Local API restarted and returned HTTP 200. Browser fixtures verify controls/layout; backend tests verify role permissions and persistence.
+
 ## 16 October 2026 — provider-aware booking suggestions
 
 Public time previews optionally filter by selected service area, staff-approved services, provider schedules/leave/availability and appointment conflicts. The form clears old suggestions on area/day changes and explains no-provider results in both languages. Public responses expose no worker or customer identities; no capacity reservation or guaranteed booking is introduced. See docs/SERVICE_SCHEDULING.md.

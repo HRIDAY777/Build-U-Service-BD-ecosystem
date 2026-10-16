@@ -8,7 +8,9 @@ Assigned mechanics can send an itemized additional-cost quote from their provide
 
 Quotes can be changed during confirmed, assigned, travelling, arrived, in-progress and waiting-for-parts stages. Closed and pending bookings reject quote changes. When a quote exists, entering in_progress or completed requires acceptance of its current revision; blocked actions are removed from available_actions. Legacy bookings without a quote keep their workflow. Existing diagnostic work may precede a quote; any newly quoted work requires consent before resuming/completing through the workflow.
 
-This records costs and consent; it does not collect money, purchase parts, update stock, produce a tax invoice or confirm a live refund. Additional charges are separate from the booked fee. Quote expiry, attachments and an operations portal quote editor remain open; operators can use the permission-checked API.
+This records costs and consent; it does not collect money, purchase parts, update stock, produce a tax invoice or confirm a live refund. Additional charges are separate from the booked fee. Quote expiry and attachments remain open.
+
+Operations Portal → Bookings now includes quotation editing and work-report editing for authorized operators. Booking responses expose can_quote, can_decide_quote and can_report based on the current user, service and stage. Customer acceptance controls follow can_decide_quote; operators cannot consent on the customer's behalf. Read-only staff see existing quotations/reports without editors. Booking transition buttons use the server's available_actions, including consent gating, instead of a separate client transition table. Provider quotation controls also follow can_quote. Backend action authorization remains authoritative.
 
 Verification: 12 PostgreSQL mechanic/quote tests passed before final action-display refinement; the final quote module (4 tests) passed afterward. A controlled mobile browser test covered provider item entry, submission, customer consent, both languages and overflow. TypeScript/lint/build, Ruff and migration drift passed; migration operations.0021 applied locally.
 
