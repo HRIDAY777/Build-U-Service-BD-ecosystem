@@ -461,6 +461,8 @@ class WorkflowMixin:
                 if ProviderProfile.objects.filter(user=worker, available=False).exists():
                     raise ValidationError("This provider is currently unavailable.")
                 profile = ProviderProfile.objects.filter(user=worker).first()
+                if profile and not profile.covers_booking(obj):
+                    raise ValidationError("কর্মী এই এলাকায় সেবা দেন না। / Provider does not serve this area.")
                 if obj.offering.qualified_provider_required and (
                     not profile or not profile.approved_services.filter(pk=obj.offering_id).exists()
                 ):
@@ -914,10 +916,10 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
                 user_id__in=workers.values("pk")
             )}
             eligible = [worker.pk for worker in workers if worker.pk not in busy and (
-                worker.pk not in profiles or appointment_allowed(
+                worker.pk not in profiles or (profiles[worker.pk].covers_booking(booking) and appointment_allowed(
                     profiles[worker.pk].weekly_hours, profiles[worker.pk].leave_dates,
                     booking.scheduled_at, booking.duration_minutes
-                )
+                ))
             )]
             workers = workers.filter(pk__in=eligible)
         page = self.paginate_queryset(workers)

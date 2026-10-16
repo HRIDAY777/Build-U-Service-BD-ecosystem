@@ -1,5 +1,13 @@
 # Service schedules, leave and provider calendar
 
+## Provider coverage controls — 16 October 2026
+
+Admin → Provider profiles has `restrict_service_areas` and `service_areas`. When restricted, a provider needs an exact match to the booking's stored service-area name; that area must be active and enabled for the booked service's division. Empty restricted coverage blocks new assignments. The booking-specific picker and the locked assignment endpoint both enforce coverage. Providers cannot change these staff-controlled fields through their self-service endpoint. Admin coverage changes are audited under the same provider account lock used for assignment.
+
+Existing profiles default to unrestricted/manual coverage review; staff must configure actual areas before relying on automatic filtering. No nationwide coverage is inferred. Existing assignments remain intact when coverage changes. Matching uses configured service areas, not geographic distance or GPS. Customer capacity reservation remains open.
+
+Verification: 21 PostgreSQL provider/scheduling/concurrent-booking tests passed, including restricted empty/inactive/wrong-division/stale coverage and staff-only controls. Ruff/migration drift passed; operations.0020 applied locally.
+
 ## Staff-approved service eligibility — 16 October 2026
 
 Admin → Offerings now has `qualified_provider_required`. When enabled, the booking-specific provider picker and assignment endpoint require the exact service in Admin → Provider profiles → Approved services. An absent profile or an empty/different approval list fails closed for these services. Approval is staff-managed; provider self-service cannot grant it. Assignment rechecks the current approval, so a revoked choice cannot be submitted from a stale picker. Admin approval changes are audited and use the provider account lock shared by assignment.

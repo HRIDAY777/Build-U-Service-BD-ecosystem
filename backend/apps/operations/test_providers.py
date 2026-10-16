@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group, Permission
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
-from apps.catalog.models import Division, Offering
+from apps.catalog.models import Division, Offering, ServiceArea
 from apps.engagement.models import Notification
 from .models import Booking, ProviderProfile, AuditLog
 
@@ -136,6 +136,43 @@ class ProviderTests(TestCase):
         }, format="json")
         self.assertFalse(ProviderProfile.objects.get(user=self.provider).approved_services.exists())
 
+    def test_area_restrictions_filter_and_recheck_assignment(self):
+        job = self.booking("area-match")
+        profile = ProviderProfile.objects.create(user=self.provider, restrict_service_areas=True)
+        area = ServiceArea.objects.create(name="Dhanmondi", name_bn="ধানমন্ডি")
+        self.client.force_authenticate(self.manager)
+        choices = f"/api/v1/bookings/providers/?booking={job.pk}"
+        assign = f"/api/v1/bookings/{job.pk}/assign/"
+        payload = {"worker": self.provider.pk}
+        self.assertEqual(self.client.get(choices).data["count"], 0)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 400)
+        profile.service_areas.add(area)
+        self.assertEqual(self.client.get(choices).data["count"], 0)
+        area.divisions.add(self.service.division)
+        self.assertEqual(self.client.get(choices).data["count"], 1)
+        area.active = False
+        area.save(update_fields=["active"])
+        self.assertEqual(self.client.get(choices).data["count"], 0)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 400)
+        area.active = True
+        area.save(update_fields=["active"])
+        profile.service_areas.remove(area)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 400)
+        job.refresh_from_db()
+        self.assertIsNone(job.provider)
+        profile.service_areas.add(area)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 200)
+
+    def test_provider_cannot_change_coverage(self):
+        profile = ProviderProfile.objects.create(user=self.provider, restrict_service_areas=True)
+        area = ServiceArea.objects.create(name="Dhanmondi", name_bn="ধানমন্ডি")
+        self.client.patch("/api/v1/bookings/provider_profile/", {
+            "restrict_service_areas": False, "service_areas": [area.pk], "available": True,
+        }, format="json")
+        profile.refresh_from_db()
+        self.assertTrue(profile.restrict_service_areas)
+        self.assertFalse(profile.service_areas.exists())
+
     def test_admin_service_approval_is_saved_and_audited(self):
         from django.contrib import admin
         from django.test import RequestFactory
@@ -152,12 +189,14 @@ class ProviderTests(TestCase):
             "user": self.provider.pk, "available": True,
             "weekly_hours": "{}", "leave_dates": "[]",
             "approved_services": [self.service.pk],
+            "restrict_service_areas": True,
         }, instance=profile)
         self.assertTrue(form.is_valid(), form.errors)
         form.save(commit=False)
         model_admin.save_related(request, form, [], True)
         self.assertTrue(profile.approved_services.filter(pk=self.service.pk).exists())
         self.assertTrue(AuditLog.objects.filter(action="provider.skills_updated", actor=self.manager).exists())
+        self.assertTrue(AuditLog.objects.filter(action="provider.coverage_updated", actor=self.manager).exists())
 
     def test_assignment_conflicts_and_notifications(self):
         first = self.booking("first")

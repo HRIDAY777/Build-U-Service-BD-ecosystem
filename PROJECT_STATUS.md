@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — provider service-area matching
+
+Staff can restrict each provider to selected service areas. Booking-specific provider choices and locked assignment require matching area name, active area and service-division coverage. Empty restricted coverage blocks new jobs; provider self-service cannot change coverage. Staff changes are audited under the provider account lock. Existing unrestricted/manual coverage remains until staff configures it; no real geographic eligibility is inferred. Existing jobs are retained and GPS/radius routing is outside this feature.
+
+Verified: 21 PostgreSQL provider, scheduling and concurrent-booking tests passed, including stale coverage rejection, inactive/wrong-division coverage, self-edit prevention and admin audit. Ruff and migration drift passed; additive migration operations.0020 applied locally. No frontend change or new full-suite result is claimed.
+
 ## 16 October 2026 — service-specific provider approvals
 
 Added an opt-in required-qualification flag per offering and staff-managed exact-service approvals per provider. Booking-specific choices and assignment both enforce it; missing/wrong/revoked approvals fail closed. Providers cannot self-approve. Admin changes are audited and share the assignment account lock. Existing services retain manual review until staff enables the flag; no qualifications were invented. Area matching, professional certification and capacity reservations remain open.

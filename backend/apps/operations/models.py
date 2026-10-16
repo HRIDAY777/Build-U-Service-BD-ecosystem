@@ -108,6 +108,16 @@ class Booking(models.Model):
 
 
 class ProviderProfile(models.Model):
+    restrict_service_areas = models.BooleanField(
+        default=False, help_text="Only assign jobs in the selected service areas. An empty selection blocks new jobs.",
+    )
+    service_areas = models.ManyToManyField("catalog.ServiceArea", blank=True, related_name="providers")
+
+    def covers_booking(self, booking):
+        return not self.restrict_service_areas or self.service_areas.filter(
+            name=booking.address.get("area", ""), active=True, divisions=booking.offering.division_id,
+        ).exists()
+
     approved_services = models.ManyToManyField(
         "catalog.Offering", blank=True, related_name="qualified_providers",
         limit_choices_to={"division__kind": "service"},
