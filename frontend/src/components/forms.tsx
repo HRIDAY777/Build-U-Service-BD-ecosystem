@@ -1045,7 +1045,7 @@ export function BookingForm({ item }: { item: Offering }) {
           <Text bn={item.name_bn} en={item.name} />
         </h1>
         <p className="page-intro">
-          ৳{item.price} · {item.duration_minutes}
+          ৳{item.price} · {item.duration_minutes}{" "}
           <UiText text={"minutes · Payment after service"} />
         </p>
       </div>
@@ -1061,16 +1061,16 @@ export function BookingForm({ item }: { item: Offering }) {
             <UiText text={"বুকিংয়ের সময় / Booking hours (Bangladesh)"} />
           </strong>
           {[
-            "সোমবার",
-            "মঙ্গলবার",
-            "বুধবার",
-            "বৃহস্পতিবার",
-            "শুক্রবার",
-            "শনিবার",
-            "রবিবার",
-          ].map((day, i) => (
-            <p key={day}>
-              <UiText text={day} />:{" "}
+            ["সোমবার", "Monday"],
+            ["মঙ্গলবার", "Tuesday"],
+            ["বুধবার", "Wednesday"],
+            ["বৃহস্পতিবার", "Thursday"],
+            ["শুক্রবার", "Friday"],
+            ["শনিবার", "Saturday"],
+            ["রবিবার", "Sunday"],
+          ].map(([bn, en], i) => (
+            <p key={en}>
+              <Text bn={bn} en={en} />:{" "}
               {(item.service_weekly_hours[String(i)] || [])
                 .map((slot) => `${slot.open}–${slot.close}`)
                 .join(", ") || <Text bn="বন্ধ" en="Closed" />}

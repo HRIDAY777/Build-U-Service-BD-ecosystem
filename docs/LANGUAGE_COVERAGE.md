@@ -1,5 +1,7 @@
 # Bangla and English UI
 
+16 October 2026 follow-up: booking opening-hour weekday names now use explicit Bangla/English pairs instead of missing dictionary entries. Fixed spacing between duration and minutes. A real local `/book/156` browser regression passed for all seven English weekday names, Bangla switching and service titles. Frontend typecheck/lint passed.
+
 The language preference controls page headings, navigation, form labels, placeholders, package descriptions, location options, district captions, dashboard status labels and shared-wishlist controls. It persists across navigation and reload. Product and category names use their existing paired Bangla/English fields. Known demo addresses have display translations; saved addresses are not rewritten.
 
 Customer-entered names, addresses, notes, uploaded document content and original photo-author credits remain original. Backend/generated content needs paired content or an explicit translation entry; this is not automatic machine translation.
