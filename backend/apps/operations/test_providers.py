@@ -102,6 +102,63 @@ class ProviderTests(TestCase):
         job.refresh_from_db()
         self.assertIsNone(job.provider)
 
+    def test_required_service_approval_filters_and_rechecks_assignment(self):
+        self.service.qualified_provider_required = True
+        self.service.save(update_fields=["qualified_provider_required"])
+        job = self.booking("qualified")
+        self.client.force_authenticate(self.manager)
+        choices = f"/api/v1/bookings/providers/?booking={job.pk}"
+        assign = f"/api/v1/bookings/{job.pk}/assign/"
+        payload = {"worker": self.provider.pk}
+        self.assertEqual(self.client.get(choices).data["count"], 0)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 400)
+        profile = ProviderProfile.objects.create(user=self.provider)
+        other = Offering.objects.create(
+            division=self.service.division, name="Other", slug="other", sku="OTHER", price=500,
+        )
+        profile.approved_services.add(other)
+        self.assertEqual(self.client.get(choices).data["count"], 0)
+        profile.approved_services.add(self.service)
+        self.assertEqual(self.client.get(choices).data["count"], 1)
+        profile.approved_services.remove(self.service)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 400)
+        job.refresh_from_db()
+        self.assertIsNone(job.provider)
+        self.assertFalse(Notification.objects.filter(user=self.provider).exists())
+        profile.approved_services.add(self.service)
+        self.assertEqual(self.client.post(assign, payload, format="json").status_code, 200)
+        job.refresh_from_db()
+        self.assertEqual(job.provider, self.provider)
+
+    def test_provider_cannot_self_approve_skills(self):
+        self.client.patch("/api/v1/bookings/provider_profile/", {
+            "approved_services": [self.service.pk], "available": True,
+        }, format="json")
+        self.assertFalse(ProviderProfile.objects.get(user=self.provider).approved_services.exists())
+
+    def test_admin_service_approval_is_saved_and_audited(self):
+        from django.contrib import admin
+        from django.test import RequestFactory
+        from .admin import ProviderAdmin
+        profile = ProviderProfile.objects.create(user=self.provider)
+        self.manager.is_staff = True
+        self.manager.is_superuser = True
+        self.manager.save()
+        request = RequestFactory().post("/admin/")
+        request.user = self.manager
+        model_admin = ProviderAdmin(ProviderProfile, admin.site)
+        form_class = model_admin.get_form(request, profile)
+        form = form_class(data={
+            "user": self.provider.pk, "available": True,
+            "weekly_hours": "{}", "leave_dates": "[]",
+            "approved_services": [self.service.pk],
+        }, instance=profile)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save(commit=False)
+        model_admin.save_related(request, form, [], True)
+        self.assertTrue(profile.approved_services.filter(pk=self.service.pk).exists())
+        self.assertTrue(AuditLog.objects.filter(action="provider.skills_updated", actor=self.manager).exists())
+
     def test_assignment_conflicts_and_notifications(self):
         first = self.booking("first")
         second = self.booking("second", scheduled_at=first.scheduled_at + timedelta(minutes=30))

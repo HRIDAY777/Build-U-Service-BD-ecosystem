@@ -84,6 +84,7 @@ class OfferingAdmin(AuditedAdmin):
         "active",
         "prescription_required",
         "duration_minutes",
+        "qualified_provider_required",
         "image",
     ]
 

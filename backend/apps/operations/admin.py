@@ -73,6 +73,19 @@ class RiderAdmin(admin.ModelAdmin):
 
 @admin.register(ProviderProfile)
 class ProviderAdmin(admin.ModelAdmin):
+    filter_horizontal = ["approved_services"]
+
+    def save_related(self, request, form, formsets, change):
+        from django.contrib.auth import get_user_model
+        from django.db import transaction
+        from .services import audit
+        with transaction.atomic():
+            get_user_model().objects.select_for_update().get(pk=form.instance.user_id)
+            super().save_related(request, form, formsets, change)
+            if "approved_services" in form.changed_data:
+                audit(request.user, "provider.skills_updated", form.instance.pk,
+                      services=list(form.instance.approved_services.values_list("pk", flat=True)))
+
     list_display = ["user", "available", "updated_at"]
     list_filter = ["available"]
     search_fields = ["user__username", "user__first_name"]

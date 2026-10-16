@@ -108,6 +108,11 @@ class Booking(models.Model):
 
 
 class ProviderProfile(models.Model):
+    approved_services = models.ManyToManyField(
+        "catalog.Offering", blank=True, related_name="qualified_providers",
+        limit_choices_to={"division__kind": "service"},
+        help_text="Services approved by staff after reviewing this provider's skills.",
+    )
     weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
     leave_dates = models.JSONField(default=list, blank=True, validators=[validate_leave_dates])
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)

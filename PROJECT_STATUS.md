@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — service-specific provider approvals
+
+Added an opt-in required-qualification flag per offering and staff-managed exact-service approvals per provider. Booking-specific choices and assignment both enforce it; missing/wrong/revoked approvals fail closed. Providers cannot self-approve. Admin changes are audited and share the assignment account lock. Existing services retain manual review until staff enables the flag; no qualifications were invented. Area matching, professional certification and capacity reservations remain open.
+
+Verified: 18 PostgreSQL provider/schedule/booking-concurrency tests, then one admin approval/audit test passed; Ruff and migration drift passed. Both additive migrations applied locally. No frontend changes or new full-suite result is claimed.
+
 Existing project: U SERVICE BD LIMITED, intended official domain https://www.uservicebd.com. Development continues in the existing Django/Next repository; no rebuild or database reset is authorized or required.
 
 The initial phase 1 audit and selected phase 2/3 fixes are delivered. This does not complete all ten phases. Detailed status: `IMPLEMENTATION_AUDIT.md`, `FEATURE_MATRIX.md`, `DEVELOPMENT_ROADMAP.md`. New requirements are preserved as `REQUIREMENTS.ecosystem.txt`; older requirements remain unchanged.

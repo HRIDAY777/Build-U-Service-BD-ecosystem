@@ -1,5 +1,13 @@
 # Service schedules, leave and provider calendar
 
+## Staff-approved service eligibility — 16 October 2026
+
+Admin → Offerings now has `qualified_provider_required`. When enabled, the booking-specific provider picker and assignment endpoint require the exact service in Admin → Provider profiles → Approved services. An absent profile or an empty/different approval list fails closed for these services. Approval is staff-managed; provider self-service cannot grant it. Assignment rechecks the current approval, so a revoked choice cannot be submitted from a stale picker. Admin approval changes are audited and use the provider account lock shared by assignment.
+
+Existing services default to manual eligibility review (`qualified_provider_required=False`), preserving existing bookings and configuration. No provider skills are invented or automatically certified. Operators must review real qualifications, select approved services and enable the requirement on each applicable offering. This is service-specific authorization, not proof of a professional license. Existing assigned jobs remain intact; area matching and customer capacity reservation are still open.
+
+Verification: 18 PostgreSQL provider/scheduling/concurrent-booking tests passed, followed by the additional admin save/audit regression (1 passed); local migrations applied. Ruff and migration drift checks passed.
+
 Service owners: open Portal → Catalog → Manage schedule under a service item. Save weekly periods, closed dates and duration (1–1440 minutes). Customers see these periods and closed dates on the booking form. The entered time uses Asia/Dhaka, regardless of device timezone. The server requires the complete service duration to fit within one configured opening period and rejects any leave date touched by the appointment. A period ending earlier than it starts continues into the next day; 24:00 means midnight. Finishing exactly at closing is allowed. A booking that crosses into a leave date is rejected, unless it ends exactly at midnight before that leave date.
 
 An empty weekly schedule is unconfigured, so requests still require manual confirmation. Enabling a schedule with empty weekdays closes those days. Setting leave dates works even without a weekly schedule. The form is a request, not a guarantee that a matching provider is available.

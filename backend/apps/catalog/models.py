@@ -174,6 +174,10 @@ class Offering(models.Model):
     active = models.BooleanField(default=True)
     prescription_required = models.BooleanField(default=False)
     duration_minutes = models.PositiveIntegerField(default=60)
+    qualified_provider_required = models.BooleanField(
+        default=False,
+        help_text="Require an administrator-approved provider for this specific service.",
+    )
     service_weekly_hours = models.JSONField(default=dict, blank=True, validators=[validate_weekly_hours])
     service_leave_dates = models.JSONField(default=list, blank=True, validators=[validate_leave_dates])
     image = models.CharField(max_length=1000, blank=True)

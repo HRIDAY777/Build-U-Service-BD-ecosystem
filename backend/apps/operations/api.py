@@ -461,6 +461,10 @@ class WorkflowMixin:
                 if ProviderProfile.objects.filter(user=worker, available=False).exists():
                     raise ValidationError("This provider is currently unavailable.")
                 profile = ProviderProfile.objects.filter(user=worker).first()
+                if obj.offering.qualified_provider_required and (
+                    not profile or not profile.approved_services.filter(pk=obj.offering_id).exists()
+                ):
+                    raise ValidationError("এই সেবার জন্য কর্মী অনুমোদিত নন। / Provider is not approved for this service.")
                 if profile and not appointment_allowed(profile.weekly_hours, profile.leave_dates,
                                                        obj.scheduled_at, obj.duration_minutes):
                     raise ValidationError("প্রোভাইডারের কাজের সময় বা ছুটির সাথে মিলছে না / Provider is outside working hours or on leave.")
@@ -899,6 +903,8 @@ class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
             if booking.status not in {"confirmed", "assigned"}:
                 raise ValidationError("This booking is not ready for assignment.")
             end = booking.scheduled_at + timedelta(minutes=booking.duration_minutes)
+            if booking.offering.qualified_provider_required:
+                workers = workers.filter(providerprofile__approved_services=booking.offering_id)
             conflicts = Booking.objects.filter(
                 provider_id__in=workers.values("pk"), scheduled_at__lt=end
             ).exclude(pk=booking.pk).exclude(status__in=["cancelled", "completed", "failed"])
