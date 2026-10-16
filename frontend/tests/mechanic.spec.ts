@@ -234,7 +234,7 @@ test("assigned mechanic can record and view the work report", async ({
   await expect(
     page.getByRole("heading", { name: "Mechanic work report", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".mechanic-summary").last()).toContainText(
+  await expect(page.locator(".mechanic-report-view")).toContainText(
     "Cable replaced and tested",
   );
   expect(report.parts_used).toBe("Brake cable");

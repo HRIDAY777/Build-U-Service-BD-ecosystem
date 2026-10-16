@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — mechanic quotations and customer consent
+
+Added itemized extra-cost quotations, server totals, version checks, locked customer acceptance/rejection, audited revision snapshots and in-app notices. Every revision requires fresh consent; work-start/completion transitions enforce it. Bilingual provider editing and customer review are available in existing job/account cards. Original booked prices remain unchanged; this is not payment execution or parts inventory. Additive migration operations.0021 applied locally. See docs/MECHANIC.md for API and boundaries.
+
+Verification before final action-display refinement: 12 PostgreSQL mechanic/quote tests passed; final quote module (4 tests) passed afterward, including action visibility, non-mechanic rejection and completion after acceptance. A controlled mobile browser fixture passed for provider submission and customer acceptance in both languages. TypeScript/lint/production build, Ruff and migration drift passed. Browser fixtures validate UI rather than real role authentication; backend tests cover permissions and persistence. No complete-site revalidation is claimed.
+
 ## 16 October 2026 — provider service-area matching
 
 Staff can restrict each provider to selected service areas. Booking-specific provider choices and locked assignment require matching area name, active area and service-division coverage. Empty restricted coverage blocks new jobs; provider self-service cannot change coverage. Staff changes are audited under the provider account lock. Existing unrestricted/manual coverage remains until staff configures it; no real geographic eligibility is inferred. Existing jobs are retained and GPS/radius routing is outside this feature.

@@ -688,6 +688,8 @@ class BookingSerializer(serializers.ModelSerializer):
     def get_available_actions(self, obj):
         user = self.context["request"].user
         states = BOOKING_TRANSITIONS.get(obj.status, set())
+        if obj.mechanic_quote and obj.mechanic_quote.get("status") != "accepted":
+            states = states - {"in_progress", "completed"}
         if user.has_perm("operations.change_booking"):
             return sorted(states - ({"assigned"} if not obj.provider_id else set()))
         if obj.provider_id == user.pk:
@@ -706,6 +708,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "notes",
             "service_details",
             "mechanic_report",
+            "mechanic_quote",
             "status",
             "price",
             "provider",
@@ -740,6 +743,13 @@ class ProviderScheduleInput(serializers.Serializer):
 
 class BookingViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
+
+    @action(detail=True, methods=["put", "post"])
+    def mechanic_quote(self, request, pk=None):
+        from .mechanic_quotes import update_quote
+        booking = self.get_object()
+        booking = update_quote(request.user, booking.pk, request.method, request.data)
+        return Response(self.get_serializer(booking).data)
 
     @action(detail=True, methods=["get", "post", "delete"], url_path="problem-photo")
     def problem_photo(self, request, pk=None):

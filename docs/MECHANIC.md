@@ -1,5 +1,17 @@
 # Mechanic booking and work reports
 
+## Repair and parts quotations — 16 October 2026
+
+Assigned mechanics can send an itemized additional-cost quote from their provider job card. Each item has a description, quantity (1–100) and nonnegative two-decimal unit price; up to 20 items are allowed. The server calculates line totals and the additional total. The original booked service price is preserved. Customers review the current quote in Account → Bookings and accept or reject it. All controls and fixed labels support Bangla and English; entered descriptions stay original.
+
+`PUT /api/v1/bookings/{id}/mechanic_quote/` accepts `revision` (empty for the first quote), `items` and optional `note`. Only the assigned provider or an operator with change_booking can publish. `POST` accepts the current revision and `decision: accepted|rejected`; only the owning customer can decide. The booking row is locked for both actions. A stale revision is rejected. Each revision resets consent to pending, including revisions to an accepted quote. Repeating the same decision has no duplicate audit/notification effects; changing a decided answer requires a fresh quote. Audit snapshots retain previous and current quotations. In-app notices notify the customer/provider.
+
+Quotes can be changed during confirmed, assigned, travelling, arrived, in-progress and waiting-for-parts stages. Closed and pending bookings reject quote changes. When a quote exists, entering in_progress or completed requires acceptance of its current revision; blocked actions are removed from available_actions. Legacy bookings without a quote keep their workflow. Existing diagnostic work may precede a quote; any newly quoted work requires consent before resuming/completing through the workflow.
+
+This records costs and consent; it does not collect money, purchase parts, update stock, produce a tax invoice or confirm a live refund. Additional charges are separate from the booked fee. Quote expiry, attachments and an operations portal quote editor remain open; operators can use the permission-checked API.
+
+Verification: 12 PostgreSQL mechanic/quote tests passed before final action-display refinement; the final quote module (4 tests) passed afterward. A controlled mobile browser test covered provider item entry, submission, customer consent, both languages and overflow. TypeScript/lint/build, Ruff and migration drift passed; migration operations.0021 applied locally.
+
 Home mechanic cards open /mechanic with active services and booking guidance. Existing catalog filtering remains available. Booking takes vehicle type, brand/model, optional registration and odometer, problem category, mobility, preferred Bangladesh appointment time, service coverage address and notes. Booking data is stored in PostgreSQL and shown to the customer, authorized operations and assigned provider. Existing service hours, provider assignment, overlap protection and work status transitions are reused.
 
 The assigned provider or an operator with change_booking permission can PUT /api/v1/bookings/{id}/mechanic_report/ during in_progress or waiting_for_parts. Diagnosis and work performed are required; parts used and follow-up are optional. Writes lock the booking and create an audit entry. Reports are read-only after completion. New mechanic bookings with structured vehicle details require a report before completion; historical bookings without these details retain the earlier behavior.

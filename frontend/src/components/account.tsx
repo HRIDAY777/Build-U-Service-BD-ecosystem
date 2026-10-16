@@ -1,4 +1,5 @@
 "use client";
+import { MechanicQuote, type MechanicQuoteData } from "./mechanic-quote";
 import { MechanicBookingProgress } from "./mechanic-booking-progress";
 import { BookingReschedule } from "./booking-reschedule";
 import { MechanicPhoto } from "./mechanic-photo";
@@ -46,6 +47,7 @@ type RecordItem = {
   duration_minutes?: number;
   service_details?: MechanicDetails;
   mechanic_report?: MechanicReport;
+  mechanic_quote?: MechanicQuoteData;
   preparation_minutes?: number | null;
   available_actions?: string[];
 };
@@ -727,6 +729,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
                   />
                 )}
                 <MechanicReportView report={r.mechanic_report} />
+                {tab === "bookings" && <MechanicQuote key={`${r.id}-${r.mechanic_quote?.revision || ""}`} id={r.id} quote={r.mechanic_quote} customer={!["completed", "cancelled", "failed"].includes(r.status)} onSaved={() => void load()} />}
                 {tab === "bookings" &&
                   r.service_details?.vehicle_type &&
                   r.can_reschedule &&

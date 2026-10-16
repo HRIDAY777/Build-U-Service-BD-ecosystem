@@ -346,6 +346,8 @@ def transition(user, model, pk, new_status, details=None):
         raise ValidationError("Assign an eligible worker first.")
     if kind == "booking" and new_status == "completed" and obj.offering.division.slug == "mechanic" and obj.service_details and not obj.mechanic_report:
         raise ValidationError("Save the mechanic work report before completing this booking.")
+    if kind == "booking" and new_status in {"in_progress", "completed"} and obj.mechanic_quote and obj.mechanic_quote.get("status") != "accepted":
+        raise ValidationError("মেরামতের কোটেশনে গ্রাহকের সম্মতি প্রয়োজন। / Customer acceptance of the repair quote is required.")
     before = obj.status
     obj.status = new_status
     obj.save(

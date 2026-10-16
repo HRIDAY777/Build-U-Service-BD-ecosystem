@@ -1,4 +1,5 @@
 "use client";
+import { MechanicQuote, type MechanicQuoteData } from "./mechanic-quote";
 import { UiText } from "@/components/ui-text";
 
 import Link from "next/link";
@@ -24,6 +25,7 @@ type Job = {
   duration_minutes: number;
   service_details?: MechanicDetails;
   mechanic_report?: MechanicReport;
+  mechanic_quote?: MechanicQuoteData;
   status: string;
   address: { recipient: string; phone: string; line: string; area: string };
   notes: string;
@@ -248,6 +250,7 @@ export function ProviderDashboard() {
           )}
           <MechanicSummary details={job.service_details} />
           <MechanicReportView report={job.mechanic_report} />
+          {(job.service_details?.vehicle_type || job.mechanic_quote?.revision) && <MechanicQuote key={`${job.id}-${job.mechanic_quote?.revision || ""}`} id={job.id} quote={job.mechanic_quote} editor={["confirmed", "assigned", "on_the_way", "arrived", "in_progress", "waiting_for_parts"].includes(job.status)} onSaved={() => void act()} />}
           <MechanicPhoto id={job.id} hasPhoto={job.has_problem_photo} />
           {job.service_details?.vehicle_type &&
             ["in_progress", "waiting_for_parts"].includes(job.status) && (
