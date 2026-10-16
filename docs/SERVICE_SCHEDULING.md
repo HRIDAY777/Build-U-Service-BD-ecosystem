@@ -1,5 +1,13 @@
 # Service schedules, leave and provider calendar
 
+## Provider-aware public time preview — 16 October 2026
+
+The public booking_times endpoint accepts optional `area` (the exact configured service-area name). Without it, existing service-hour suggestions remain. With an active area enabled for the offering's division, configured-hour slots are filtered against active/online Provider accounts, staff service approvals when required, restricted coverage, personal hours/leave and overlapping active bookings. A full appointment must fit; adjacent appointments are allowed. No worker names, counts, job IDs or customer details are returned. `availability_checked` identifies the preview, and the response remains no-store. Unknown/inactive/wrong-division areas are rejected. Unconfigured service hours retain manual confirmation.
+
+The booking form sends its selected pricing/service area, clears prior suggestions when day or area changes, and displays bilingual empty-provider guidance. This is a momentary preview: it does not assign a provider, reserve capacity or guarantee a slot. Pending customer requests remain requests; final assignment revalidates eligibility and conflicts under lock. Profiles with unrestricted coverage/unconfigured hours retain existing manual-confirmation behavior; staff must configure actual eligibility. Provider-capacity reservation is still open.
+
+Verification: 20 PostgreSQL availability/scheduling/provider tests passed; two browser checks passed for area refresh/empty-provider guidance and the reported booking page's bilingual weekdays. The availability browser case uses controlled time responses; backend tests cover real database filtering. TypeScript/lint/build and Ruff passed. Restarted local API returned the new preview for offering 156/Dhanmondi with confirmation still required.
+
 ## Provider coverage controls — 16 October 2026
 
 Admin → Provider profiles has `restrict_service_areas` and `service_areas`. When restricted, a provider needs an exact match to the booking's stored service-area name; that area must be active and enabled for the booked service's division. Empty restricted coverage blocks new assignments. The booking-specific picker and the locked assignment endpoint both enforce coverage. Providers cannot change these staff-controlled fields through their self-service endpoint. Admin coverage changes are audited under the same provider account lock used for assignment.

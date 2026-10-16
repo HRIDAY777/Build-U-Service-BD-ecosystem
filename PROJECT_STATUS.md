@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 16 October 2026 — provider-aware booking suggestions
+
+Public time previews optionally filter by selected service area, staff-approved services, provider schedules/leave/availability and appointment conflicts. The form clears old suggestions on area/day changes and explains no-provider results in both languages. Public responses expose no worker or customer identities; no capacity reservation or guaranteed booking is introduced. See docs/SERVICE_SCHEDULING.md.
+
+Verified: 20 targeted PostgreSQL tests, two browser checks, TypeScript/lint/production build and Ruff passed. No migration is required. API restarted; real local offering 156 with Dhanmondi returned availability_checked=true and requires_confirmation=true.
+
 ## 16 October 2026 — support classification and routing
 
 Added customer-selected issue categories, staff-only priority/assignment, eligible responder discovery, validated scoped filters, audited atomic routing and in-app assignee notices. Bilingual Support routing/filter controls and category selection in Account are implemented. Existing conversation/reopen contracts are preserved. This does not implement SLA/escalation or external messaging. See docs/SUPPORT_ROUTING.md.

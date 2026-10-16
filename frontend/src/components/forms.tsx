@@ -38,11 +38,13 @@ export function AddressFields({
   title = "",
   defaultDistrict = "",
   division = "",
+  onAreaChange,
 }: {
   prefix?: string;
   title?: string;
   defaultDistrict?: string;
   division?: string;
+  onAreaChange?: (area: string) => void;
 }) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [failed, setFailed] = useState(false);
@@ -80,6 +82,7 @@ export function AddressFields({
       : matchingAreas.length === 1
         ? matchingAreas[0].name
         : "");
+  useEffect(() => { onAreaChange?.(selectedArea); }, [onAreaChange, selectedArea]);
   useEffect(() => {
     let active = true;
     async function load() {
@@ -986,6 +989,7 @@ export function BookingForm({ item }: { item: Offering }) {
   const mechanic = item.division_slug === "mechanic";
   const router = useRouter();
   const [scheduled, setScheduled] = useState("");
+  const [serviceArea, setServiceArea] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [key] = useState(() =>
@@ -1109,9 +1113,10 @@ export function BookingForm({ item }: { item: Offering }) {
             />
           </label>
           <BookingTimes
-            key={scheduled.slice(0, 10)}
+            key={`${scheduled.slice(0, 10)}-${serviceArea}`}
             id={item.id}
             day={scheduled.slice(0, 10)}
+            area={serviceArea}
             onSelect={setScheduled}
           />
 
@@ -1122,7 +1127,7 @@ export function BookingForm({ item }: { item: Offering }) {
               }
             />
           </p>
-          <AddressFields division={item.division_slug} />
+          <AddressFields division={item.division_slug} onAreaChange={setServiceArea} />
           {item.division_slug === "mechanic" && <MechanicFields />}
           <label className="field">
             <UiText text={"সমস্যার বিবরণ / Describe the issue"} />

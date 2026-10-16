@@ -247,6 +247,16 @@ class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
         if not today <= day <= today + timedelta(days=90):
             raise ValidationError("Choose a date within the next 90 days.")
         result = suggested_appointments(offering, day)
+        area_name = request.query_params.get("area")
+        result["availability_checked"] = False
+        if area_name:
+            area_name = serializers.CharField(max_length=100).run_validation(area_name)
+            area = ServiceArea.objects.filter(name=area_name, active=True, divisions=offering.division_id).first()
+            if not area:
+                raise ValidationError("This division does not serve the selected area.")
+            from apps.operations.availability import available_slots
+            result["slots"] = available_slots(offering, area, result["slots"])
+            result["availability_checked"] = result["mode"] == "hours"
         result.update({"date": day.isoformat(), "timezone": "Asia/Dhaka",
                        "duration_minutes": offering.duration_minutes, "requires_confirmation": True})
         return Response(result, headers={"Cache-Control": "no-store"})

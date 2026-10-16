@@ -3,18 +3,22 @@ import { UiText } from "@/components/ui-text";
 
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Text } from "./provider";
 type Times = {
   mode: "manual" | "hours" | "closed";
   slots: { start: string; end: string }[];
   duration_minutes: number;
+  availability_checked?: boolean;
 };
 export function BookingTimes({
   id,
   day,
+  area = "",
   onSelect,
 }: {
   id: number;
   day: string;
+  area?: string;
   onSelect: (value: string) => void;
 }) {
   const [times, setTimes] = useState<Times | null>(null);
@@ -27,7 +31,7 @@ export function BookingTimes({
     try {
       setTimes(
         await api<Times>(
-          `offerings/${id}/booking_times/?date=${encodeURIComponent(day)}`,
+          `offerings/${id}/booking_times/?date=${encodeURIComponent(day)}${area ? `&area=${encodeURIComponent(area)}` : ""}`,
         ),
       );
     } catch (e) {
@@ -51,11 +55,7 @@ export function BookingTimes({
         )}
       </button>
       <p>
-        <UiText
-          text={
-            "তারিখ বেছে সময়সূচি দেখুন। টিম প্রোভাইডারের সময় নিশ্চিত করবে। / Choose a date to review service hours; the team confirms provider availability."
-          }
-        />
+        <Text bn={area ? "এলাকা ও কর্মীর বর্তমান সময় মিলিয়ে সম্ভাব্য সময় দেখুন। এটি সময় সংরক্ষণ করে না; টিম নিশ্চিত করবে।" : "তারিখ বেছে সেবার সময় দেখুন। নিচে সার্ভিস এরিয়া বাছলে কর্মীর উপলব্ধতাও যাচাই হবে।"} en={area ? "Review times against the area and current provider availability. This does not reserve a slot; the team confirms it." : "Choose a date to review service hours. Select a service zone below to also check provider availability."} />
       </p>
       {error && (
         <p className="error" role="alert">
@@ -82,8 +82,9 @@ export function BookingTimes({
       )}
       {times?.mode === "hours" && (
         <>
+          {times.availability_checked && !times.slots.length && <p role="status"><Text bn="এই এলাকায় ওই দিনের সময়গুলোতে উপযুক্ত কর্মী পাওয়া যাচ্ছে না। অন্য দিন বাছুন বা সাপোর্টে জানান।" en="No eligible providers are currently available for these times in this area. Choose another day or contact support." /></p>}
           <p>
-            {times.duration_minutes}
+            {times.duration_minutes}{" "}
             <UiText text={"মিনিট / minutes · বাংলাদেশ সময় / Bangladesh time"} />
           </p>
           <div
