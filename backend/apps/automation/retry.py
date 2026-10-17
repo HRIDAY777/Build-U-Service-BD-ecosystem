@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.operations.services import audit
@@ -28,7 +29,10 @@ def authorize_retry(user, run_ids):
             previous_limit = run.attempt_limit
             run.attempt_limit = run.attempts + 1
             run.status = "pending"
-            run.save(update_fields=["attempt_limit", "status", "updated_at"])
+            run.next_attempt_at = timezone.now()
+            run.save(update_fields=["attempt_limit", "status", "next_attempt_at", "updated_at"])
+            event.next_attempt_at = run.next_attempt_at
+            event.save(update_fields=["next_attempt_at"])
             audit(user, "automation.retry_authorized", run.pk, event=str(event.pk), attempts=run.attempts, previous_limit=previous_limit, attempt_limit=run.attempt_limit)
             queued += 1
     return {"queued": queued, "skipped": len(identifiers) - queued}

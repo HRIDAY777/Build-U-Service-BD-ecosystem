@@ -27,6 +27,9 @@ class RuleFailureIsolationTests(TestCase):
         self.assertEqual(AutomationRun.objects.get(rule=self.good).status, "succeeded")
         self.assertEqual(Notification.objects.count(), 1)
         process_event(self.event.pk)
+        self.event.refresh_from_db()
+        with patch("apps.automation.tasks.timezone.now", return_value=self.event.next_attempt_at):
+            process_event(self.event.pk)
         process_event(self.event.pk)
         self.assertEqual(Notification.objects.count(), 2)
         self.event.refresh_from_db()
@@ -45,5 +48,7 @@ class RuleFailureIsolationTests(TestCase):
             process_event(self.event.pk)
         self.assertEqual(Notification.objects.filter(title="Failing").count(), 0)
         self.assertEqual(AutomationRun.objects.get(rule=self.failed).error, "RuntimeError")
-        process_event(self.event.pk)
+        self.event.refresh_from_db()
+        with patch("apps.automation.tasks.timezone.now", return_value=self.event.next_attempt_at):
+            process_event(self.event.pk)
         self.assertEqual(Notification.objects.count(), 2)

@@ -26,7 +26,7 @@ class AutomationRetryTests(TestCase):
         self.operator.user_permissions.add(*Permission.objects.filter(content_type__app_label="automation", codename__in=["view_automationrun", "retry_automationrun"]))
         self.viewer = users.objects.create_user(username="retry-viewer", email="retry-viewer@example.invalid", is_staff=True)
         self.viewer.user_permissions.add(Permission.objects.get(content_type__app_label="automation", codename="view_automationrun"))
-        self.event = OutboxEvent.objects.create(user=self.customer, topic="retry.test", payload={"reference": "TEST"})
+        self.event = OutboxEvent.objects.create(user=self.customer, topic="retry.test", payload={"reference": "TEST"}, next_attempt_at=None)
         self.rule = AutomationRule.objects.create(name="Retry test", trigger=self.event.topic, action="notify", template="Test notification")
         self.run = AutomationRun.objects.create(event=self.event, rule=self.rule, status="failed", attempts=5, error="RuntimeError")
 

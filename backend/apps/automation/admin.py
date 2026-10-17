@@ -28,7 +28,7 @@ class RuleAdmin(AuditedAdmin):
 
 @admin.register(AutomationRun)
 class RunAdmin(ReadOnlyAdmin):
-    list_display = ["rule", "event_topic", "status", "attempts", "attempt_limit", "error", "updated_at"]
+    list_display = ["rule", "event_topic", "status", "attempts", "attempt_limit", "next_attempt_at", "error", "updated_at"]
     list_filter = [ExhaustedFilter, "status", "rule__action"]
     list_select_related = ["rule", "event"]
     search_fields = ["rule__name", "event__topic"]

@@ -1,9 +1,11 @@
 import uuid
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class OutboxEvent(models.Model):
+    next_attempt_at = models.DateTimeField(default=timezone.now, null=True, db_index=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     topic = models.CharField(max_length=80)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -31,6 +33,7 @@ class AutomationRule(models.Model):
 
 
 class AutomationRun(models.Model):
+    next_attempt_at = models.DateTimeField(null=True, blank=True)
     event = models.ForeignKey(OutboxEvent, on_delete=models.CASCADE)
     rule = models.ForeignKey(AutomationRule, on_delete=models.PROTECT)
     status = models.CharField(max_length=20, default="pending")

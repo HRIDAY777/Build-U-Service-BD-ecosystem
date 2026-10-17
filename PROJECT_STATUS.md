@@ -1,5 +1,11 @@
 # Project status — 11 October 2026
 
+## 17 October 2026 — scheduled automation retries
+
+Added persisted exponential retry delays, due-only fair dispatch and parking exhausted events so new ready work is not blocked by exhausted batches. Manual retry authorization reactivates run/event schedules atomically while preserving budgets/error history. Admin displays next attempt time. Migration automation.0003 applied locally; no live workers/Beat/Redis or external delivery was executed.
+
+Verified: all 11 PostgreSQL automation tests passed, including existing manual retry concurrency and new delay/parking/batch regressions. After anchoring delays to failure time, the three backoff tests passed again. Ruff/migration drift passed; restarted API returned HTTP 200. No frontend changes were made.
+
 ## 17 October 2026 — support work queues
 
 Added own/unassigned support queues, validated priority/newest/oldest ordering, stable oldest-first urgency ties and resolved-last priority ordering. Staff default to priority order; customers retain scoped newest-first history. The page shows matching totals, resets pagination and ignores stale responses. No migration is needed. Five PostgreSQL support tests, the controlled bilingual/mobile support browser test, TypeScript/lint/build and Ruff passed. Local website/API started; API returned HTTP 200.

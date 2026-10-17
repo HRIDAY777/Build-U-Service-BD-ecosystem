@@ -1,5 +1,13 @@
 # Automation monitoring and controlled retries
 
+## Retry scheduling — 17 October 2026
+
+Failed runs now store next_attempt_at and wait 60, 120, 240 and 480 seconds between the default five total attempts. Delay is measured from failure and grows exponentially, capped at one hour if the budget is extended. Direct process_event calls respect event/run due times. Successful runs clear their due time and remain skipped on retries.
+
+Outbox events store the earliest remaining automatic retry time. Dispatch selects only due events, ordered by due time/creation/ID, with the existing 200-event batch limit. Exhausted events remain unprocessed with no next_attempt_at, so parked work cannot fill every batch ahead of new ready work. The existing permission-checked admin action grants one extra attempt and sets run/event due times to now; counters/errors are preserved and audit failure rolls back scheduling too. New rules do not automatically reactivate parked historical events.
+
+The admin run list shows next_attempt_at. Migration automation.0003 adds run/event timestamps and an event due-time index; existing pending events become eligible once for schedule evaluation. Live workers/Beat/Redis and external email delivery were not executed; configured running workers remain required for automatic execution.
+
 Open `/admin/automation/automationrun/` with an authorized staff account. The list shows rule, event topic, status, attempts, attempt limit, error type and latest update. Filter **Failed: attempts exhausted / চেষ্টা শেষ** to find unprocessed events whose failed run has used its available attempts. Search rule names/topics or filter action/status. Records remain read-only.
 
 Retry operators require both `automation.view_automationrun` and the new `automation.retry_automationrun` permission, plus active staff access. A staff flag or viewing permission alone cannot queue retries. Superusers have the permission. Grant it only to designated operators.
@@ -10,7 +18,7 @@ Completed events, successful/pending runs, inactive users/rules, changed trigger
 
 The worker still skips successful rule runs. Its default limit remains five; existing runs gain `attempt_limit=5` via migration `automation.0002`. Authorization grants exactly one extra attempt. Worker and retry operations both lock the event first, then the run. Audits and the budget update commit together per run.
 
-External email cannot be rolled back or proven undelivered by a database transaction. Inspect the provider's delivery record before retrying an email failure. These controls do not establish exactly-once external delivery, monitoring alerts, broker availability, backoff or production readiness.
+External email cannot be rolled back or proven undelivered by a database transaction. Inspect the provider's delivery record before retrying an email failure. These controls do not establish exactly-once external delivery, monitoring alerts, broker availability or production readiness.
 
 Tests cover permissions/admin action visibility, exhausted filtering, preserved counters, no immediate effects, successful-rule deduplication, one-attempt retry exhaustion, inactive/changed/completed runs, batch limit, audit rollback and concurrent operator authorization on PostgreSQL. Run `./scripts/run-local-postgres.ps1 -Mode test -TestLabels apps.automation`.
 
