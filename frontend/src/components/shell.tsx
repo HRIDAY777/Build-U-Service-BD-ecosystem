@@ -39,7 +39,7 @@ export function Header() {
       </div>
       <header className="header">
         <Link href="/" className="brand">
-          <BrandLogo eager />
+          <BrandLogo eager animated />
         </Link>
         <nav
           id="main-navigation"
@@ -128,7 +128,7 @@ export function Footer() {
       <div className="footer-grid">
         <div>
           <Link href="/" className="brand">
-            <BrandLogo />
+            <BrandLogo animated />
           </Link>
           <p>
             <Text

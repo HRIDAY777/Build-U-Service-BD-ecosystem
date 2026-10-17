@@ -33,7 +33,7 @@ import { Photo } from "./photo";
 import { divisionPhotos } from "@/lib/photos";
 import { DistrictGallery } from "./district-photo";
 import { BrandLogo } from "./brand-logo";
-import { AnimatedBrand } from "./animated-brand";
+import { ServiceShowcase } from "./service-showcase";
 export const divisionIcons: Record<string, typeof Truck> = {
   food: UtensilsCrossed,
   pharmacy: Pill,
@@ -152,7 +152,7 @@ export function Home({
           </div>
         </div>
         <div className="hero-art hero-brand-art">
-          <AnimatedBrand />
+          <ServiceShowcase />
 
         </div>
       </section>

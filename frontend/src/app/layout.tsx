@@ -4,6 +4,8 @@ import { Provider } from "@/components/provider";
 import { Header, Footer } from "@/components/shell";
 import "./globals.css";
 import "./photos.css";
+import "./depth.css";
+import { SpatialExperience } from "@/components/spatial-experience";
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.uservicebd.com",
@@ -27,8 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="bn" data-scroll-behavior="smooth">
-      <body>
+      <body className="depth-ui">
         <Provider>
+          <SpatialExperience />
           <a href="#main" className="skip-link">
             <UiText text={"Skip to content"} />
           </a>

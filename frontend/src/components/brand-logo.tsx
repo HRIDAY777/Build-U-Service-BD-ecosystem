@@ -5,14 +5,16 @@ import { useApp } from "./provider";
 export function BrandLogo({
   className = "",
   eager = false,
+  animated = false,
 }: {
   className?: string;
   eager?: boolean;
+  animated?: boolean;
 }) {
   const { lang } = useApp();
   return (
     <Image
-      className={`company-logo ${className}`}
+      className={`company-logo ${animated ? "company-logo-motion" : ""} ${className}`}
       src="/images/brand/u-service-logo.png"
       alt={
         lang === "bn"

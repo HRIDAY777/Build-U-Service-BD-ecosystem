@@ -1060,7 +1060,7 @@ export function BookingForm({ item }: { item: Offering }) {
         </p>
       )}
       {Object.keys(item.service_weekly_hours || {}).length > 0 && (
-        <div className="notice">
+        <div className="notice booking-hours">
           <strong>
             <UiText text={"বুকিংয়ের সময় / Booking hours (Bangladesh)"} />
           </strong>
