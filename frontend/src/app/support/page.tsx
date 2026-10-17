@@ -9,7 +9,7 @@ import {
 } from "@/components/support-routing";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp } from "@/components/provider";
 
@@ -145,6 +145,9 @@ export default function SupportPage() {
   const { user, toast } = useApp();
   const [tickets, setTickets] = useState<PageResult<Ticket> | null>(null);
   const [page, setPage] = useState(1);
+  const [assignment, setAssignment] = useState("all");
+  const [ordering, setOrdering] = useState("");
+  const loadVersion = useRef(0);
   const [filter, setFilter] = useState({
     status: "",
     category: "",
@@ -155,23 +158,27 @@ export default function SupportPage() {
   const [error, setError] = useState("");
   const load = useCallback(async () => {
     if (!user) return;
+    const version = ++loadVersion.current;
     setLoading(true);
     setError("");
+    setTickets(null);
     try {
-      setTickets(
-        await api<PageResult<Ticket>>(
-          `tickets/?page=${page}&${new URLSearchParams(filter)}`,
-        ),
+      const result = await api<PageResult<Ticket>>(
+        `tickets/?page=${page}&${new URLSearchParams({ ...filter, assignment, ordering: ordering || (user.is_staff ? "priority" : "newest") })}`,
       );
+      if (version === loadVersion.current) setTickets(result);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load tickets");
+      if (version === loadVersion.current)
+        setError(e instanceof Error ? e.message : "Unable to load tickets");
     } finally {
-      setLoading(false);
+      if (version === loadVersion.current) setLoading(false);
     }
-  }, [user, page, filter]);
+  }, [user, page, filter, assignment, ordering]);
+  const invalidateLoad = useCallback(() => { ++loadVersion.current; }, []);
   useEffect(() => {
     load();
-  }, [load]);
+    return invalidateLoad;
+  }, [load, invalidateLoad]);
   async function submit(e: FormEvent<HTMLFormElement>, path: string) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -235,6 +242,51 @@ export default function SupportPage() {
         <UiText text={"Tickets / অনুরোধসমূহ"} />
       </h2>
       <div className="search-row">
+        {user.is_staff && (
+          <label className="field">
+            <Text bn="কাজের তালিকা" en="Work queue" />
+            <select
+              value={assignment}
+              onChange={(e) => {
+                setAssignment(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">
+                <Text bn="সব অভিযোগ" en="All tickets" />
+              </option>
+              <option value="mine">
+                <Text bn="আমার দায়িত্বে" en="Assigned to me" />
+              </option>
+              <option value="unassigned">
+                <Text bn="দায়িত্ব দেওয়া হয়নি" en="Unassigned tickets" />
+              </option>
+            </select>
+          </label>
+        )}
+        <label className="field">
+          <Text bn="সাজানোর নিয়ম" en="Sort tickets" />
+          <select
+            value={ordering || (user.is_staff ? "priority" : "newest")}
+            onChange={(e) => {
+              setOrdering(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="priority">
+              <Text
+                bn="জরুরি আগে, তারপর পুরোনো"
+                en="Urgent first, then oldest"
+              />
+            </option>
+            <option value="newest">
+              <Text bn="নতুন আগে" en="Newest first" />
+            </option>
+            <option value="oldest">
+              <Text bn="পুরোনো আগে" en="Oldest first" />
+            </option>
+          </select>
+        </label>
         {(
           [
             [
@@ -282,6 +334,14 @@ export default function SupportPage() {
             <UiText text={"No tickets on this page."} />
           </p>
         )
+      )}
+      {!loading && tickets && (
+        <p role="status">
+          <Text
+            bn={`মোট ${tickets.count}টি অভিযোগ পাওয়া গেছে।`}
+            en={`${tickets.count} matching tickets.`}
+          />
+        </p>
       )}
       {tickets?.results.map((ticket) => (
         <article className="record" key={ticket.id}>

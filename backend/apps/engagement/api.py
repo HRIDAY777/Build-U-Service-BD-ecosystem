@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Case, When, Value, IntegerField
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -88,6 +88,24 @@ class TicketViewSet(viewsets.ModelViewSet):
                 tickets = tickets.filter(**{field: value})
         if self.request.query_params.get("assigned_to_me") == "1":
             tickets = tickets.filter(assigned_to=self.request.user)
+        assignment = serializers.ChoiceField(choices=["all", "mine", "unassigned"]).run_validation(
+            self.request.query_params.get("assignment", "all")
+        )
+        if assignment == "mine":
+            tickets = tickets.filter(assigned_to=self.request.user)
+        elif assignment == "unassigned":
+            tickets = tickets.filter(assigned_to__isnull=True)
+        ordering = serializers.ChoiceField(choices=["newest", "oldest", "priority"]).run_validation(
+            self.request.query_params.get("ordering", "newest")
+        )
+        if ordering == "priority":
+            tickets = tickets.annotate(
+                closed_rank=Case(When(status="resolved", then=Value(1)), default=Value(0), output_field=IntegerField()),
+                urgency_rank=Case(When(priority="urgent", then=Value(0)), When(priority="high", then=Value(1)),
+                                  When(priority="normal", then=Value(2)), default=Value(3), output_field=IntegerField()),
+            ).order_by("closed_rank", "urgency_rank", "created_at", "pk")
+        elif ordering == "oldest":
+            tickets = tickets.order_by("created_at", "pk")
         if self.request.user.is_staff and self.request.user.has_perm("engagement.view_supportticket"):
             return tickets
         return tickets.filter(customer=self.request.user)

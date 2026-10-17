@@ -53,6 +53,13 @@ test("staff route support tickets with bilingual mobile controls", async ({
     "দায়িত্ব ও জরুরিতা নির্ধারণ",
   );
   await page.locator(".lang-switch").click();
+  await page
+    .getByRole("combobox", { name: "Work queue", exact: true })
+    .selectOption("mine");
+  await expect(
+    page.getByRole("combobox", { name: "Sort tickets", exact: true }),
+  ).toHaveValue("priority");
+  await expect(page.getByRole("status")).toContainText("1 matching tickets");
   await page.locator(".support-routing summary").click();
   const routing = page.locator(".support-routing");
   await routing

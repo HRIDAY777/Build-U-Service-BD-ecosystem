@@ -66,3 +66,24 @@ class SupportRoutingTests(TestCase):
         self.assertIsNone(self.ticket.assigned_to)
         self.assertEqual(self.ticket.priority, "normal")
         self.assertFalse(AuditLog.objects.filter(action="support.routed").exists())
+
+    def test_queue_sort_assignment_filters_and_customer_isolation(self):
+        urgent = SupportTicket.objects.create(customer=self.customer, subject="Urgent", message="Help", priority="urgent", assigned_to=self.staff)
+        older_high = SupportTicket.objects.create(customer=self.customer, subject="High old", message="Help", priority="high")
+        newer_high = SupportTicket.objects.create(customer=self.customer, subject="High new", message="Help", priority="high")
+        closed = SupportTicket.objects.create(customer=self.customer, subject="Closed urgent", message="Help", priority="urgent", status="resolved")
+        other = SupportTicket.objects.create(customer=self.other, subject="Private", message="Other", priority="urgent")
+        endpoint = "/api/v1/tickets/"
+        result = self.client.get(endpoint, {"ordering": "priority"})
+        self.assertEqual([row["id"] for row in result.data["results"]], [urgent.pk, other.pk, older_high.pk, newer_high.pk, self.ticket.pk, closed.pk])
+        self.assertEqual(self.client.get(endpoint, {"assignment": "mine"}).data["count"], 1)
+        unassigned = self.client.get(endpoint, {"assignment": "unassigned"}).data
+        self.assertEqual(unassigned["count"], 5)
+        self.assertNotIn(urgent.pk, [row["id"] for row in unassigned["results"]])
+        for params in [{"ordering": "invalid"}, {"assignment": "invalid"}]:
+            self.assertEqual(self.client.get(endpoint, params).status_code, 400)
+        self.assertEqual(self.client.get(endpoint, {"ordering": "oldest"}).data["results"][0]["id"], self.ticket.pk)
+        self.client.force_authenticate(self.customer)
+        for params in [{"ordering": "priority"}, {"assignment": "unassigned"}, {"assignment": "mine"}]:
+            result = self.client.get(endpoint, params)
+            self.assertNotIn(other.pk, [row["id"] for row in result.data["results"]])

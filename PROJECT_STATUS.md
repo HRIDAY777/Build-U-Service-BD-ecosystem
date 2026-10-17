@@ -1,5 +1,9 @@
 # Project status — 11 October 2026
 
+## 17 October 2026 — support work queues
+
+Added own/unassigned support queues, validated priority/newest/oldest ordering, stable oldest-first urgency ties and resolved-last priority ordering. Staff default to priority order; customers retain scoped newest-first history. The page shows matching totals, resets pagination and ignores stale responses. No migration is needed. Five PostgreSQL support tests, the controlled bilingual/mobile support browser test, TypeScript/lint/build and Ruff passed. Local website/API started; API returned HTTP 200.
+
 ## 16 October 2026 — private mechanic quotation history
 
 Added paginated private quote/decision snapshots to customer/provider/operations cards with localized Bangladesh timestamps. The endpoint checks booking access and whitelists quote fields instead of exposing raw audit metadata or actors. Historical versions are read-only. No migration is needed.
