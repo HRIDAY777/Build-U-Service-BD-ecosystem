@@ -132,7 +132,7 @@ test("desktop and mobile homepage fit without horizontal overflow", async ({
   ]) {
     await page.setViewportSize(size);
     await page.goto("/");
-    await expect(page.locator(".division-card")).toHaveCount(7);
+    await expect(page.locator(".landing-service-link")).toHaveCount(8);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,

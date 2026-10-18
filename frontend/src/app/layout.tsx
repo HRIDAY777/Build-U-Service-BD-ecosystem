@@ -5,6 +5,7 @@ import { Header, Footer } from "@/components/shell";
 import "./globals.css";
 import "./photos.css";
 import "./depth.css";
+import "./landing.css";
 import { SpatialExperience } from "@/components/spatial-experience";
 export const metadata: Metadata = {
   metadataBase: new URL(

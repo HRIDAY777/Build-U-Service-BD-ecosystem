@@ -1,11 +1,4 @@
 "use client";
-import {
-  TranslatedInput,
-  TranslatedButton,
-} from "@/components/translated-elements";
-
-import { UiText } from "@/components/ui-text";
-
 import Link from "next/link";
 import {
   ArrowRight,
@@ -19,22 +12,20 @@ import {
   Wrench,
   Truck,
   House,
-  ShieldCheck,
-  Layers,
   HeartHandshake,
   Plus,
+  PackageCheck,
+  MessageCircle,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Division, Offering } from "@/lib/api";
+import { Division } from "@/lib/api";
 import { useApp, Text } from "./provider";
-import { OfferingCard } from "./offering-card";
+import { TranslatedInput, TranslatedButton } from "./translated-elements";
 import { Photo } from "./photo";
-import { divisionPhotos } from "@/lib/photos";
-import { DistrictGallery } from "./district-photo";
-import { BrandLogo } from "./brand-logo";
 import { ServiceShowcase } from "./service-showcase";
-export const divisionIcons: Record<string, typeof Truck> = {
+
+const divisionIcons: Record<string, typeof Truck> = {
   food: UtensilsCrossed,
   pharmacy: Pill,
   shop: ShoppingBag,
@@ -45,13 +36,10 @@ export const divisionIcons: Record<string, typeof Truck> = {
 };
 export function Home({
   divisions,
-  offerings,
   faqs,
   online,
-  businesses,
 }: {
   divisions: Division[];
-  offerings: Offering[];
   faqs: {
     id: number;
     question: string;
@@ -60,457 +48,333 @@ export function Home({
     answer_bn: string;
   }[];
   online: boolean;
-  businesses: {
-    id: number;
-    name: string;
-    address: string;
-    area: string;
-    division_slug: string;
-  }[];
 }) {
   const { lang } = useApp();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  function search(e: FormEvent) {
-    e.preventDefault();
-    router.push(`/catalog?q=${encodeURIComponent(query)}`);
+  function search(event: FormEvent) {
+    event.preventDefault();
+    router.push(`/catalog?q=${encodeURIComponent(query.trim())}`);
   }
   return (
-    <>
-      <section className="hero hero-next">
+    <div className="landing-page">
+      <section className="hero hero-next landing-hero">
         <div className="hero-copy">
           <div className="eyebrow">
             <span className="small-line" />
             <Text
-              bn="আপনার জীবন, আরও সহজ"
-              en="A LITTLE HELP. A BETTER EVERYDAY."
+              bn="ইউ সার্ভিস • আপনার প্রতিদিনের সঙ্গী"
+              en="U SERVICE • YOUR EVERYDAY, CONNECTED"
             />
           </div>
           <h1>
-            <Text bn="প্রতিদিনের সব প্রয়োজনে," en="Life happens." />
+            <Text bn="একটু সহজ হোক" en="Everyday life." />
             <br />
             <span>
-              <Text bn="আপনার পাশে।" en="We’re here for it." />
+              <Text bn="প্রতিদিন।" en="Made simpler." />
             </span>
           </h1>
           <p>
             <Text
-              bn="পছন্দের খাবার থেকে ঘরের যত্ন — বিশ্বস্ত সেবা এখন এক জায়গায়। আপনার সময় থাকুক আপনার জন্য।"
-              en="From your favourite meal to a happier home. Find the services you need, with people you can count on."
+              bn="ঘরের কাজ, কেনাকাটা কিংবা প্রিয়জনের জন্য কিছু পাঠানো—আপনার ব্যস্ত দিনের প্রয়োজন মেটাতে, আমরা আছি এক জায়গায়।"
+              en="A helping hand at home. Something you need. A parcel for someone you love. Make room for your day, with U Service."
             />
           </p>
-          <div className="hero-actions">
-            <Link href="#all-services" className="button"><Text bn="সেবা বেছে নিন" en="Find your service" /><ArrowUpRight size={18} /></Link>
-            <Link href="/delivery" className="button secondary"><Truck size={18} /><Text bn="পার্সেল পাঠান" en="Send a parcel" /></Link>
-          </div>
           <form className="hero-search" onSubmit={search}>
-            <Search size={22} />
+            <Search size={21} />
             <TranslatedInput
               aria-label="Search services"
               placeholder={
-                lang === "bn"
-                  ? "কী সেবা খুঁজছেন?"
-                  : "What can we help you with?"
+                lang === "bn" ? "আজ কী খুঁজছেন?" : "What do you need today?"
               }
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <TranslatedButton type="submit" aria-label="Search">
-              <ArrowRight size={22} />
+              <ArrowRight size={21} />
             </TranslatedButton>
           </form>
-          <div className="hero-tags">
-            <span>
-              <Text bn="জনপ্রিয়:" en="TRY:" />
-            </span>
-            <Link href="/catalog?division=food">
-              <Text bn="খাবার" en="Food delivery" />
-            </Link>
-            <Link href="/catalog?division=electrician">
-              <Text bn="ইলেকট্রিশিয়ান" en="Electrician" />
-            </Link>
-            <Link href="/catalog?division=services">
-              <Text bn="বাসার যত্ন" en="Home care" />
-            </Link>
+          <div className="landing-hero-links">
+            <a href="#all-services">
+              <Text bn="সেবাগুলো দেখুন" en="Browse our services" />
+              <ArrowUpRight size={17} />
+            </a>
+            <a href="#how-it-works">
+              <Text bn="যেভাবে কাজ করে" en="How it works" />
+            </a>
           </div>
-          <div className="hero-proof">
-            <span className="proof-icon">
-              <ShieldCheck size={20} />
-            </span>
-            <span>
-              <Text
-                bn="একটি অ্যাকাউন্ট, সব সেবায় সংযুক্ত"
-                en="One account. Every part of your day."
-              />
-              <small>
-                <Text
-                  bn="সহজ অর্ডার · স্পষ্ট মূল্য · সেবার আপডেট"
-                  en="Easy ordering · Clear pricing · Status updates"
-                />
-              </small>
-            </span>
+          <div className="landing-footnote">
+            <span />
+            <Text
+              bn="এক অ্যাকাউন্টে অর্ডার, বুকিং ও আপডেট"
+              en="Orders, bookings and updates. One account."
+            />
           </div>
         </div>
         <div className="hero-art hero-brand-art">
           <ServiceShowcase />
+        </div>
+      </section>
 
-        </div>
-      </section>
-      <section className="division-strip" aria-label="Business divisions">
-        {divisions.map((d) => {
-          const Icon = divisionIcons[d.slug] || House;
-          return (
-            <Link
-              key={d.id}
-              href={
-                d.kind === "delivery"
-                  ? "/delivery"
-                  : d.slug === "mechanic"
-                    ? "/mechanic"
-                    : `/catalog?division=${d.slug}`
-              }
-            >
-              <span className={`division-icon ${d.slug}`}>
-                <Icon size={25} />
-              </span>
-              <span>{lang === "bn" ? d.name_bn : d.name}</span>
-              <ArrowUpRight size={15} />
-            </Link>
-          );
-        })}
-      </section>
-      {!online && (
-        <div className="notice">
-          <UiText
-            text={
-              "সার্ভারের সাথে সংযোগ পাওয়া যায়নি। / The service is temporarily unavailable. Please try again shortly."
-            }
-          />
-        </div>
-      )}
-      <section className="home-shortcuts section" aria-label={lang === "bn" ? "দ্রুত শুরু করুন" : "Quick start"}>
-        <div><span className="eyebrow"><Text bn="আপনি কী করতে চান?" en="YOUR NEXT MOVE" /></span><h2><Text bn="শুরু হোক এক ক্লিকেই।" en="Your day. One tap away." /></h2></div>
-        <div className="home-shortcut-grid">
-          {[
-            { href: "/catalog?division=shop", icon: ShoppingBag, bn: "কেনাকাটা করুন", en: "Shop essentials", subBn: "পণ্য খুঁজুন ও অর্ডার করুন", subEn: "Find products and place an order" },
-            { href: "/mechanic", icon: Wrench, bn: "মেকানিক বুক করুন", en: "Book a mechanic", subBn: "সময় ও ঠিকানা দিয়ে বুকিং", subEn: "Choose a service, time and address" },
-            { href: "/events", icon: HeartHandshake, bn: "অনুষ্ঠান সাজান", en: "Plan an event", subBn: "প্যাকেজ দেখুন ও পরিকল্পনা করুন", subEn: "Explore packages and start planning" },
-            { href: "/account", icon: Truck, bn: "অর্ডার দেখুন", en: "Track your orders", subBn: "অর্ডার ও বুকিংয়ের আপডেট", subEn: "Your orders and booking updates" },
-          ].map(({ href, icon: Icon, bn, en, subBn, subEn }) => <Link href={href} key={href}><span className="shortcut-icon"><Icon size={24} /></span><strong><Text bn={bn} en={en} /></strong><small><Text bn={subBn} en={subEn} /></small><ArrowUpRight size={18} className="shortcut-arrow" /></Link>)}
-        </div>
-      </section>
-      <section className="section" id="all-services">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">
-              <Text
-                bn="এক প্ল্যাটফর্ম, অনেক সম্ভাবনা"
-                en="ONE U. MANY POSSIBILITIES."
-              />
-            </span>
-            <h2>
-              <Text
-                bn="আপনার দিনের প্রতিটি অংশে"
-                en="For every part of your day"
-              />
-            </h2>
-          </div>
-          <p>
-            <Text
-              bn="বড় কাজ হোক বা ছোট প্রয়োজন — শুরু হোক এখান থেকেই।"
-              en="The big jobs. The little things. A simpler way to get them done."
-            />
-          </p>
-        </div>
-        <div className="division-grid">
-          {divisions.map((d, i) => {
-            const Icon = divisionIcons[d.slug] || House;
-            return (
-              <Link
-                className={`division-card card-${d.slug}`}
-                href={
-                  d.kind === "delivery"
-                    ? "/delivery"
-                    : d.slug === "mechanic"
-                      ? "/mechanic"
-                      : `/catalog?division=${d.slug}`
-                }
-                key={d.id}
-              >
-                <div className="card-topline">
-                  <span>0{i + 1}</span>
-                  <ArrowUpRight size={23} />
-                </div>
-                <div className="division-illustration">
-                  {divisionPhotos[d.slug] ? (
-                    <Photo
-                      src={divisionPhotos[d.slug]}
-                      alt={lang === "bn" ? d.name_bn : d.name}
-                    />
-                  ) : (
-                    <Icon strokeWidth={1.1} />
-                  )}
-                </div>
-                <div>
-                  <h3>{lang === "bn" ? d.name_bn : d.name}</h3>
-                  <p>{lang === "bn" ? d.description_bn : d.description}</p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-      <section className="occasion-feature section">
-        <div className="occasion-photo">
-          <Photo
-            src="/images/photos/wedding.jpg"
-            alt="বাংলাদেশের একটি বিয়ের অনুষ্ঠান / Wedding ceremony in Bangladesh"
-          />
-          <span className="photo-demo-label">
-            <UiText text={"পরিকল্পনার অনুপ্রেরণা · স্টক ছবি"} />
-          </span>
-        </div>
-        <div className="occasion-copy">
-          <span className="eyebrow">
-            <UiText text={"U EVENTS · YOUR SPECIAL DAYS"} />
-          </span>
-          <h2>
-            <Text
-              bn="আপনার গল্পের সবচেয়ে সুন্দর দিন।"
-              en="A day that feels entirely yours."
-            />
-          </h2>
-          <p>
-            <Text
-              bn="বিয়ে, গায়ে হলুদ কিংবা পরিবারের আনন্দ আয়োজন—ভেন্যু, সাজসজ্জা ও খাবারের পরিকল্পনা শুরু হোক আপনার ইচ্ছা থেকে।"
-              en="Weddings, celebrations and family gatherings. Plan the venue, decor and catering around your story."
-            />
-          </p>
-          <Link className="button" href="/events">
-            <Text bn="অনুষ্ঠানের পরিকল্পনা করুন" en="Plan your celebration" />
-            <ArrowUpRight size={18} />
+      <div className="landing-utility">
+        <span>
+          <Text bn="আগেই শুরু করেছেন?" en="Already have something underway?" />
+        </span>
+        <div>
+          <Link href="/account">
+            <PackageCheck size={17} />
+            <Text bn="অর্ডার ও বুকিং দেখুন" en="Your orders & bookings" />
+            <ArrowUpRight size={14} />
+          </Link>
+          <Link href="/support">
+            <MessageCircle size={17} />
+            <Text bn="সাহায্য নিন" en="Get support" />
           </Link>
         </div>
-      </section>
-      {businesses.length > 0 && (
-        <section className="section">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">
-                <UiText text={"LOCAL BUSINESSES. EVERYDAY CARE."} />
-              </span>
-              <h2>
-                <Text
-                  bn="আপনার কাজের জন্য, পরিচিত মুখ।"
-                  en="Find the right people for your day."
-                />
-              </h2>
-            </div>
-            <Link className="text-link" href="/stores">
-              <Text bn="সব প্রতিষ্ঠান দেখুন" en="Meet the businesses" />
-              <ArrowUpRight size={18} />
-            </Link>
-          </div>
-          <div className="provider-grid">
-            {businesses.slice(0, 3).map((business) => (
-              <Link
-                className="provider-preview"
-                href={`/catalog?organization=${business.id}`}
-                key={business.id}
-              >
-                <div className="provider-photo">
-                  <Photo
-                    src={divisionPhotos[business.division_slug] || ""}
-                    alt={`${business.name} — ${lang === "bn" ? "সেবার দৃষ্টান্তমূলক ছবি" : "illustrative service photo"}`}
-                  />
-                  <span className="photo-demo-label">
-                    <UiText text={"স্টক ছবি · ডেমো প্রিভিউ"} />
-                  </span>
-                </div>
-                <div>
-                  <h3>{business.name}</h3>
-                  <p>
-                    <MapPin size={14} /> {business.area}
-                  </p>
-                  <small>
-                    <UiText text={business.address} />
-                  </small>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-      <DistrictGallery />
-      <section className="story-band">
-        <BrandLogo className="story-company-logo" />
+      </div>
+
+      <section
+        className="landing-directory landing-section"
+        id="all-services"
+        aria-labelledby="services-title"
+      >
         <div>
           <span className="eyebrow">
-            <Text bn="আমাদের প্রতিশ্রুতি" en="MORE THAN A SERVICE" />
+            <Text bn="আপনার প্রয়োজন থেকে শুরু" en="START WITH WHAT YOU NEED" />
           </span>
-          <h2>
+          <h2 id="services-title">
             <Text
-              bn="আপনার সময় মূল্যবান।\nআমরা সেটা বুঝি।"
-              en="More time for what matters."
+              bn="কোন কাজটা সহজ করব?"
+              en="What can we take off your list?"
+            />
+          </h2>
+          <p className="landing-intro">
+            <Text
+              bn="সঠিক বিভাগ বেছে নিন। বিস্তারিত, মূল্য ও পরের ধাপ সেখানেই পাবেন।"
+              en="Choose a category. Find the details, prices and next steps there."
+            />
+          </p>
+          {!online && (
+            <p className="notice" role="status">
+              <Text
+                bn="সেবার তালিকা এখন লোড করা যায়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+                en="The service list is unavailable right now. Please try again shortly."
+              />
+            </p>
+          )}
+          <div className="landing-service-list">
+            {divisions.map((d) => {
+              const Icon = divisionIcons[d.slug] || House;
+              return (
+                <Link
+                  className="landing-service-link"
+                  key={d.id}
+                  href={
+                    d.kind === "delivery"
+                      ? "/delivery"
+                      : d.slug === "mechanic"
+                        ? "/mechanic"
+                        : `/catalog?division=${d.slug}`
+                  }
+                >
+                  <Icon size={22} strokeWidth={1.5} />
+                  <span>
+                    <strong>
+                      {lang === "bn" ? d.name_bn || d.name : d.name}
+                    </strong>
+                    <small>
+                      {lang === "bn" ? d.description_bn : d.description}
+                    </small>
+                  </span>
+                  <ArrowUpRight size={17} />
+                </Link>
+              );
+            })}
+            <Link className="landing-service-link" href="/events">
+              <HeartHandshake size={22} strokeWidth={1.5} />
+              <span>
+                <strong>
+                  <Text bn="বিয়ে ও ইভেন্ট" en="Weddings & events" />
+                </strong>
+                <small>
+                  <Text
+                    bn="আপনার বিশেষ দিনের আয়োজন"
+                    en="Thoughtfully planned celebrations"
+                  />
+                </small>
+              </span>
+              <ArrowUpRight size={17} />
+            </Link>
+          </div>
+          <Link className="landing-catalog-link" href="/catalog">
+            <Text bn="সম্পূর্ণ ক্যাটালগ খুলুন" en="Open the full catalog" />
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+        <aside
+          className="landing-process"
+          id="how-it-works"
+          aria-labelledby="process-title"
+        >
+          <span className="landing-kicker">
+            <Text bn="সহজ পথ, শুরু থেকে শেষ" en="A CLEAR WAY FORWARD" />
+          </span>
+          <h2 id="process-title">
+            <Text
+              bn="আপনি বলুন।\nআমরা পাশে আছি।"
+              en="You choose.\nWe’re here to help."
+            />
+          </h2>
+          <ol>
+            {[
+              {
+                bn: "প্রয়োজন বেছে নিন",
+                en: "Find what you need",
+                detailBn: "বিস্তারিত ও মূল্য দেখে সিদ্ধান্ত নিন।",
+                detailEn: "Review the details and price before choosing.",
+              },
+              {
+                bn: "সময় ও ঠিকানা দিন",
+                en: "Make it fit your day",
+                detailBn: "প্রয়োজনীয় তথ্য দিয়ে অর্ডার বা বুকিং পাঠান।",
+                detailEn: "Add your details and send your order or booking.",
+              },
+              {
+                bn: "অগ্রগতি দেখুন",
+                en: "Stay in the loop",
+                detailBn: "আপনার অ্যাকাউন্টে আপডেট ও সহায়তা পাবেন।",
+                detailEn: "Find updates and support in your account.",
+              },
+            ].map((step, i) => (
+              <li key={step.en}>
+                <span className="process-number">0{i + 1}</span>
+                <div>
+                  <h3>
+                    <Text bn={step.bn} en={step.en} />
+                  </h3>
+                  <p>
+                    <Text bn={step.detailBn} en={step.detailEn} />
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="landing-availability">
+            <MapPin size={16} />
+            <Text
+              bn="সেবার প্রাপ্যতা এলাকা অনুযায়ী ভিন্ন হতে পারে।"
+              en="Availability can vary by location."
+            />
+          </p>
+        </aside>
+      </section>
+
+      <section
+        className="landing-story landing-section"
+        aria-labelledby="story-title"
+      >
+        <div className="landing-story-photo">
+          <Photo
+            src="/images/photos/delivery-branded.png"
+            alt={
+              lang === "bn"
+                ? "ইউ সার্ভিসের লোগোযুক্ত পোশাকে ডেলিভারির দৃষ্টান্তমূলক ছবি"
+                : "Illustrative delivery portrait with U Service branded clothing"
+            }
+          />
+          <div className="landing-photo-caption">
+            <span>
+              <Text
+                bn="আপনার প্রতিদিনের সঙ্গী"
+                en="A little help. A better everyday."
+              />
+            </span>
+            <Link href="/photo-credits">
+              <Text bn="দৃষ্টান্তমূলক ছবি" en="Illustrative image" />
+            </Link>
+          </div>
+        </div>
+        <div className="landing-story-copy">
+          <span className="eyebrow">
+            <Text
+              bn="মানুষের কাছে, মানুষের পাশে"
+              en="ROOTED IN EVERYDAY LIFE"
+            />
+          </span>
+          <h2 id="story-title">
+            <Text
+              bn="প্রযুক্তির সাথে\nমানুষের যত্ন।"
+              en="A human touch.\nA simpler everyday."
             />
           </h2>
           <p>
             <Text
-              bn="U Service BD দৈনন্দিন প্রয়োজনকে একসাথে যুক্ত করে। সহজ প্রযুক্তি আর মানুষের যত্নে গড়ে উঠুক আপনার আরও সুন্দর দিন।"
-              en="We’re connecting everyday needs across Bangladesh. Thoughtful technology, real people, and a shared belief that life can be a little easier."
+              bn="প্রতিটি প্রয়োজনের পেছনে আছে একজন মানুষ, একটি পরিবার, একটি ব্যস্ত দিন। সেই দিনটাকে একটু সহজ করতেই ইউ সার্ভিস—স্থানীয় ব্যবসা ও সেবাদাতাদের সাথে আপনাকে যুক্ত করার উদ্যোগ।"
+              en="Behind every request is a person, a family, a busy day. U Service brings you together with local businesses and service providers to make that day a little easier."
             />
           </p>
           <Link href="/pages/about" className="text-link">
-            <Text bn="আমাদের গল্প জানুন" en="Get to know us" />
-            <ArrowRight size={18} />
-          </Link>
-        </div>
-        <div className="story-values">
-          <span>
-            <ShieldCheck />
-            <Text bn="বিশ্বাসের সাথে সেবা" en="Care you can count on" />
-          </span>
-          <span>
-            <Layers />
-            <Text bn="সব সেবা একই অ্যাকাউন্টে" en="Your world, connected" />
-          </span>
-          <span>
-            <HeartHandshake />
-            <Text bn="স্থানীয় মানুষের পাশে" en="Growing with local people" />
-          </span>
-        </div>
-      </section>
-      <section className="section">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">
-              <Text
-                bn="খুঁজে নিন আপনার প্রয়োজন"
-                en="A FEW EVERYDAY ESSENTIALS"
-              />
-            </span>
-            <h2>
-              <Text bn="আজ কী প্রয়োজন আপনার?" en="What’s on your list today?" />
-            </h2>
-          </div>
-          <Link href="/catalog" className="text-link">
-            <Text bn="সব দেখুন" en="Explore everything" />
-            <ArrowRight size={18} />
-          </Link>
-        </div>
-        <div className="offering-grid">
-          {offerings.slice(0, 4).map((o) => (
-            <OfferingCard key={o.id} offering={o} />
-          ))}
-        </div>
-        <p className="demo-note">
-          <Text
-            bn="স্থানীয় ডেমো পরিবেশ: তালিকাভুক্ত পণ্য, ব্যবসা ও মূল্য উদাহরণ হিসেবে দেওয়া।"
-            en="Local demonstration: catalog items, businesses and prices are sample data."
-          />
-        </p>
-      </section>
-      <section className="steps-section section" id="how-it-works">
-        <span className="eyebrow">
-          <Text bn="সহজ, শুরু থেকে শেষ" en="LESS EFFORT. MORE EVERYDAY." />
-        </span>
-        <h2>
-          <Text bn="মাত্র তিনটি ধাপ" en="You’re three steps away" />
-        </h2>
-        <div className="steps-grid">
-          {[
-            [
-              "আপনার সেবা বেছে নিন",
-              "Find your everyday",
-              "খাবার, পণ্য কিংবা ঘরের কাজ — প্রয়োজন অনুযায়ী বেছে নিন।",
-              "Browse food, essentials and services in one place.",
-            ],
-            [
-              "ঠিকানা ও সময় জানান",
-              "Make it yours",
-              "কোথায় আর কখন দরকার, সেটুকু জানান আমাদের।",
-              "Tell us where you are and when you need us.",
-            ],
-            [
-              "বাকিটা আমাদের সাথে",
-              "Get on with your day",
-              "আপনার অ্যাকাউন্টেই দেখুন অর্ডার ও সেবার আপডেট।",
-              "Follow progress and find support in your account.",
-            ],
-          ].map((s, i) => (
-            <div className="step" key={s[0]}>
-              <span>0{i + 1}</span>
-              <h3>{s[lang === "bn" ? 0 : 1]}</h3>
-              <p>{s[lang === "bn" ? 2 : 3]}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="partner-banner">
-        <div>
-          <span className="eyebrow">
-            <Text bn="একসাথে, আরও দূরে" en="LET’S BUILD SOMETHING TOGETHER" />
-          </span>
-          <h2>
-            <Text
-              bn="আপনার দক্ষতা।\nআমাদের সাথে নতুন সম্ভাবনা।"
-              en="Local talent.\nBigger possibilities."
-            />
-          </h2>
-          <p>
-            <Text
-              bn="ব্যবসা, পেশাগত দক্ষতা কিংবা ডেলিভারি — আমাদের সাথে যুক্ত হোন।"
-              en="Bring your business, your skills, or your drive. Let’s grow together."
-            />
-          </p>
-          <Link href="/contact?interest=partner" className="button white">
-            <Text bn="আমাদের সাথে যুক্ত হোন" en="Become a partner" />
+            <Text bn="আমাদের গল্প" en="Our story" />
             <ArrowUpRight size={18} />
           </Link>
-        </div>
-        <div className="partner-art">
-          <House size={100} strokeWidth={1} />
-          <span className="partner-company-logo">
-            <BrandLogo />
-          </span>
-          <HeartHandshake size={80} strokeWidth={1} />
+          <div className="landing-partner">
+            <HeartHandshake size={24} />
+            <div>
+              <strong>
+                <Text
+                  bn="আপনার কাজও পৌঁছে যাক আরও মানুষের কাছে।"
+                  en="Bring your work to more people."
+                />
+              </strong>
+              <Link href="/partner-application">
+                <Text bn="পার্টনার হিসেবে যুক্ত হোন" en="Join as a partner" />
+                <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
-      <section className="section faq-section">
+
+      <section
+        className="landing-help landing-section"
+        aria-labelledby="help-title"
+      >
         <div>
           <span className="eyebrow">
-            <Text bn="জানতে চান?" en="A LITTLE CLARITY" />
+            <Text bn="আর কিছু জানতে চান?" en="BEFORE YOU GET STARTED" />
           </span>
-          <h2>
+          <h2 id="help-title">
             <Text
-              bn="আপনার প্রশ্ন,\nআমাদের উত্তর।"
-              en="Good questions.\nClear answers."
+              bn="প্রশ্ন থাকুক।\nউত্তরও আছে।"
+              en="A little clarity\ngoes a long way."
             />
           </h2>
           <Link href="/contact" className="text-link">
-            <Text bn="আরও সাহায্য প্রয়োজন?" en="Need a hand?" />
-            <ArrowUpRight size={18} />
+            <Text bn="আমাদের সাথে কথা বলুন" en="Talk to us" />
+            <ArrowUpRight size={17} />
           </Link>
-          <p className="location">
-            <MapPin size={17} />
-            <Text
-              bn="এলাকাভিত্তিক সেবা উপলব্ধ"
-              en="Availability depends on your area"
-            />
-          </p>
         </div>
         <div className="faqs">
-          {faqs.map((f) => (
-            <details key={f.id}>
-              <summary>
-                {lang === "bn" ? f.question_bn : f.question}
-                <Plus size={18} />
-              </summary>
-              <p>{lang === "bn" ? f.answer_bn : f.answer}</p>
-            </details>
-          ))}
+          {faqs.length ? (
+            faqs.slice(0, 4).map((f) => (
+              <details key={f.id}>
+                <summary>
+                  {lang === "bn" ? f.question_bn || f.question : f.question}
+                  <Plus size={18} />
+                </summary>
+                <p>{lang === "bn" ? f.answer_bn || f.answer : f.answer}</p>
+              </details>
+            ))
+          ) : (
+            <p>
+              <Text
+                bn="অর্ডার, বুকিং কিংবা আপনার এলাকার সেবা নিয়ে জানতে যোগাযোগ করুন।"
+                en="Contact us for help with orders, bookings or services in your area."
+              />
+            </p>
+          )}
         </div>
       </section>
-    </>
+    </div>
   );
 }

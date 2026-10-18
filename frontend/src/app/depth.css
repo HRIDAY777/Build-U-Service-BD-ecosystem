@@ -692,3 +692,29 @@ body[data-motion="paused"] .company-logo-motion {
     height: 225px;
   }
 }
+/* The header and footer replay the original 3D assembly film. */
+.company-logo-video {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  aspect-ratio: 678 / 311;
+  background: #fbf6fc;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.company-logo-video > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.company-logo-video > video {
+  position: absolute;
+  width: 200%;
+  max-width: none;
+  height: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
