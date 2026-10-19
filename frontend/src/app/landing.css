@@ -1,17 +1,17 @@
 /* Homepage art direction: ink, warm white and the company's magenta. */
-body:has(.landing-page) {
+body:has(:is(.landing-page, .catalog-page)) {
   background: #fafaf8;
   font-family: "Segoe UI", "Nirmala UI", sans-serif;
 }
-body:has(.landing-page) .spatial-backdrop {
+body:has(:is(.landing-page, .catalog-page)) .spatial-backdrop {
   display: none;
 }
-body:has(.landing-page) .announcement {
+body:has(:is(.landing-page, .catalog-page)) .announcement {
   background: #172b30;
   color: #e4eae8;
   font-size: 10px;
 }
-body:has(.landing-page) .header {
+body:has(:is(.landing-page, .catalog-page)) .header {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -24,21 +24,21 @@ body:has(.landing-page) .header {
   box-shadow: none;
   backdrop-filter: blur(16px);
 }
-body:has(.landing-page) .header .company-logo {
+body:has(:is(.landing-page, .catalog-page)) .header .company-logo {
   width: 142px;
 }
-body:has(.landing-page) .header .nav {
+body:has(:is(.landing-page, .catalog-page)) .header .nav {
   gap: 23px;
 }
-body:has(.landing-page) .header .nav a {
+body:has(:is(.landing-page, .catalog-page)) .header .nav a {
   font-size: 12px;
   font-weight: 500;
   color: #3e5054;
 }
-body:has(.landing-page) .header .nav a[href="/"] {
+body:has(:is(.landing-page, .catalog-page)) .header .nav a[href="/"] {
   color: #9d3e97;
 }
-body:has(.landing-page) .header .account-button {
+body:has(:is(.landing-page, .catalog-page)) .header .account-button {
   border-radius: 7px;
   box-shadow: none;
   border-color: #d7dddb;
@@ -516,22 +516,22 @@ html[lang="bn"] .landing-hero h1 {
   color: #6c7e80;
   padding-top: 15px;
 }
-body:has(.landing-page) footer {
+body:has(:is(.landing-page, .catalog-page)) footer {
   background: #172b30;
   color: #e1e9e5;
   border: 0;
 }
-body:has(.landing-page) footer h3 {
+body:has(:is(.landing-page, .catalog-page)) footer h3 {
   color: #fff;
 }
-body:has(.landing-page) footer p,
-body:has(.landing-page) footer .location {
+body:has(:is(.landing-page, .catalog-page)) footer p,
+body:has(:is(.landing-page, .catalog-page)) footer .location {
   color: #9eb3b5;
 }
-body:has(.landing-page) footer a {
+body:has(:is(.landing-page, .catalog-page)) footer a {
   color: #bdccca;
 }
-body:has(.landing-page) footer .footer-bottom {
+body:has(:is(.landing-page, .catalog-page)) footer .footer-bottom {
   border-color: #ffffff18;
   color: #94a9aa;
 }
@@ -561,11 +561,11 @@ body:has(.landing-page) footer .footer-bottom {
   }
 }
 @media (max-width: 760px) {
-  body:has(.landing-page) .header {
+  body:has(:is(.landing-page, .catalog-page)) .header {
     height: 76px;
     padding: 0 20px;
   }
-  body:has(.landing-page) .header .company-logo {
+  body:has(:is(.landing-page, .catalog-page)) .header .company-logo {
     width: 115px;
   }
   .landing-page .landing-hero {
@@ -734,5 +734,31 @@ body:has(.landing-page) footer .footer-bottom {
   .landing-hero .service-showcase-top {
     font-size: 8px;
     letter-spacing: 0.4px;
+  }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  body:has(:is(.landing-page, .catalog-page)) .header {
+    position: relative;
+  }
+  body:has(:is(.landing-page, .catalog-page)) .header .nav {
+    display: none;
+  }
+  body:has(:is(.landing-page, .catalog-page)) .header .mobile-menu {
+    display: flex;
+  }
+  body:has(:is(.landing-page, .catalog-page)) .header .nav.open {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 24px 28px;
+    background: #fff;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    border-bottom: 1px solid #dce3df;
+    box-shadow: 0 15px 25px #172b3015;
+    z-index: 50;
   }
 }

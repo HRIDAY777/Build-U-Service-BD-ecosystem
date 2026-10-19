@@ -5,6 +5,8 @@ import { serverGet, PageResult, Division, Offering } from "@/lib/api";
 import { OfferingCard } from "@/components/offering-card";
 import { Text } from "@/components/provider";
 import { Restaurant, RestaurantInfo } from "@/components/restaurant-info";
+import { CatalogRefinement } from "@/components/catalog-refinement";
+import { ArrowRight } from "lucide-react";
 type Category = {
   id: number;
   division_slug: string;
@@ -76,7 +78,9 @@ export default async function Catalog({
   const topLevelCategories = (categories || []).filter(
     (category) => category.parent === null,
   );
-  const topLevelIds = new Set(topLevelCategories.map((category) => category.id));
+  const topLevelIds = new Set(
+    topLevelCategories.map((category) => category.id),
+  );
   const orderedCategories = [
     ...topLevelCategories.flatMap((parent) => [
       parent,
@@ -87,36 +91,64 @@ export default async function Catalog({
         category.parent !== null && !topLevelIds.has(category.parent),
     ),
   ];
+  const selectedDivision = divisions?.results.find(
+    (d) => d.slug === params.division,
+  );
   return (
-    <div className="page-wrap">
-      <span className="eyebrow">
-        <UiText text={"U SERVICE BD · DISCOVER"} />
-      </span>
-      <h1>
-        <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Your everyday starts here" />
-      </h1>
+    <div className="page-wrap catalog-page">
+      <nav className="catalog-breadcrumb" aria-labelledby="catalog-path-label">
+        <span id="catalog-path-label" className="sr-only">
+          <Text bn="পাতার অবস্থান" en="Page location" />
+        </span>
+        <Link href="/">
+          <Text bn="হোম" en="Home" />
+        </Link>
+        <span>/</span>
+        <Text bn="সেবা ও কেনাকাটা" en="Explore & shop" />
+      </nav>
+      <header className="catalog-heading">
+        <div>
+          <span className="eyebrow">
+            <UiText text={"U SERVICE BD · DISCOVER"} />
+          </span>
+          <h1>
+            {selectedDivision ? (
+              <Text
+                bn={selectedDivision.name_bn || selectedDivision.name}
+                en={selectedDivision.name}
+              />
+            ) : (
+              <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Find your everyday." />
+            )}
+          </h1>
+          <p className="page-intro">
+            <Text
+              bn="খাবার, কেনাকাটা ও বিশ্বস্ত সেবা বেছে নিন।"
+              en="Discover meals, everyday essentials and professional services."
+            />
+          </p>
+        </div>
+        <Link
+          className="text-link"
+          href={
+            params.division
+              ? `/stores?division=${encodeURIComponent(params.division)}`
+              : "/stores"
+          }
+        >
+          <Text
+            bn="দোকান ও সেবাদাতা বেছে নিন"
+            en="Browse stores and providers"
+          />
+          <ArrowRight size={16} />
+        </Link>
+      </header>
       {restaurant && (
-        <>
+        <section className="catalog-business">
           <h2>{restaurant.name}</h2>
           <RestaurantInfo restaurant={restaurant} />
-        </>
+        </section>
       )}
-      <p className="page-intro">
-        <Text
-          bn="খাবার, কেনাকাটা ও বিশ্বস্ত সেবা বেছে নিন।"
-          en="Discover meals, everyday essentials and professional services."
-        />
-      </p>
-      <Link
-        className="text-link"
-        href={
-          params.division
-            ? `/stores?division=${encodeURIComponent(params.division)}`
-            : "/stores"
-        }
-      >
-        <Text bn="দোকান ও সেবাদাতা বেছে নিন" en="Browse stores and providers" />
-      </Link>
       {params.organization && (
         <p>
           <Text
@@ -128,207 +160,240 @@ export default async function Catalog({
           </Link>
         </p>
       )}
-      <form className="form-panel catalog-filters" action="/catalog">
-        <label className="field">
-          <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
-          <TranslatedInput
-            name="q"
-            defaultValue={params.q}
-            placeholder="খুঁজুন / Search"
-            aria-label="Search catalog"
-          />
-        </label>
-        <label className="field">
-          <Text bn="ক্যাটাগরি" en="Category" />
-          <select name="category" defaultValue={params.category || ""}>
-            <option value="">
-              <UiText text={"All categories / সব ক্যাটাগরি"} />
-            </option>
-            {orderedCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                <Text
-                  bn={`${category.parent ? "— " : ""}${category.name_bn || category.name}`}
-                  en={`${category.parent ? "— " : ""}${category.name}`}
-                />
-              </option>
-            ))}
-          </select>
-        </label>
-        {params.division === "shop" && (
-          <label className="field">
-            <Text bn="ব্র্যান্ড" en="Brand" />
-            <select name="brand" defaultValue={params.brand || ""}>
-              <option value="">
-                <Text bn="সব ব্র্যান্ড" en="All brands" />
-              </option>
-              {brands?.map((brand) => (
-                <option key={brand.id} value={brand.id}>
-                  <Text bn={brand.name_bn || brand.name} en={brand.name} />
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {params.division === "shop" && (
-          <label className="field">
-            <Text bn="কালেকশন" en="Collection" />
-            <select name="collection" defaultValue={params.collection || ""}>
-              <option value="">
-                <Text bn="সব কালেকশন" en="All collections" />
-              </option>
-              {collections?.map((collection) => (
-                <option key={collection.id} value={collection.id}>
-                  <Text
-                    bn={collection.name_bn || collection.name}
-                    en={collection.name}
-                  />
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label className="field">
-          <Text bn="সর্বনিম্ন দাম (৳)" en="Minimum price (৳)" />
-          <input
-            type="number"
-            name="min_price"
-            min="0"
-            max="9999999999.99"
-            step="0.01"
-            defaultValue={params.min_price}
-          />
-        </label>
-        <label className="field">
-          <Text bn="সর্বোচ্চ দাম (৳)" en="Maximum price (৳)" />
-          <input
-            type="number"
-            name="max_price"
-            min="0"
-            max="9999999999.99"
-            step="0.01"
-            defaultValue={params.max_price}
-          />
-        </label>
-        <label className="field">
-          <Text bn="সাজান" en="Sort by" />
-          <select name="sort" defaultValue={params.sort || "default"}>
-            <option value="default">
-              <UiText text={"Default / স্বাভাবিক"} />
-            </option>
-            <option value="price_asc">
-              <UiText text={"Price: low to high / কম থেকে বেশি"} />
-            </option>
-            <option value="price_desc">
-              <UiText text={"Price: high to low / বেশি থেকে কম"} />
-            </option>
-            <option value="name">
-              <UiText text={"Name / নাম"} />
-            </option>
-            <option value="updated">
-              <UiText text={"Recently updated / সম্প্রতি আপডেট"} />
-            </option>
-          </select>
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="in_stock"
-            value="true"
-            defaultChecked={params.in_stock === "true"}
-          />{" "}
-          <Text
-            bn="শুধু মজুত পণ্য ও সেবা"
-            en="In-stock products and services"
-          />
-        </label>
-        {params.division && (
-          <input type="hidden" name="division" value={params.division} />
-        )}
-        {params.organization && (
-          <input
-            type="hidden"
-            name="organization"
-            value={params.organization}
-          />
-        )}
-        <button className="button">
-          <Text bn="খুঁজুন" en="Search" />
-        </button>
+      <nav
+        className="catalog-divisions"
+        aria-labelledby="catalog-divisions-label"
+      >
+        <span id="catalog-divisions-label" className="sr-only">
+          <Text bn="সেবার বিভাগ" en="Service divisions" />
+        </span>
         <Link
-          className="text-link"
-          href={
-            params.division
-              ? `/catalog?division=${encodeURIComponent(params.division)}`
-              : "/catalog"
-          }
-        >
-          <Text bn="ফিল্টার মুছুন" en="Clear filters" />
-        </Link>
-      </form>
-      <div className="filters">
-        <Link
-          className={`filter ${!params.division ? "active" : ""}`}
+          className={!params.division ? "active" : ""}
           href={divisionUrl("")}
+          aria-current={!params.division ? "page" : undefined}
         >
-          <Text bn="সব" en="All" />
+          <Text bn="সব বিভাগ" en="All divisions" />
         </Link>
         {divisions?.results
           .filter((d) => d.kind !== "delivery")
           .map((d) => (
             <Link
               key={d.id}
-              className={`filter ${params.division === d.slug ? "active" : ""}`}
+              className={params.division === d.slug ? "active" : ""}
+              aria-current={params.division === d.slug ? "page" : undefined}
               href={divisionUrl(d.slug)}
             >
-              <Text bn={d.name_bn} en={d.name} />
+              <Text bn={d.name_bn || d.name} en={d.name} />
             </Link>
           ))}
-      </div>
-      <div className="offering-grid">
-        {items?.results.map((o) => (
-          <OfferingCard key={o.id} offering={o} />
-        ))}
-        {!items?.results.length && (
-          <div className="empty">
-            <p>
-              {items ? (
-                <UiText
-                  text={"কোনো ফলাফল পাওয়া যায়নি। / No matching results."}
-                />
-              ) : (
-                <UiText
-                  text={
-                    "দামের সীমা ও ফিল্টার পরীক্ষা করুন, অথবা কিছুক্ষণ পর চেষ্টা করুন। / Check the price range and filters, or try again shortly."
-                  }
-                />
-              )}
-            </p>
-            <Link className="button secondary" href="/catalog">
-              <UiText text={"View all"} />
+      </nav>
+      <div className="catalog-layout">
+        <CatalogRefinement>
+          <form className="form-panel catalog-filters" action="/catalog">
+            <label className="field">
+              <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
+              <TranslatedInput
+                name="q"
+                defaultValue={params.q}
+                placeholder="খুঁজুন / Search"
+                aria-label="Search catalog"
+              />
+            </label>
+            <label className="field">
+              <Text bn="ক্যাটাগরি" en="Category" />
+              <select name="category" defaultValue={params.category || ""}>
+                <option value="">
+                  <UiText text={"All categories / সব ক্যাটাগরি"} />
+                </option>
+                {orderedCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    <Text
+                      bn={`${category.parent ? "— " : ""}${category.name_bn || category.name}`}
+                      en={`${category.parent ? "— " : ""}${category.name}`}
+                    />
+                  </option>
+                ))}
+              </select>
+            </label>
+            {params.division === "shop" && (
+              <label className="field">
+                <Text bn="ব্র্যান্ড" en="Brand" />
+                <select name="brand" defaultValue={params.brand || ""}>
+                  <option value="">
+                    <Text bn="সব ব্র্যান্ড" en="All brands" />
+                  </option>
+                  {brands?.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      <Text bn={brand.name_bn || brand.name} en={brand.name} />
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {params.division === "shop" && (
+              <label className="field">
+                <Text bn="কালেকশন" en="Collection" />
+                <select
+                  name="collection"
+                  defaultValue={params.collection || ""}
+                >
+                  <option value="">
+                    <Text bn="সব কালেকশন" en="All collections" />
+                  </option>
+                  {collections?.map((collection) => (
+                    <option key={collection.id} value={collection.id}>
+                      <Text
+                        bn={collection.name_bn || collection.name}
+                        en={collection.name}
+                      />
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="field">
+              <Text bn="সর্বনিম্ন দাম (৳)" en="Minimum price (৳)" />
+              <input
+                type="number"
+                name="min_price"
+                min="0"
+                max="9999999999.99"
+                step="0.01"
+                defaultValue={params.min_price}
+              />
+            </label>
+            <label className="field">
+              <Text bn="সর্বোচ্চ দাম (৳)" en="Maximum price (৳)" />
+              <input
+                type="number"
+                name="max_price"
+                min="0"
+                max="9999999999.99"
+                step="0.01"
+                defaultValue={params.max_price}
+              />
+            </label>
+            <label className="field">
+              <Text bn="সাজান" en="Sort by" />
+              <select name="sort" defaultValue={params.sort || "default"}>
+                <option value="default">
+                  <UiText text={"Default / স্বাভাবিক"} />
+                </option>
+                <option value="price_asc">
+                  <UiText text={"Price: low to high / কম থেকে বেশি"} />
+                </option>
+                <option value="price_desc">
+                  <UiText text={"Price: high to low / বেশি থেকে কম"} />
+                </option>
+                <option value="name">
+                  <UiText text={"Name / নাম"} />
+                </option>
+                <option value="updated">
+                  <UiText text={"Recently updated / সম্প্রতি আপডেট"} />
+                </option>
+              </select>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="in_stock"
+                value="true"
+                defaultChecked={params.in_stock === "true"}
+              />{" "}
+              <Text
+                bn="শুধু মজুত পণ্য ও সেবা"
+                en="In-stock products and services"
+              />
+            </label>
+            {params.division && (
+              <input type="hidden" name="division" value={params.division} />
+            )}
+            {params.organization && (
+              <input
+                type="hidden"
+                name="organization"
+                value={params.organization}
+              />
+            )}
+            <button className="button">
+              <Text bn="খুঁজুন" en="Search" />
+            </button>
+            <Link
+              className="text-link"
+              href={
+                params.division
+                  ? `/catalog?division=${encodeURIComponent(params.division)}`
+                  : "/catalog"
+              }
+            >
+              <Text bn="ফিল্টার মুছুন" en="Clear filters" />
             </Link>
+          </form>
+        </CatalogRefinement>
+        <section
+          className="catalog-results"
+          aria-labelledby="catalog-results-title"
+        >
+          <div className="catalog-results-heading">
+            <h2 id="catalog-results-title">
+              <Text bn="আপনার জন্য" en="Explore the collection" />
+            </h2>
+            {items && (
+              <span>
+                <Text
+                  bn={`${items.count.toLocaleString("bn-BD")}টি ফলাফল`}
+                  en={`${items.count.toLocaleString("en-US")} results`}
+                />
+              </span>
+            )}
           </div>
-        )}
+          <div className="offering-grid">
+            {items?.results.map((o) => (
+              <OfferingCard key={o.id} offering={o} />
+            ))}
+            {!items?.results.length && (
+              <div className="empty">
+                <p>
+                  {items ? (
+                    <UiText
+                      text={"কোনো ফলাফল পাওয়া যায়নি। / No matching results."}
+                    />
+                  ) : (
+                    <UiText
+                      text={
+                        "দামের সীমা ও ফিল্টার পরীক্ষা করুন, অথবা কিছুক্ষণ পর চেষ্টা করুন। / Check the price range and filters, or try again shortly."
+                      }
+                    />
+                  )}
+                </p>
+                <Link className="button secondary" href="/catalog">
+                  <UiText text={"View all"} />
+                </Link>
+              </div>
+            )}
+          </div>
+          {items && items.count > 24 && (
+            <div className="record-actions">
+              {Number(params.page || 1) > 1 && (
+                <Link
+                  className="button secondary"
+                  href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page) - 1) })}`}
+                >
+                  <UiText text={"Previous"} />
+                </Link>
+              )}
+              {items.next && (
+                <Link
+                  className="button"
+                  href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page || 1) + 1) })}`}
+                >
+                  <UiText text={"Next"} />
+                </Link>
+              )}
+            </div>
+          )}
+        </section>
       </div>
-      {items && items.count > 24 && (
-        <div className="record-actions">
-          {Number(params.page || 1) > 1 && (
-            <Link
-              className="button secondary"
-              href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page) - 1) })}`}
-            >
-              <UiText text={"Previous"} />
-            </Link>
-          )}
-          {items.next && (
-            <Link
-              className="button"
-              href={`/catalog?${new URLSearchParams({ ...params, page: String(Number(params.page || 1) + 1) })}`}
-            >
-              <UiText text={"Next"} />
-            </Link>
-          )}
-        </div>
-      )}
       <p className="demo-note">
         <UiText
           text={
