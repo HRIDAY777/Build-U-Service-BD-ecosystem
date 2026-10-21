@@ -17,10 +17,19 @@ export function ProjectGallery() {
   const [next, setNext] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const categories: Record<string, [string, string]> = {
+    construction: ["নির্মাণ", "Construction"],
+    electrical: ["ইলেকট্রিক্যাল", "Electrical"],
+    solar: ["সোলার", "Solar"],
+    finishing: ["ফিনিশিং", "Finishing"],
+  };
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
+    setItems([]);
+    setNext(false);
     api<PageResult<ManagedProject>>(
       `managed-projects/?page=${page}&category=${category}`,
     )
@@ -40,10 +49,20 @@ export function ProjectGallery() {
     return () => {
       active = false;
     };
-  }, [category, page]);
+  }, [category, page, retry]);
   return (
-    <section>
+    <section
+      className="investor-gallery"
+      id="project-gallery"
+      aria-busy={loading}
+    >
       <h2>{t("কাজের নমুনা ও প্রকল্পের আপডেট", "Project gallery & updates")}</h2>
+      <p>
+        {t(
+          "প্রকাশিত প্রকল্পের বিবরণ ও টিমের আপডেট দেখুন। ‘ডেমো’ লেখা প্রকল্পগুলো কাল্পনিক নমুনা; এগুলো আসল বিনিয়োগ বা সম্পন্ন কাজের প্রমাণ নয়।",
+          "Browse published project details and team updates. Projects labelled DEMO are fictional examples, not evidence of actual investments or completed work.",
+        )}
+      </p>
       <p>
         <Link className="button" href="/project-account">
           {t("আমার প্রজেক্ট অ্যাকাউন্ট / আবেদন", "My project account / apply")}
@@ -66,7 +85,7 @@ export function ProjectGallery() {
             ["finishing", "ফিনিশিং"],
           ].map(([v, bn]) => (
             <option key={v} value={v}>
-              {t(bn, v)}
+              {t(bn, categories[v]?.[1] || v)}
             </option>
           ))}
         </select>
@@ -75,6 +94,13 @@ export function ProjectGallery() {
       {error && (
         <p role="alert">
           <UiText text={error} />
+          <button
+            type="button"
+            className="button outline"
+            onClick={() => setRetry((value) => value + 1)}
+          >
+            {t("আবার চেষ্টা করুন", "Try again")}
+          </button>
         </p>
       )}
       {!loading && !error && !items.length && (
@@ -96,7 +122,10 @@ export function ProjectGallery() {
             )}
             <h3>{lang === "bn" ? p.title_bn || p.title : p.title}</h3>
             <small>
-              {p.area} · {p.category}
+              {p.area} ·{" "}
+              {categories[p.category]
+                ? t(...categories[p.category])
+                : p.category}
             </small>
             <p>
               {lang === "bn"
@@ -104,13 +133,31 @@ export function ProjectGallery() {
                 : p.description}
             </p>
             <label>
-              {t("কাজের অগ্রগতি", "Progress")} · {p.progress}%
+              {t("কাজের অগ্রগতি", "Progress")} ·{" "}
+              {p.progress.toLocaleString(lang === "bn" ? "bn-BD" : "en-BD")}%
               <progress value={p.progress} max={100} />
             </label>
+            {!p.updates.length && (
+              <p>
+                {t(
+                  "এখনো কোনো প্রকাশিত আপডেট নেই।",
+                  "No published updates yet.",
+                )}
+              </p>
+            )}
             {p.updates.map((u) => (
               <details key={u.id}>
                 <summary>
-                  {u.date} · {lang === "bn" ? u.title_bn || u.title : u.title}
+                  {new Date(`${u.date}T00:00:00+06:00`).toLocaleDateString(
+                    lang === "bn" ? "bn-BD" : "en-GB",
+                    {
+                      timeZone: "Asia/Dhaka",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )}{" "}
+                  · {lang === "bn" ? u.title_bn || u.title : u.title}
                 </summary>
                 <p>
                   {lang === "bn"
@@ -129,7 +176,7 @@ export function ProjectGallery() {
       >
         {t("আগের", "Previous")}
       </button>{" "}
-      {page}{" "}
+      {page.toLocaleString(lang === "bn" ? "bn-BD" : "en-BD")}{" "}
       <button
         className="button outline"
         disabled={!next || loading}

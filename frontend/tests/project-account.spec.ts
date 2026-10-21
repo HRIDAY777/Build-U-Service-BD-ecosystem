@@ -3,12 +3,15 @@ import { test, expect } from "@playwright/test";
 test("customer submits, reloads and cancels a private project application", async ({
   page,
 }) => {
-  await page.goto("/project-account");
+  await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
+  await page.goto("/project-account?plan=basic&units=2");
   await expect(
     page.locator("main").getByRole("link", { name: /Log in|লগইন/ }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Change language" }).click();
-  await page.goto("/login");
+  await page
+    .locator("main")
+    .getByRole("link", { name: "Log in", exact: true })
+    .click();
   await page.getByRole("button", { name: /New here|নতুন/ }).click();
   const username = `project_e2e_${Date.now()}`;
   await page.locator('[name="first_name"]').fill("Demo Project Customer");
@@ -18,8 +21,13 @@ test("customer submits, reloads and cancels a private project application", asyn
   await page
     .getByRole("button", { name: /Create account|অ্যাকাউন্ট তৈরি/ })
     .click();
-  await expect(page).toHaveURL(/\/account/);
-  await page.goto("/project-account");
+  await expect(page).toHaveURL(/\/project-account\?plan=basic&units=2/, {
+    timeout: 30000,
+  });
+  await expect(page.locator('[name="units"]')).toHaveValue("2");
+  await expect(
+    page.getByRole("combobox", { name: "Package", exact: true }),
+  ).toHaveValue("basic");
   await page.locator('[name="name"]').fill("Demo Project Investor");
   await page.locator('[name="phone"]').fill("01712345678");
   await page.locator('[name="address"]').fill("Demo address, Dhaka");
@@ -34,6 +42,9 @@ test("customer submits, reloads and cancels a private project application", asyn
   await expect(page.locator(".project-statement")).toContainText(
     /Not started|এখনো শুরু হয়নি/,
   );
+  await expect(
+    page.locator(".project-statement .investor-next-step"),
+  ).toContainText("Await team review");
   await expect(
     page.getByRole("region", { name: /Application history|আবেদনের ইতিহাস/ }),
   ).toContainText(/Application submitted|আবেদন জমা হয়েছে/);

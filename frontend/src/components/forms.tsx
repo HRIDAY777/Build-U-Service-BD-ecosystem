@@ -82,7 +82,9 @@ export function AddressFields({
       : matchingAreas.length === 1
         ? matchingAreas[0].name
         : "");
-  useEffect(() => { onAreaChange?.(selectedArea); }, [onAreaChange, selectedArea]);
+  useEffect(() => {
+    onAreaChange?.(selectedArea);
+  }, [onAreaChange, selectedArea]);
   useEffect(() => {
     let active = true;
     async function load() {
@@ -246,7 +248,12 @@ export function LoginForm() {
           ? "Account created / অ্যাকাউন্ট তৈরি হয়েছে"
           : "Welcome back / স্বাগতম",
       );
-      router.push("/account");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(
+        next === "/project-account" || next?.startsWith("/project-account?")
+          ? next
+          : "/account",
+      );
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -1127,7 +1134,10 @@ export function BookingForm({ item }: { item: Offering }) {
               }
             />
           </p>
-          <AddressFields division={item.division_slug} onAreaChange={setServiceArea} />
+          <AddressFields
+            division={item.division_slug}
+            onAreaChange={setServiceArea}
+          />
           {item.division_slug === "mechanic" && <MechanicFields />}
           <label className="field">
             <UiText text={"সমস্যার বিবরণ / Describe the issue"} />

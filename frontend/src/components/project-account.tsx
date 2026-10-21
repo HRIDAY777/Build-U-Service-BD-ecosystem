@@ -7,6 +7,7 @@ import { api, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
 import { LocationPicker, addressLine } from "./location-picker";
 import { ProjectHistory } from "./project-history";
+import { InvestorNavigation, InvestorNextStep } from "./investor-guide";
 
 type Update = {
   id: number;
@@ -132,6 +133,21 @@ export function ProjectAccount() {
   const [error, setError] = useState("");
   const [kind, setKind] = useState("investor");
   const [pack, setPack] = useState("starter");
+  const [initialUnits, setInitialUnits] = useState(1);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPlan = params.get("plan");
+    const requestedUnits = Number(params.get("units"));
+    if (requestedPlan && packages.includes(requestedPlan)) {
+      setPack(requestedPlan);
+      if (
+        Number.isInteger(requestedUnits) &&
+        requestedUnits >= 1 &&
+        requestedUnits <= 100
+      )
+        setInitialUnits(requestedUnits);
+    }
+  }, []);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState<Application | null>(null);
@@ -271,27 +287,50 @@ export function ProjectAccount() {
 
   return (
     <div className="page-wrap project-account">
-      <h1>
-        {t(
-          "আমার প্রজেক্ট ও বিনিয়োগ অ্যাকাউন্ট",
-          "My project & investment account",
-        )}
-      </h1>
-      <p>
-        <Link className="text-link" href="/projects">
+      <InvestorNavigation account />
+      <header className="investor-account-heading">
+        <span className="eyebrow">
+          {t("ব্যক্তিগত প্রজেক্ট ডেস্ক", "Your private project desk")}
+        </span>
+        <h1>
           {t(
-            "পরিকল্পনা ও নমুনা হিসাব দেখুন",
-            "View plans and illustrative calculations",
+            "আমার প্রজেক্ট ও বিনিয়োগ অ্যাকাউন্ট",
+            "My project & investment account",
           )}
-        </Link>
-      </p>
+        </h1>
+        <p>
+          <Link className="text-link" href="/projects">
+            {t(
+              "পরিকল্পনা ও নমুনা হিসাব দেখুন",
+              "View plans and illustrative calculations",
+            )}
+          </Link>
+        </p>
+      </header>
+      <aside className="investor-next-step">
+        <strong>
+          {t(
+            "আবেদন, চুক্তি ও হিসাব এক জায়গায়",
+            "Applications, agreements & statements together",
+          )}
+        </strong>
+        <p>
+          {t(
+            "এখানে নথিভুক্ত হিসাব দেখা যায়। অনলাইন অর্থ গ্রহণ ও স্বয়ংক্রিয় পেআউট এখনো চালু নয়।",
+            "View recorded activity here. Online funding and automatic payouts are not yet active.",
+          )}
+        </p>
+      </aside>
       {!user ? (
         <p>
           {t(
             "নিজের আবেদন ও হিসাব দেখতে লগইন করুন।",
             "Log in to view your applications and statements.",
           )}{" "}
-          <Link className="button" href="/login">
+          <Link
+            className="button"
+            href={`/login?next=${encodeURIComponent(`/project-account?plan=${pack}&units=${initialUnits}`)}`}
+          >
             {t("লগইন", "Log in")}
           </Link>
         </p>
@@ -371,7 +410,8 @@ export function ProjectAccount() {
                       min={1}
                       max={100}
                       step={1}
-                      defaultValue={1}
+                      key={initialUnits}
+                      defaultValue={initialUnits}
                     />
                   </label>
                 </>
@@ -515,6 +555,7 @@ export function ProjectAccount() {
                 <button
                   type="button"
                   className="project-plan"
+                  aria-pressed={selected?.id === a.id}
                   key={a.id}
                   onClick={() => {
                     setSelected(a);
@@ -529,7 +570,10 @@ export function ProjectAccount() {
                   </strong>
                   <span>{money(a.amount)}</span>
                   <small>
-                    {t(statuses[a.status] || a.status, a.status)} · {a.package}
+                    {t(statuses[a.status] || a.status, a.status)} ·{" "}
+                    {lang === "bn"
+                      ? packageBn[a.package] || a.package
+                      : a.package}
                   </small>
                   <small>{a.id.slice(0, 8)}</small>
                 </button>
@@ -557,6 +601,10 @@ export function ProjectAccount() {
                 {t("আবেদনের বিবরণ ও হিসাব", "Application details & statement")}
               </h2>
               <p>{selected.id}</p>
+              <InvestorNextStep
+                status={selected.status}
+                accepted={!!selected.accepted_at}
+              />
               <p>
                 {selected.name} · {selected.phone}
               </p>

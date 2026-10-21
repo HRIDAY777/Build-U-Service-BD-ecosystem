@@ -1,17 +1,20 @@
 /* Homepage art direction: ink, warm white and the company's magenta. */
-body:has(:is(.landing-page, .catalog-page)) {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account)) {
   background: #fafaf8;
   font-family: "Segoe UI", "Nirmala UI", sans-serif;
 }
-body:has(:is(.landing-page, .catalog-page)) .spatial-backdrop {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .spatial-backdrop {
   display: none;
 }
-body:has(:is(.landing-page, .catalog-page)) .announcement {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .announcement {
   background: #172b30;
   color: #e4eae8;
   font-size: 10px;
 }
-body:has(:is(.landing-page, .catalog-page)) .header {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -24,21 +27,33 @@ body:has(:is(.landing-page, .catalog-page)) .header {
   box-shadow: none;
   backdrop-filter: blur(16px);
 }
-body:has(:is(.landing-page, .catalog-page)) .header .company-logo {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header
+  .company-logo {
   width: 142px;
 }
-body:has(:is(.landing-page, .catalog-page)) .header .nav {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header
+  .nav {
   gap: 23px;
 }
-body:has(:is(.landing-page, .catalog-page)) .header .nav a {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header
+  .nav
+  a {
   font-size: 12px;
   font-weight: 500;
   color: #3e5054;
 }
-body:has(:is(.landing-page, .catalog-page)) .header .nav a[href="/"] {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header
+  .nav
+  a[href="/"] {
   color: #9d3e97;
 }
-body:has(:is(.landing-page, .catalog-page)) .header .account-button {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  .header
+  .account-button {
   border-radius: 7px;
   box-shadow: none;
   border-color: #d7dddb;
@@ -516,22 +531,33 @@ html[lang="bn"] .landing-hero h1 {
   color: #6c7e80;
   padding-top: 15px;
 }
-body:has(:is(.landing-page, .catalog-page)) footer {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer {
   background: #172b30;
   color: #e1e9e5;
   border: 0;
 }
-body:has(:is(.landing-page, .catalog-page)) footer h3 {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer
+  h3 {
   color: #fff;
 }
-body:has(:is(.landing-page, .catalog-page)) footer p,
-body:has(:is(.landing-page, .catalog-page)) footer .location {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer
+  p,
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer
+  .location {
   color: #9eb3b5;
 }
-body:has(:is(.landing-page, .catalog-page)) footer a {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer
+  a {
   color: #bdccca;
 }
-body:has(:is(.landing-page, .catalog-page)) footer .footer-bottom {
+body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+  footer
+  .footer-bottom {
   border-color: #ffffff18;
   color: #94a9aa;
 }
@@ -561,11 +587,14 @@ body:has(:is(.landing-page, .catalog-page)) footer .footer-bottom {
   }
 }
 @media (max-width: 760px) {
-  body:has(:is(.landing-page, .catalog-page)) .header {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header {
     height: 76px;
     padding: 0 20px;
   }
-  body:has(:is(.landing-page, .catalog-page)) .header .company-logo {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header
+    .company-logo {
     width: 115px;
   }
   .landing-page .landing-hero {
@@ -737,16 +766,23 @@ body:has(:is(.landing-page, .catalog-page)) footer .footer-bottom {
   }
 }
 @media (min-width: 761px) and (max-width: 1100px) {
-  body:has(:is(.landing-page, .catalog-page)) .header {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header {
     position: relative;
   }
-  body:has(:is(.landing-page, .catalog-page)) .header .nav {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header
+    .nav {
     display: none;
   }
-  body:has(:is(.landing-page, .catalog-page)) .header .mobile-menu {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header
+    .mobile-menu {
     display: flex;
   }
-  body:has(:is(.landing-page, .catalog-page)) .header .nav.open {
+  body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
+    .header
+    .nav.open {
     display: flex;
     position: absolute;
     top: 100%;

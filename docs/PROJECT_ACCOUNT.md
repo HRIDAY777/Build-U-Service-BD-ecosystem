@@ -1,5 +1,15 @@
 # Project and investment account
 
+## Investor experience update — 2026-10-21
+
+The public plans and private account now share a dedicated responsive design and navigation. Five proposed plans retain the existing calculations and enquiry workflow. A selected plan and valid unit count carry into the application, including through login or registration. Login return destinations are restricted to the project-account route.
+
+The private statement explains the next action for each application status, including agreement acknowledgement and the team's activation gates. Gallery categories, progress numbers and dates follow the selected language; switching categories clears stale cards, failed requests offer a retry, and projects without updates say so. Demo projects remain explicitly fictional; no funds, payouts or real project achievements were invented.
+
+Local verification includes the 16 project/backend launch tests, plan enquiry, private application/reload/search/CSV/cancellation, and reviewer pagination/retry. Live funding, automatic payouts, certified signing and production acceptance remain the separate setup work described in `PROJECT_LIVE_SETUP.bn.md`.
+
+Final verification on 2026-10-21: webpack production build and targeted ESLint passed. All four project browser tests passed against the production build, including login return with the selected plan and gallery failure/retry without stale cards. English/Bangla presentation and 768/390/320-pixel widths were checked; desktop and mobile screenshots were inspected.
+
 Integrated into the existing Django/Next website, based on the user-supplied Laravel archive and business PDFs. No Laravel dependencies, environment secrets, accounts or SQLite data were imported.
 
 ## Working flow

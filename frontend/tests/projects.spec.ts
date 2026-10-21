@@ -37,3 +37,54 @@ test("project plans calculate distributions and submit an enquiry", async ({
     ),
   ).toBeTruthy();
 });
+
+test("project gallery clears stale cards and recovers from a failed category request", async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
+  let solarAttempts = 0;
+  await page.route("**/api/v1/managed-projects/?*", (route) => {
+    const solar =
+      new URL(route.request().url()).searchParams.get("category") === "solar";
+    if (solar && ++solarAttempts === 1)
+      return route.fulfill({
+        status: 503,
+        json: { detail: "Temporarily unavailable" },
+      });
+    return route.fulfill({
+      json: {
+        count: 1,
+        next: null,
+        results: [
+          {
+            id: solar ? 2 : 1,
+            title: solar ? "Demo solar review" : "Demo building review",
+            title_bn: "ডেমো প্রকল্প",
+            category: solar ? "solar" : "construction",
+            area: "Dhaka",
+            description: "Fictional project for testing",
+            description_bn: "পরীক্ষার নমুনা",
+            image: "",
+            progress: 20,
+            updates: [],
+          },
+        ],
+      },
+    });
+  });
+  await page.goto("/projects");
+  const gallery = page.locator(".investor-gallery");
+  await expect(
+    gallery.getByRole("heading", { name: "Demo building review" }),
+  ).toBeVisible();
+  await gallery.getByRole("combobox").selectOption("solar");
+  await expect(gallery.getByRole("alert")).toBeVisible();
+  await expect(
+    gallery.getByRole("heading", { name: "Demo building review" }),
+  ).toHaveCount(0);
+  await gallery.getByRole("button", { name: "Try again" }).click();
+  await expect(
+    gallery.getByRole("heading", { name: "Demo solar review" }),
+  ).toBeVisible();
+  await expect(gallery.getByRole("alert")).toHaveCount(0);
+});
