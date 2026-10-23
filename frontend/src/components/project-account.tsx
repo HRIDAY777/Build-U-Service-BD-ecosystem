@@ -172,6 +172,9 @@ export function ProjectAccount() {
     const sequence = ++loadSequence.current;
     setLoading(true);
     setError("");
+    setItems([]);
+    setCount(0);
+    setNext(false);
     try {
       const data = await api<PageResult<Application>>(
         `project-applications/?${new URLSearchParams({ page: String(page), ...filters })}`,
@@ -589,7 +592,7 @@ export function ProjectAccount() {
             <span>{page}</span>{" "}
             <button
               className="button outline"
-              disabled={!next || loading}
+              disabled={!next || loading || !!error}
               onClick={() => setPage(page + 1)}
             >
               {t("পরের", "Next")}

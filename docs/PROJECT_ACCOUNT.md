@@ -1,5 +1,9 @@
 # Project and investment account
 
+## Application search recovery — 2026-10-23
+
+Starting an application-list request clears old cards, counts and the next-page link. A failed search therefore cannot display the previous query's results as current matches. Retry uses the current filters. The customer browser workflow covers a failed search, stale-card removal, disabled forward pagination and successful retry before continuing to statement download and cancellation.
+
 ## Investor experience update — 2026-10-21
 
 The public plans and private account now share a dedicated responsive design and navigation. Five proposed plans retain the existing calculations and enquiry workflow. A selected plan and valid unit count carry into the application, including through login or registration. Login return destinations are restricted to the project-account route.

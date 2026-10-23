@@ -70,6 +70,19 @@ test("customer submits, reloads and cancels a private project application", asyn
     page.getByText(/No applications match|এই বাছাইয়ে কোনো আবেদন/),
   ).toBeVisible();
   await page.getByRole("button", { name: /Show all|সব দেখুন/ }).click();
+  await expect(page.getByRole("button", { name: /Demo Project Investor/ })).toBeVisible();
+  await page.route("**/api/v1/project-applications/?*", async (route) => {
+    await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ detail: "Applications temporarily unavailable" }) });
+  });
+  await page.locator('[name="search"]').fill("Unavailable search");
+  await page.getByRole("button", { name: "Find applications" }).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText("Applications temporarily unavailable");
+  await expect(page.getByRole("button", { name: /Demo Project Investor/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toBeDisabled();
+  await page.unroute("**/api/v1/project-applications/?*");
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(page.getByText("No applications match these filters.")).toBeVisible();
+  await page.getByRole("button", { name: "Show all", exact: true }).click();
   await page.getByRole("button", { name: /Demo Project Investor/ }).click();
   const downloaded = page.waitForEvent("download");
   await page
