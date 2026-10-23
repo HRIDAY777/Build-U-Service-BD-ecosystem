@@ -14,9 +14,9 @@ test("customer can register, purchase, book and request delivery", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator("h1")).toContainText("প্রতিদিনের");
+  await expect(page.locator("h1")).toContainText("একটু সহজ হোক");
   await page.getByRole("button", { name: "Change language" }).click();
-  await expect(page.locator("h1")).toContainText("Life happens");
+  await expect(page.locator("h1")).toContainText("Everyday life.");
   await page.goto("/login");
   await page
     .getByRole("button", { name: "New here? Create an account" })
@@ -63,16 +63,16 @@ test("customer can register, purchase, book and request delivery", async ({
   await fillAddress(page, "dropoff_");
   const pickupLocation = page.locator(".location-picker").first();
   await pickupLocation
-    .getByRole("combobox", { name: "বিভাগ / Division", exact: true })
+    .getByRole("combobox", { name: "Division", exact: true })
     .fill("Dhaka");
   await pickupLocation
-    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
+    .getByRole("option", { name: "Dhaka", exact: true })
     .click();
   await pickupLocation
-    .getByRole("combobox", { name: "জেলা / District", exact: true })
+    .getByRole("combobox", { name: "District", exact: true })
     .fill("Dhaka");
   await pickupLocation
-    .getByRole("option", { name: "ঢাকা / Dhaka", exact: true })
+    .getByRole("option", { name: "Dhaka", exact: true })
     .click();
   await pickupLocation
     .getByRole("combobox", { name: /Upazila or thana/ })
@@ -83,7 +83,7 @@ test("customer can register, purchase, book and request delivery", async ({
     .fill("ডেমো মহল্লা");
   await page.locator('[name="pickup_line"]').fill("বাড়ি ১২, ডেমো মহল্লা");
   await page
-    .getByRole("textbox", { name: "পার্সেলের বিবরণ / Package description" })
+    .getByRole("textbox", { name: "Package description", exact: true })
     .fill("Demo books parcel");
   const quoteRequest = page.waitForRequest(
     (request) =>
@@ -96,7 +96,7 @@ test("customer can register, purchase, book and request delivery", async ({
   expect(submittedAddress.split("ডেমো মহল্লা")).toHaveLength(2);
   expect(submittedAddress).toContain("ধানমন্ডি");
   await expect(
-    page.getByText("ডেলিভারি চার্জ / Delivery fee: ৳60.00"),
+    page.getByText("Delivery fee: ৳60.00"),
   ).toBeVisible();
   await page.getByRole("button", { name: /Confirm delivery/ }).click();
   await expect(page).toHaveURL(/\/delivery\/[0-9a-f-]{36}$/);
@@ -104,7 +104,7 @@ test("customer can register, purchase, book and request delivery", async ({
     page.getByRole("heading", { name: "Demo books parcel" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "স্ট্যাটাসের ইতিহাস / Status history" }),
+    page.getByRole("heading", { name: "Status history", exact: true }),
   ).toBeVisible();
   await page.goto("/account");
   await page.getByRole("button", { name: "Deliveries", exact: true }).click();
@@ -144,11 +144,12 @@ test("desktop and mobile homepage fit without horizontal overflow", async ({
     });
     if (size.width < 500) {
       await page.getByRole("button", { name: "Toggle navigation" }).click();
-      await expect(page.locator("nav")).toBeVisible();
+      await expect(page.locator("#main-navigation")).toBeVisible();
     }
   }
 });
 test("contact form persists a partner application", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
   await page.goto("/contact?interest=partner");
   await page.locator('[name="name"]').fill("Demo Partner E2E");
   await page.locator('[name="email"]').fill("demo-partner@example.invalid");
