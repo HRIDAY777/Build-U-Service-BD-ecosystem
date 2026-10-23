@@ -1,5 +1,20 @@
 export const stockPhotos = [
   [
+    "project-construction",
+    "Construction workers at a building site — This Viktọ",
+    "https://www.pexels.com/photo/construction-workers-on-the-building-site-10202865/",
+  ],
+  [
+    "project-finishing",
+    "Interior wall painting",
+    "https://www.pexels.com/photo/man-painting-the-wall-6474471/",
+  ],
+  [
+    "project-solar",
+    "Rooftop solar panels — Towfiqu barbhuiya",
+    "https://www.pexels.com/photo/an-aerial-shot-of-a-roof-with-solar-panels-12606669/",
+  ],
+  [
     "food",
     "Bangladeshi chicken biryani",
     "https://www.pexels.com/photo/traditional-bangladeshi-chicken-biryani-dish-served-outdoors-36541740/",

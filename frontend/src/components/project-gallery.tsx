@@ -24,6 +24,12 @@ export function ProjectGallery() {
     solar: ["সোলার", "Solar"],
     finishing: ["ফিনিশিং", "Finishing"],
   };
+  const categoryPhotos: Record<string, string> = {
+    construction: "project-construction",
+    electrical: "electrician",
+    solar: "project-solar",
+    finishing: "project-finishing",
+  };
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -114,11 +120,21 @@ export function ProjectGallery() {
       <div className="project-plan-grid">
         {items.map((p) => (
           <article className="project-plan" key={p.id}>
-            {p.image && (
-              <Photo
-                src={p.image}
-                alt={lang === "bn" ? p.title_bn || p.title : p.title}
-              />
+            {(p.image || categoryPhotos[p.category]) && (
+              <div className="investor-gallery-photo">
+                <Photo
+                  src={
+                    p.image ||
+                    `/images/photos/${categoryPhotos[p.category]}.jpg`
+                  }
+                  alt={lang === "bn" ? p.title_bn || p.title : p.title}
+                />
+                {!p.image && (
+                  <small>
+                    {t("কাজের ধরনের নমুনা ছবি", "Illustrative project photo")}
+                  </small>
+                )}
+              </div>
             )}
             <h3>{lang === "bn" ? p.title_bn || p.title : p.title}</h3>
             <small>

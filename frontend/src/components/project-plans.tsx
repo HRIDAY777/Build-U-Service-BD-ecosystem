@@ -6,10 +6,13 @@ import { api } from "@/lib/api";
 import { useApp } from "./provider";
 import Link from "next/link";
 import { InvestorNavigation, InvestorGuide } from "./investor-guide";
+import { Photo } from "./photo";
+import { ArrowUpRight, Check, FileText, Layers, Activity } from "lucide-react";
 
 const plans = [
   {
     id: "starter",
+    photo: "project-finishing",
     bn: "স্টার্টার — পেইন্টিং ও ফিটিংস",
     en: "Starter — painting and fittings",
     amount: 10000,
@@ -18,6 +21,7 @@ const plans = [
   },
   {
     id: "basic",
+    photo: "project-solar",
     bn: "বেসিক — ইলেকট্রিক্যাল ও সোলার",
     en: "Basic — electrical and solar",
     amount: 25000,
@@ -26,6 +30,7 @@ const plans = [
   },
   {
     id: "premium",
+    photo: "project-construction",
     bn: "প্রিমিয়াম — নির্মাণ সামগ্রী",
     en: "Premium — construction materials",
     amount: 50000,
@@ -34,6 +39,7 @@ const plans = [
   },
   {
     id: "regular",
+    photo: "electrician",
     bn: "রেগুলার — মাসিক বিতরণ",
     en: "Regular — monthly distributions",
     amount: 100000,
@@ -42,6 +48,7 @@ const plans = [
   },
   {
     id: "growth",
+    photo: "project-construction",
     bn: "ক্যাপিটাল গ্রোথ — মেয়াদ শেষে",
     en: "Capital growth — at maturity",
     amount: 100000,
@@ -110,36 +117,101 @@ export function ProjectPlans() {
     <div className="page-wrap project-plans">
       <InvestorNavigation />
       <header className="investor-hero">
-        <span className="eyebrow">
-          <UiText text={"U SERVICE · PROJECTS"} />
-        </span>
-        <h1>
-          {t(
-            "আপনার পরিকল্পনা। দৃশ্যমান অগ্রগতি।",
-            "Your plans. Visible progress.",
-          )}
-        </h1>
-        <p className="page-intro">
-          {t(
-            "নির্মাণ, ইলেকট্রিক্যাল, সোলার ও ফিনিশিং কাজের পরিকল্পনা দেখুন।",
-            "Explore construction, electrical, solar and finishing project plans.",
-          )}
-        </p>
-        <div className="investor-actions">
-          <a className="button" href="#investment-plans">
-            {t("পরিকল্পনা দেখুন", "Explore plans")}
-          </a>
-          <Link className="button outline" href="/project-account">
-            {t("আমার প্রজেক্ট অ্যাকাউন্ট", "My project account")}
-          </Link>
+        <div className="investor-hero-copy">
+          <span className="eyebrow">
+            <UiText text={"U SERVICE · PROJECTS"} />
+          </span>
+          <h1>
+            {t(
+              "আপনার পরিকল্পনা। দৃশ্যমান অগ্রগতি।",
+              "Your plans. Visible progress.",
+            )}
+          </h1>
+          <p className="page-intro">
+            {t(
+              "নির্মাণ, ইলেকট্রিক্যাল, সোলার ও ফিনিশিং কাজের পরিকল্পনা দেখুন।",
+              "Explore construction, electrical, solar and finishing project plans.",
+            )}
+          </p>
+          <div className="investor-actions">
+            <a className="button" href="#investment-plans">
+              {t("পরিকল্পনা দেখুন", "Explore plans")}
+            </a>
+            <Link className="button outline" href="/project-account">
+              {t("আমার প্রজেক্ট অ্যাকাউন্ট", "My project account")}
+            </Link>
+          </div>
+          <div className="investor-hero-note">
+            {t(
+              "আবেদন ও পর্যালোচনা চালু · অনলাইন অর্থ গ্রহণ এখনো চালু নয়",
+              "Applications & review available · Online funding is not yet active",
+            )}
+          </div>
         </div>
-        <div className="investor-hero-note">
-          {t(
-            "আবেদন ও পর্যালোচনা চালু · অনলাইন অর্থ গ্রহণ এখনো চালু নয়",
-            "Applications & review available · Online funding is not yet active",
-          )}
-        </div>
+        <figure className="investor-hero-photo">
+          <Photo
+            src="/images/photos/project-construction.jpg"
+            alt={t(
+              "নির্মাণস্থলে কর্মীদের কাজের নমুনা ছবি",
+              "Illustrative construction workers on site",
+            )}
+            eager
+          />
+          <figcaption>
+            <span>
+              {t("পরিকল্পনা থেকে বাস্তব কাজ", "From plans to project work")}
+            </span>
+            <small>
+              {t("বিষয়ভিত্তিক স্টক ছবি", "Illustrative stock photograph")}
+            </small>
+          </figcaption>
+        </figure>
       </header>
+      <section
+        className="investor-workspace-links"
+        aria-label={t("ইনভেস্টর সুবিধা", "Investor tools")}
+      >
+        <a href="#investment-plans">
+          <Layers size={22} />
+          <span>
+            <strong>{t("পরিকল্পনা তুলনা করুন", "Compare plans")}</strong>
+            <small>
+              {t(
+                "মূলধন, মেয়াদ ও নমুনা হিসাব",
+                "Capital, duration & illustrations",
+              )}
+            </small>
+          </span>
+          <ArrowUpRight size={18} />
+        </a>
+        <a href="#project-gallery">
+          <Activity size={22} />
+          <span>
+            <strong>
+              {t("কাজের অগ্রগতি দেখুন", "Follow project updates")}
+            </strong>
+            <small>
+              {t(
+                "প্রকাশিত প্রকল্প ও কাজের ধাপ",
+                "Published projects & milestones",
+              )}
+            </small>
+          </span>
+          <ArrowUpRight size={18} />
+        </a>
+        <Link href="/project-account">
+          <FileText size={22} />
+          <span>
+            <strong>
+              {t("আপনার ব্যক্তিগত ডেস্ক", "Your private workspace")}
+            </strong>
+            <small>
+              {t("আবেদন, চুক্তি ও হিসাব", "Applications, agreements & records")}
+            </small>
+          </span>
+          <ArrowUpRight size={18} />
+        </Link>
+      </section>
       <div className="notice">
         {t(
           "পরিকল্পনার সংখ্যাগুলো প্রস্তাবিত নমুনা হিসাব। এগুলো নিশ্চিত মুনাফা নয়; মূলধন হারানো, প্রকল্পে বিলম্ব ও অর্থ ফেরত পেতে দেরির ঝুঁকি আছে। প্রকল্প যাচাই ও অনুমোদিত চুক্তি প্রয়োজন। এখানে অর্থ গ্রহণ করা হচ্ছে না।",
@@ -149,6 +221,12 @@ export function ProjectPlans() {
       <h2 id="investment-plans">
         {t("প্যাকেজ বেছে দেখুন", "Explore the proposed packages")}
       </h2>
+      <p className="investor-section-intro">
+        {t(
+          "কাজের ধরন ও মেয়াদ দেখে আপনার পরিকল্পনা বাছুন। কার্ডে চাপলে নিচে সেই পরিকল্পনার হিসাব দেখাবে। ছবিগুলো কাজের ধরন বোঝানোর নমুনা।",
+          "Choose a plan by project focus and duration. Select a card to see its calculation below. Photos illustrate the type of work.",
+        )}
+      </p>
       <div className="project-plan-grid">
         {plans.map((p) => (
           <button
@@ -162,17 +240,38 @@ export function ProjectPlans() {
               setResult("");
             }}
           >
-            <strong>{lang === "bn" ? p.bn : p.en}</strong>
-            <span>{money(p.amount)}</span>
-            <small>
-              {p.months.toLocaleString(lang === "bn" ? "bn-BD" : "en-BD")}{" "}
-              {t("মাস · প্রস্তাবিত পরিকল্পনা", "months · proposed plan")}
-            </small>
+            <span className="investor-plan-photo">
+              <Photo src={`/images/photos/${p.photo}.jpg`} alt="" />
+              <span className="investor-plan-choice">
+                {selected === p.id ? (
+                  <>
+                    <Check size={14} />
+                    {t("নির্বাচিত", "Selected")}
+                  </>
+                ) : (
+                  t("বিস্তারিত দেখুন", "View details")
+                )}
+              </span>
+            </span>
+            <span className="investor-plan-body">
+              <strong>{lang === "bn" ? p.bn : p.en}</strong>
+              <span className="investor-plan-price">
+                {money(p.amount)} <small>{t("প্রতি ইউনিট", "per unit")}</small>
+              </span>
+              <small>
+                {p.months.toLocaleString(lang === "bn" ? "bn-BD" : "en-BD")}{" "}
+                {t("মাস · প্রস্তাবিত পরিকল্পনা", "months · proposed plan")}
+              </small>
+            </span>
           </button>
         ))}
       </div>
       <div className="investor-calculators">
         <section className="form-panel project-calculator">
+          <span className="investor-selected-caption">
+            {t("নির্বাচিত পরিকল্পনা", "Selected plan")} ·{" "}
+            {lang === "bn" ? plan.bn : plan.en}
+          </span>
           <h2>{t("নমুনা হিসাব", "Illustrative calculation")}</h2>
           <label className="field">
             {t("ইউনিট সংখ্যা (১–১০০)", "Units (1–100)")}
