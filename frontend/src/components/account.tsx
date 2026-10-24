@@ -21,6 +21,7 @@ import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { PartnerCatalog } from "./partner-catalog";
 import { SecurityHistory } from "./security-history";
+import { NotificationCenter } from "./notification-center";
 import { ProviderPicker } from "./provider-dashboard";
 import { LocationPicker, LocalityInput, addressLine } from "./location-picker";
 type RecordItem = {
@@ -1036,45 +1037,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
           </div>
         </>
       )}
-      {tab === "notifications" && (
-        <>
-          {!!notifications.some((n) => !n.read) && (
-            <button
-              className="button secondary"
-              onClick={async () => {
-                await api("notifications/mark_all_read/", "POST");
-                load();
-              }}
-            >
-              <UiText text={"Mark all as read / সবগুলো পড়া হয়েছে"} />
-            </button>
-          )}
-          {!notifications.length && (
-            <p>
-              <UiText text={"No notifications yet."} />
-            </p>
-          )}
-          {notifications.map((n) => (
-            <div className="record" key={n.id}>
-              <h3>{n.title}</h3>
-              <p>{n.body}</p>
-              {!n.read && (
-                <button
-                  className="button secondary"
-                  onClick={async () => {
-                    await api(`notifications/${n.id}/`, "PATCH", {
-                      read: true,
-                    });
-                    load();
-                  }}
-                >
-                  <UiText text={"Mark as read"} />
-                </button>
-              )}
-            </div>
-          ))}
-        </>
-      )}
+      {tab === "notifications" && <NotificationCenter onChange={load} />}
       {tab === "assistant" && (
         <form className="form-panel" onSubmit={assistant}>
           <h2>

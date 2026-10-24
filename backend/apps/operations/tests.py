@@ -816,6 +816,19 @@ class WorkflowTests(TestCase):
         self.assertEqual(response.data["updated"], 2)
         self.assertFalse(Notification.objects.filter(user=self.user, read=False).exists())
 
+    def test_notification_read_changes_are_private_and_reversible(self):
+        own = Notification.objects.create(user=self.user, title="Own", body="Private")
+        other = Notification.objects.create(user=self.other, title="Other", body="Private")
+        for read in (True, False):
+            response = self.client.patch(f"/api/v1/notifications/{own.pk}/", {"read": read}, format="json")
+            self.assertEqual(response.status_code, 200)
+            own.refresh_from_db()
+            self.assertEqual(own.read, read)
+        self.assertEqual(self.client.patch(f"/api/v1/notifications/{other.pk}/", {"read": True}, format="json").status_code, 404)
+        self.client.post("/api/v1/notifications/mark_all_read/", {}, format="json")
+        other.refresh_from_db()
+        self.assertFalse(other.read)
+
     def test_loyalty_statement_is_private_and_read_only(self):
         entry = LoyaltyEntry.objects.create(customer=self.user, points=50, reference="loyalty-demo-1")
         LoyaltyEntry.objects.create(customer=self.user, points=-10, reference="loyalty-demo-2")
