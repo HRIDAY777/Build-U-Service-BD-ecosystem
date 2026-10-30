@@ -6,6 +6,7 @@ from .models import (
     DeliveryRequest,
     Prescription,
     Payment,
+    PaymentGateway,
     Refund,
     AuditLog,
     StatusEvent,
@@ -112,3 +113,48 @@ for model in [
 class CouponAdmin(admin.ModelAdmin):
     list_display = ["code", "division", "amount", "used", "limit", "expires_at", "active"]
     readonly_fields = ["used"]
+
+
+@admin.register(PaymentGateway)
+class PaymentGatewayAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "name_bn",
+        "code",
+        "category",
+        "active",
+        "sandbox",
+        "account_number",
+        "display_order",
+        "updated_at",
+    ]
+    list_editable = ["active", "sandbox", "account_number", "display_order"]
+    list_filter = ["active", "category", "sandbox"]
+    search_fields = ["name", "name_bn", "code", "account_number"]
+    readonly_fields = ["code", "updated_at"]
+
+    def get_queryset(self, request):
+        from .payments import ensure_payment_gateways
+
+        ensure_payment_gateways()
+        return super().get_queryset(request)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        from .services import audit
+
+        super().save_model(request, obj, form, change)
+        if change and form.changed_data:
+            audit(
+                request.user,
+                "payment_gateway.updated",
+                obj.code,
+                active=obj.active,
+                sandbox=obj.sandbox,
+                account_number=obj.account_number,
+            )

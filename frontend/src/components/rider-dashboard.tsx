@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useApp } from "./provider";
 import { DeliveryList } from "./delivery-tracking";
+import { ProfileCard, RoleWorkspaces } from "./profile-card";
 type Profile = {
   name: string;
   available: boolean;
@@ -93,6 +94,8 @@ export function RiderDashboard() {
       <h1>
         <UiText text={"রাইডার ড্যাশবোর্ড / Rider dashboard"} />
       </h1>
+      <RoleWorkspaces currentPath="/rider" />
+      <ProfileCard collapsible />
       {error && (
         <p className="error" role="alert">
           <UiText text={error} />

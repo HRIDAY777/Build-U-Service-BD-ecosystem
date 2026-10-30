@@ -1,23 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-
-function localFixture(script: string) {
-  const target = new URL(process.env.E2E_URL || "http://127.0.0.1:3000");
-  if (!["127.0.0.1", "localhost"].includes(target.hostname))
-    throw new Error("Restaurant fixture requires local test servers.");
-  const root = path.resolve(process.cwd(), "..");
-  const python = path.join(
-    root,
-    ".venv",
-    process.platform === "win32" ? "Scripts/python.exe" : "bin/python",
-  );
-  return execFileSync(python, ["manage.py", "shell", "--command", script], {
-    cwd: path.join(root, "backend"),
-    encoding: "utf8",
-    env: { ...process.env, DJANGO_DEBUG: "true" },
-  });
-}
+import { localFixture } from "./local-fixture";
 
 test("owner hours reject closed bookings and provider leave saves with a private calendar", async ({
   page,
@@ -159,3 +141,4 @@ Offering.objects.filter(sku='${key}').update(active=False)
 `);
   }
 });
+

@@ -139,7 +139,22 @@ class ItemInput(serializers.Serializer):
 
 class CheckoutInput(serializers.Serializer):
     expected_total = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
-    payment_method = serializers.ChoiceField(choices=["cod", "sslcommerz"], default="cod")
+    payment_method = serializers.ChoiceField(
+        choices=[
+            "cod",
+            "bkash",
+            "nagad",
+            "rocket",
+            "upay",
+            "sslcommerz",
+            "aamarpay",
+            "shurjopay",
+            "portpos",
+            "ekpay",
+            "bank_transfer",
+        ],
+        default="cod",
+    )
     items = ItemInput(many=True, allow_empty=False, max_length=100)
     address = AddressInput()
     coupon = serializers.CharField(max_length=40, required=False, allow_blank=True)
@@ -150,6 +165,8 @@ class OrderSerializer(serializers.ModelSerializer):
     division_slug = serializers.CharField(source="division.slug")
     items = serializers.SerializerMethodField()
     prescription_status = serializers.SerializerMethodField()
+    payment_trx_id = serializers.SerializerMethodField()
+    payment_sender = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -164,6 +181,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "total",
             "payment_method",
             "payment_status",
+            "payment_trx_id",
+            "payment_sender",
             "notes",
             "items",
             "rider",
@@ -191,6 +210,14 @@ class OrderSerializer(serializers.ModelSerializer):
             return obj.prescription.status
         except Prescription.DoesNotExist:
             return None
+
+    def get_payment_trx_id(self, obj):
+        payment = obj.payments.order_by("-created_at").first()
+        return payment.reference if payment else None
+
+    def get_payment_sender(self, obj):
+        payment = obj.payments.order_by("-created_at").first()
+        return payment.session_key if payment and payment.provider != "sslcommerz" else None
 
 
 class EventRequestSerializer(serializers.ModelSerializer):
@@ -581,11 +608,14 @@ class OrderViewSet(WorkflowMixin, viewsets.ReadOnlyModelViewSet):
         ):
             raise PermissionDenied()
         prescription = get_object_or_404(Prescription, order=order)
-        return FileResponse(
+        response = FileResponse(
             prescription.document.open("rb"),
             as_attachment=True,
             filename="prescription" + prescription.document.name[prescription.document.name.rfind(".") :],
         )
+        response["Cache-Control"] = "private, no-store"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
 
     @action(detail=True, methods=["post"], url_path="review-prescription")
     def review_rx(self, request, pk=None):

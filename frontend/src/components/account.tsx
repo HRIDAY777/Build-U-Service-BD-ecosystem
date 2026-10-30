@@ -20,6 +20,8 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
 import { PartnerCatalog } from "./partner-catalog";
+import { PaymentGatewayManager, GATEWAY_LABELS } from "./payment-gateways";
+import { ProfileCard, RoleWorkspaces } from "./profile-card";
 import { SecurityHistory } from "./security-history";
 import { NotificationCenter } from "./notification-center";
 import { ProviderPicker } from "./provider-dashboard";
@@ -39,6 +41,8 @@ type RecordItem = {
   created_at: string;
   payment_status?: string;
   payment_method?: string;
+  payment_trx_id?: string | null;
+  payment_sender?: string | null;
   prescription_status?: string;
   items?: {
     name: string;
@@ -96,7 +100,13 @@ const eventNextStates: Record<string, string[]> = {
   quoted: ["cancelled"],
   confirmed: ["completed"],
 };
-export function Account({ operations = false }: { operations?: boolean }) {
+export function Account({
+  operations = false,
+  embeddedInAdmin = false,
+}: {
+  operations?: boolean;
+  embeddedInAdmin?: boolean;
+}) {
   const { user, refresh, toast, lang } = useApp();
   const [tab, setTab] = useState("orders");
   const [bookingQuery, setBookingQuery] = useState("");
@@ -284,61 +294,74 @@ export function Account({ operations = false }: { operations?: boolean }) {
       </div>
     );
   return (
-    <div className="page-wrap">
-      <div className="record-head">
-        <div>
-          <span className="eyebrow">
-            {operations ? (
-              <UiText text={"OPERATIONS WORKSPACE"} />
-            ) : (
-              <UiText text={"YOUR U SERVICE"} />
-            )}
-          </span>
-          <h1>
-            {operations ? (
-              <UiText text={"Operations"} />
-            ) : (
-              `${lang === "bn" ? "স্বাগতম" : "Welcome"}, ${user.first_name || user.username}`
-            )}
-          </h1>
-        </div>
-        <button
-          className="button secondary"
-          onClick={async () => {
-            await api("auth/logout/", "POST");
-            await refresh();
-          }}
-        >
-          <UiText text={"Sign out"} />
-        </button>
-      </div>
-      {operations ? (
-        <p className="page-intro">
-          <UiText
-            text={
-              "Records are restricted to your permissions and assignments. Each status change is validated and audited."
-            }
-          />{" "}
-          <a className="text-link" href="/admin/">
-            <UiText text={"Central administration ↗"} />
-          </a>
-        </p>
-      ) : (
-        <div className="stat-grid">
-          {[
-            ["Orders", stats.orders],
-            ["Bookings", stats.bookings],
-            ["Deliveries", stats.deliveries],
-            ["Loyalty points", stats.loyalty_points],
-          ].map(([label, value]) => (
-            <div className="stat" key={label}>
-              <strong>{value ?? "—"}</strong>
-              <span>
-                <UiText text={String(label)} />
+    <div className={embeddedInAdmin ? "admin-embedded-account" : "page-wrap"}>
+      {!embeddedInAdmin && (
+        <>
+          <div className="record-head">
+            <div>
+              <span className="eyebrow">
+                {operations ? (
+                  <UiText text={"OPERATIONS WORKSPACE"} />
+                ) : (
+                  <UiText text={"YOUR U SERVICE"} />
+                )}
               </span>
+              <h1>
+                {operations ? (
+                  <UiText text={"Operations"} />
+                ) : (
+                  `${lang === "bn" ? "স্বাগতম" : "Welcome"}, ${user.first_name || user.username}`
+                )}
+              </h1>
             </div>
-          ))}
-        </div>
+            <button
+              className="button secondary"
+              onClick={async () => {
+                await api("auth/logout/", "POST");
+                await refresh();
+              }}
+            >
+              <UiText text={"Sign out"} />
+            </button>
+          </div>
+          <RoleWorkspaces currentPath={operations ? "/portal" : "/account"} />
+          {operations ? (
+            <p className="page-intro">
+              <UiText
+                text={
+                  "Records are restricted to your permissions and assignments. Each status change is validated and audited."
+                }
+              />{" "}
+              {(user.is_staff || user.is_superuser) && (
+                <>
+                  <Link className="text-link" href="/admin-panel" style={{ fontWeight: 700 }}>
+                    <Text bn="মাস্টার অ্যাডমিন ড্যাশবোর্ড →" en="Master Admin Dashboard →" />
+                  </Link>{" "}
+                  ·{" "}
+                </>
+              )}
+              <a className="text-link" href="/admin/">
+                <UiText text={"Central administration ↗"} />
+              </a>
+            </p>
+          ) : (
+            <div className="stat-grid">
+              {[
+                ["Orders", stats.orders],
+                ["Bookings", stats.bookings],
+                ["Deliveries", stats.deliveries],
+                ["Loyalty points", stats.loyalty_points],
+              ].map(([label, value]) => (
+                <div className="stat" key={label}>
+                  <strong>{value ?? "—"}</strong>
+                  <span>
+                    <UiText text={String(label)} />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
       <div className="tabs">
         {[
@@ -346,7 +369,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
           "bookings",
           "deliveries",
           ...(operations
-            ? ["catalog", "events"]
+            ? ["catalog", "events", "payments", "preferences"]
             : ["support", "notifications", "assistant", "preferences"]),
         ].map((t) => (
           <button
@@ -547,6 +570,7 @@ export function Account({ operations = false }: { operations?: boolean }) {
         </section>
       )}
       {tab === "catalog" && <PartnerCatalog />}
+      {tab === "payments" && operations && <PaymentGatewayManager />}
       {loading ? (
         <p role="status">
           <UiText text={"Loading your records…"} />
@@ -685,11 +709,30 @@ export function Account({ operations = false }: { operations?: boolean }) {
                 </div>
                 <p>
                   ৳{r.total || r.price || r.fee}{" "}
+                  {r.payment_method && (
+                    <>
+                      {" "}
+                      ·{" "}
+                      {GATEWAY_LABELS[r.payment_method]
+                        ? lang === "bn"
+                          ? GATEWAY_LABELS[r.payment_method].bn
+                          : GATEWAY_LABELS[r.payment_method].en
+                        : r.payment_method.toUpperCase()}
+                    </>
+                  )}
                   {r.payment_status && (
                     <>
                       {" "}
                       · <Text bn="পেমেন্ট:" en="Payment:" />{" "}
                       <UiText text={r.payment_status} />
+                    </>
+                  )}
+                  {r.payment_trx_id && (
+                    <>
+                      {" "}
+                      · <Text bn="TrxID:" en="TrxID:" />{" "}
+                      <code>{r.payment_trx_id}</code>
+                      {r.payment_sender ? ` (${r.payment_sender})` : ""}
                     </>
                   )}
                 </p>
@@ -953,6 +996,89 @@ export function Account({ operations = false }: { operations?: boolean }) {
                     </button>
                   </form>
                 )}
+                {!operations &&
+                  tab === "orders" &&
+                  r.payment_method &&
+                  !["cod", "sslcommerz"].includes(r.payment_method) &&
+                  r.payment_status !== "paid" &&
+                  !["cancelled", "rejected", "returned"].includes(r.status) && (
+                    <form
+                      className="search-row"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        act(
+                          `payments/${r.id}/submit-trx/`,
+                          Object.fromEntries(new FormData(e.currentTarget)),
+                        );
+                      }}
+                    >
+                      <TranslatedInput
+                        name="trx_id"
+                        defaultValue={r.payment_trx_id || ""}
+                        required
+                        placeholder={
+                          lang === "bn"
+                            ? "ট্রানজেকশন আইডি (TrxID)"
+                            : "Transaction ID (TrxID)"
+                        }
+                        aria-label="Transaction ID"
+                      />
+                      <TranslatedInput
+                        name="sender_phone"
+                        defaultValue={r.payment_sender || ""}
+                        placeholder={
+                          lang === "bn"
+                            ? "প্রেরকের নম্বর (ঐচ্ছিক)"
+                            : "Sender phone (optional)"
+                        }
+                        aria-label="Sender phone"
+                      />
+                      <button className="button" disabled={busy}>
+                        <Text
+                          bn={
+                            r.payment_trx_id
+                              ? "TrxID আপডেট করুন"
+                              : "TrxID জমা দিন"
+                          }
+                          en={
+                            r.payment_trx_id ? "Update TrxID" : "Submit TrxID"
+                          }
+                        />
+                      </button>
+                    </form>
+                  )}
+                {operations &&
+                  tab === "orders" &&
+                  r.payment_trx_id &&
+                  r.payment_status === "review_required" && (
+                    <div className="record-actions" style={{ marginTop: 8 }}>
+                      <button
+                        className="button"
+                        disabled={busy}
+                        onClick={() =>
+                          act(`payments/${r.id}/verify-trx/`, {
+                            decision: "verified",
+                          })
+                        }
+                      >
+                        <Text
+                          bn="✅ পেমেন্ট নিশ্চিত করুন"
+                          en="✅ Verify payment"
+                        />
+                      </button>
+                      <button
+                        className="button secondary"
+                        disabled={busy}
+                        onClick={() =>
+                          act(`payments/${r.id}/verify-trx/`, {
+                            decision: "rejected",
+                          })
+                        }
+                      >
+                        <Text bn="বাতিল করুন" en="Reject TrxID" />
+                      </button>
+                    </div>
+                  )}
                 {operations &&
                   tab === "orders" &&
                   r.status === "delivered" &&
@@ -1062,8 +1188,10 @@ export function Account({ operations = false }: { operations?: boolean }) {
       )}
       {tab === "preferences" && (
         <>
+          <ProfileCard key={`profile-${user.id}-${user.first_name || ""}-${user.phone || ""}`} />
           <form
             className="form-panel"
+            style={{ marginTop: 20 }}
             onSubmit={async (e) => {
               e.preventDefault();
               const data = new FormData(e.currentTarget);

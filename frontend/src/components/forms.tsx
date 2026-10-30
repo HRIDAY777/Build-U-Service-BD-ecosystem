@@ -1,17 +1,21 @@
 "use client";
-import { TranslatedInput } from "@/components/translated-elements";
+import {
+  TranslatedInput,
+  TranslatedTextarea,
+} from "@/components/translated-elements";
 
 import { MechanicFields } from "./mechanic-details";
 import { MechanicServiceDetail } from "./mechanic-service-detail";
 import { BookingTimes } from "./booking-times";
 import { UiText } from "@/components/ui-text";
+import { GATEWAY_LABELS, type PaymentGatewayItem } from "./payment-gateways";
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, Area, Offering, PageResult } from "@/lib/api";
 import { useApp, Text } from "./provider";
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, Send } from "lucide-react";
 import { LocationPicker, addressLine } from "./location-picker";
 import { Photo } from "./photo";
 import { offeringPhoto } from "@/lib/photos";
@@ -37,12 +41,14 @@ export function AddressFields({
   prefix = "",
   title = "",
   defaultDistrict = "",
+  defaultArea = "",
   division = "",
   onAreaChange,
 }: {
   prefix?: string;
   title?: string;
   defaultDistrict?: string;
+  defaultArea?: string;
   division?: string;
   onAreaChange?: (area: string) => void;
 }) {
@@ -57,7 +63,10 @@ export function AddressFields({
     (value: typeof location) => setLocation(value),
     [],
   );
-  const [manualArea, setManualArea] = useState({ district: "", name: "" });
+  const [manualArea, setManualArea] = useState({
+    district: "",
+    name: defaultArea,
+  });
   const normalize = (value: string) =>
     value.trim().normalize("NFC").toLocaleLowerCase();
   const matchingAreas = location.district
@@ -226,10 +235,14 @@ export function AddressFields({
     </>
   );
 }
-export function LoginForm() {
+export function LoginForm({
+  initialRegister = false,
+}: {
+  initialRegister?: boolean;
+}) {
   const { refresh, toast } = useApp();
   const router = useRouter();
-  const [register, setRegister] = useState(false);
+  const [register, setRegister] = useState(initialRegister);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -664,7 +677,7 @@ export function OfferingDetail({ item }: { item: Offering }) {
   );
 }
 export function CheckoutForm() {
-  const { cart, remove, clear, user } = useApp();
+  const { cart, remove, clear, user, lang } = useApp();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [busy, setBusy] = useState(false);
@@ -678,6 +691,8 @@ export function CheckoutForm() {
     preparation_minutes: number | null;
   } | null>(null);
   const [methods, setMethods] = useState<string[]>(["cod"]);
+  const [gateways, setGateways] = useState<PaymentGatewayItem[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState("cod");
   const [savedAddresses, setSavedAddresses] = useState<
     {
       id: number;
@@ -691,8 +706,15 @@ export function CheckoutForm() {
   >([]);
   const [savedDistrict, setSavedDistrict] = useState("");
   useEffect(() => {
-    api<{ methods: string[] }>("payment-methods/")
-      .then((r) => setMethods(r.methods))
+    api<{ methods: string[]; gateways?: PaymentGatewayItem[] }>(
+      "payment-methods/",
+    )
+      .then((r) => {
+        const list = r.methods?.length ? r.methods : ["cod"];
+        setMethods(list);
+        if (r.gateways) setGateways(r.gateways);
+        setSelectedMethod((curr) => (list.includes(curr) ? curr : list[0]));
+      })
       .catch(() => {});
   }, []);
   useEffect(() => {
@@ -863,18 +885,61 @@ export function CheckoutForm() {
           </p>
           <label className="field">
             <UiText text={"Payment method"} />
-            <select name="payment_method">
-              {methods.map((m) => (
-                <option key={m} value={m}>
-                  {m === "cod" ? (
-                    <UiText text={"Cash on delivery"} />
-                  ) : (
-                    <UiText text={"SSLCOMMERZ online payment"} />
-                  )}
-                </option>
-              ))}
+            <select
+              name="payment_method"
+              value={selectedMethod}
+              onChange={(e) => setSelectedMethod(e.target.value)}
+            >
+              {methods.map((m) => {
+                const gw = gateways.find((g) => g.code === m);
+                const label = gw
+                  ? lang === "bn"
+                    ? gw.name_bn
+                    : gw.name
+                  : GATEWAY_LABELS[m]
+                    ? lang === "bn"
+                      ? GATEWAY_LABELS[m].bn
+                      : GATEWAY_LABELS[m].en
+                    : m.toUpperCase();
+                return (
+                  <option key={m} value={m}>
+                    {m === "cod" ? (
+                      <UiText text={"Cash on delivery"} />
+                    ) : m === "sslcommerz" ? (
+                      <UiText text={"SSLCOMMERZ online payment"} />
+                    ) : (
+                      label
+                    )}
+                  </option>
+                );
+              })}
             </select>
           </label>
+          {(() => {
+            const gw = gateways.find((g) => g.code === selectedMethod);
+            if (!gw || gw.code === "cod") return null;
+            return (
+              <div className="notice" data-testid="selected-gateway-info">
+                <strong>{lang === "bn" ? gw.name_bn : gw.name}</strong>
+                {gw.account_number && (
+                  <p style={{ marginTop: 4 }}>
+                    <Text
+                      bn="মার্চেন্ট / অ্যাকাউন্ট নম্বর:"
+                      en="Merchant / Account No:"
+                    />{" "}
+                    <code>{gw.account_number}</code>
+                  </p>
+                )}
+                {(gw.instructions_bn || gw.instructions) && (
+                  <p style={{ marginTop: 4 }}>
+                    {lang === "bn"
+                      ? gw.instructions_bn || gw.instructions
+                      : gw.instructions || gw.instructions_bn}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {quote && (
             <div className="notice">
               <p>
@@ -991,11 +1056,19 @@ export function CheckoutForm() {
     </>
   );
 }
-export function BookingForm({ item }: { item: Offering }) {
+export function BookingForm({
+  item,
+  defaultScheduledAt = "",
+  defaultArea = "",
+}: {
+  item: Offering;
+  defaultScheduledAt?: string;
+  defaultArea?: string;
+}) {
   const { user } = useApp();
   const mechanic = item.division_slug === "mechanic";
   const router = useRouter();
-  const [scheduled, setScheduled] = useState("");
+  const [scheduled, setScheduled] = useState(defaultScheduledAt);
   const [serviceArea, setServiceArea] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -1136,6 +1209,7 @@ export function BookingForm({ item }: { item: Offering }) {
           </p>
           <AddressFields
             division={item.division_slug}
+            defaultArea={defaultArea}
             onAreaChange={setServiceArea}
           />
           {item.division_slug === "mechanic" && <MechanicFields />}
@@ -1220,6 +1294,7 @@ export function DeliveryForm() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [packageType, setPackageType] = useState("general");
   const [quote, setQuote] = useState<{
     base_fee: string;
     weight_fee: string;
@@ -1227,6 +1302,26 @@ export function DeliveryForm() {
   } | null>(null);
   const deliveryKey = useRef("");
   const deliveryRevision = useRef(0);
+  useEffect(() => {
+    const packageTypes = [
+      "general",
+      "documents",
+      "clothing",
+      "electronics",
+      "other",
+    ];
+    function syncPackageType() {
+      const selected = packageTypes.find(
+        (type) =>
+          type ===
+          window.location.hash.replace("#delivery-request-", ""),
+      );
+      if (selected) setPackageType(selected);
+    }
+    syncPackageType();
+    window.addEventListener("hashchange", syncPackageType);
+    return () => window.removeEventListener("hashchange", syncPackageType);
+  }, []);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -1335,7 +1430,11 @@ export function DeliveryForm() {
         </label>
         <label className="field">
           <UiText text={"পার্সেলের ধরন / Package type"} />
-          <select name="package_type" defaultValue="general">
+          <select
+            name="package_type"
+            value={packageType}
+            onChange={(event) => setPackageType(event.target.value)}
+          >
             <option value="general">
               <UiText text={"সাধারণ / General"} />
             </option>
@@ -1490,14 +1589,8 @@ export function ContactForm() {
     }
   }
   return (
-    <>
-      <span className="eyebrow">
-        <UiText text={"LET’S CONNECT"} />
-      </span>
-      <h1>
-        <Text bn="একসাথে শুরু হোক" en="Good things start with a conversation" />
-      </h1>
-      <p className="page-intro">
+    <div className="contact-form-content">
+      <p className="contact-form-intro">
         <Text
           bn="প্রশ্ন, ব্যবসার সুযোগ অথবা আমাদের সাথে কাজ করার আগ্রহ — জানান আমাদের।"
           en="A question, a business idea, or a new opportunity. Tell us what’s on your mind."
@@ -1512,18 +1605,36 @@ export function ContactForm() {
           />
         </div>
       ) : (
-        <form className="form-panel" onSubmit={submit}>
+        <form className="form-panel contact-message-form" onSubmit={submit}>
           <label className="field">
             <UiText text={"নাম / Name"} />
-            <input name="name" required maxLength={120} />
+            <TranslatedInput
+              name="name"
+              required
+              maxLength={120}
+              placeholder="আপনার নাম * / Your name *"
+              autoComplete="name"
+            />
           </label>
           <label className="field">
             <UiText text={"ইমেইল / Email"} />
-            <input name="email" type="email" required />
+            <TranslatedInput
+              name="email"
+              type="email"
+              required
+              placeholder="ইমেইল * / Email *"
+              autoComplete="email"
+            />
           </label>
           <label className="field">
             <UiText text={"মোবাইল / Phone"} />
-            <input name="phone" type="tel" maxLength={20} />
+            <TranslatedInput
+              name="phone"
+              type="tel"
+              maxLength={20}
+              placeholder="মোবাইল নম্বর / Mobile number"
+              autoComplete="tel"
+            />
           </label>
           <label className="field">
             <UiText text={"আগ্রহের বিষয় / Interest"} />
@@ -1551,7 +1662,12 @@ export function ContactForm() {
           </label>
           <label className="field">
             <UiText text={"বার্তা / Message"} />
-            <textarea name="message" required maxLength={4000} />
+            <TranslatedTextarea
+              name="message"
+              required
+              maxLength={4000}
+              placeholder="আপনার বার্তা লিখুন * / Write your message *"
+            />
           </label>
           {error && (
             <p className="error" role="alert">
@@ -1562,11 +1678,14 @@ export function ContactForm() {
             {busy ? (
               <UiText text={"Sending…"} />
             ) : (
-              <UiText text={"বার্তা পাঠান / Send message"} />
+              <>
+                <Send size={17} />
+                <UiText text={"বার্তা পাঠান / Send message"} />
+              </>
             )}
           </button>
         </form>
       )}
-    </>
+    </div>
   );
 }

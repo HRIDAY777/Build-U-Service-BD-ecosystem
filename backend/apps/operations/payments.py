@@ -1,6 +1,7 @@
-"""SSLCOMMERZ hosted checkout. Never accepts a browser assertion of payment success."""
+"""Payment gateways for Bangladesh (MFS, Aggregators, Bank & COD). Never accepts an unverified browser assertion of payment success."""
 
 import os
+import re
 import uuid
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlparse
@@ -8,12 +9,174 @@ import requests
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError, APIException
-from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError, APIException, PermissionDenied
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Order, Payment
+from .models import Order, Payment, PaymentGateway
 from .services import audit, emit
+
+
+PAYMENT_GATEWAY_CODES = [
+    "cod",
+    "bkash",
+    "nagad",
+    "rocket",
+    "upay",
+    "sslcommerz",
+    "aamarpay",
+    "shurjopay",
+    "portpos",
+    "ekpay",
+    "bank_transfer",
+]
+
+DEFAULT_PAYMENT_GATEWAYS = [
+    {
+        "code": "cod",
+        "name": "Cash on Delivery (COD)",
+        "name_bn": "ক্যাশ অন ডেলিভারি (COD)",
+        "category": "cash",
+        "active": True,
+        "sandbox": False,
+        "account_number": "",
+        "instructions": "Pay in cash when your order is delivered to your address.",
+        "instructions_bn": "পণ্য বা সেবা আপনার ঠিকানায় পৌঁছানোর পর নগদে পরিশোধ করুন।",
+        "display_order": 1,
+    },
+    {
+        "code": "bkash",
+        "name": "bKash",
+        "name_bn": "বিকাশ (bKash)",
+        "category": "mfs",
+        "active": True,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Send or make payment to our bKash Merchant number and submit the TrxID from your account.",
+        "instructions_bn": "আমাদের বিকাশ মার্চেন্ট নম্বরে পেমেন্ট করে আপনার অ্যাকাউন্ট থেকে TrxID জমা দিন।",
+        "display_order": 2,
+    },
+    {
+        "code": "nagad",
+        "name": "Nagad",
+        "name_bn": "নগদ (Nagad)",
+        "category": "mfs",
+        "active": True,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Make payment to our Nagad Merchant number and submit the TrxID from your account.",
+        "instructions_bn": "আমাদের নগদ মার্চেন্ট নম্বরে পেমেন্ট করে আপনার অ্যাকাউন্ট থেকে TrxID জমা দিন।",
+        "display_order": 3,
+    },
+    {
+        "code": "rocket",
+        "name": "Rocket (DBBL)",
+        "name_bn": "রকেট - ডাচ-বাংলা ব্যাংক (Rocket)",
+        "category": "mfs",
+        "active": True,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Make payment via DBBL Rocket Merchant and submit the TrxID from your account.",
+        "instructions_bn": "ডাচ-বাংলা ব্যাংক রকেট মার্চেন্ট নম্বরে পেমেন্ট করে আপনার অ্যাকাউন্ট থেকে TrxID জমা দিন।",
+        "display_order": 4,
+    },
+    {
+        "code": "upay",
+        "name": "Upay",
+        "name_bn": "উপায় (Upay)",
+        "category": "mfs",
+        "active": False,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Make payment via Upay Merchant and submit the transaction ID from your account.",
+        "instructions_bn": "উপায় মার্চেন্ট নম্বরে পেমেন্ট করে আপনার অ্যাকাউন্ট থেকে ট্রানজেকশন আইডি জমা দিন।",
+        "display_order": 5,
+    },
+    {
+        "code": "sslcommerz",
+        "name": "SSLCOMMERZ (Cards, bKash, Nagad & Net Banking)",
+        "name_bn": "এসএসএলকমার্জ (কার্ড, মোবাইল ও নেট ব্যাংকিং)",
+        "category": "aggregator",
+        "active": True,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Pay online with Visa, Mastercard, AMEX, bKash, Nagad or Internet Banking via SSLCOMMERZ.",
+        "instructions_bn": "এসএসএলকমার্জের মাধ্যমে ভিসা, মাস্টারকার্ড, বিকাশ, নগদ বা ইন্টারনেট ব্যাংকিংয়ে পরিশোধ করুন।",
+        "display_order": 6,
+    },
+    {
+        "code": "aamarpay",
+        "name": "aamarPay",
+        "name_bn": "আমারপে (aamarPay)",
+        "category": "aggregator",
+        "active": False,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Pay via aamarPay gateway or submit your payment reference from your account.",
+        "instructions_bn": "আমারপে গেটওয়ের মাধ্যমে পরিশোধ করুন এবং পেমেন্ট রেফারেন্স আপনার অ্যাকাউন্টে জমা দিন।",
+        "display_order": 7,
+    },
+    {
+        "code": "shurjopay",
+        "name": "ShurjoPay",
+        "name_bn": "সূর্যপে (ShurjoPay)",
+        "category": "aggregator",
+        "active": False,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Pay via ShurjoPay gateway or submit your payment reference from your account.",
+        "instructions_bn": "সূর্যপে গেটওয়ের মাধ্যমে পরিশোধ করুন এবং পেমেন্ট রেফারেন্স আপনার অ্যাকাউন্টে জমা দিন।",
+        "display_order": 8,
+    },
+    {
+        "code": "portpos",
+        "name": "PortPos (PortWallet)",
+        "name_bn": "পোর্টপস / পোর্টওয়ালেট (PortPos)",
+        "category": "aggregator",
+        "active": False,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Pay via PortPos gateway and submit your payment reference from your account.",
+        "instructions_bn": "পোর্টপস গেটওয়ের মাধ্যমে পরিশোধ করুন এবং পেমেন্ট রেফারেন্স আপনার অ্যাকাউন্টে জমা দিন।",
+        "display_order": 9,
+    },
+    {
+        "code": "ekpay",
+        "name": "EkPay",
+        "name_bn": "একপে (EkPay)",
+        "category": "aggregator",
+        "active": False,
+        "sandbox": True,
+        "account_number": "",
+        "instructions": "Pay via EkPay gateway and submit your payment reference from your account.",
+        "instructions_bn": "একপে গেটওয়ের মাধ্যমে পরিশোধ করুন এবং পেমেন্ট রেফারেন্স আপনার অ্যাকাউন্টে জমা দিন।",
+        "display_order": 10,
+    },
+    {
+        "code": "bank_transfer",
+        "name": "Bank Transfer (NPSB / BEFTN / RTGS)",
+        "name_bn": "ব্যাংক ট্রান্সফার (NPSB / BEFTN)",
+        "category": "bank",
+        "active": False,
+        "sandbox": False,
+        "account_number": "",
+        "instructions": "Transfer to our company bank account via NPSB/BEFTN and submit the deposit reference.",
+        "instructions_bn": "আমাদের কোম্পানি ব্যাংক অ্যাকাউন্টে NPSB/BEFTN ট্রান্সফার করে ডিপোজিট রেফারেন্স জমা দিন।",
+        "display_order": 11,
+    },
+]
+
+GATEWAY_ENV_KEYS = {
+    "sslcommerz": ["SSLCOMMERZ_STORE_ID", "SSLCOMMERZ_STORE_PASSWORD", "PAYMENT_PUBLIC_URL"],
+    "bkash": ["BKASH_APP_KEY", "BKASH_APP_SECRET", "BKASH_USERNAME", "BKASH_PASSWORD"],
+    "nagad": ["NAGAD_MERCHANT_ID", "NAGAD_PUBLIC_KEY", "NAGAD_PRIVATE_KEY"],
+    "rocket": ["ROCKET_MERCHANT_ID", "ROCKET_SECRET_KEY"],
+    "upay": ["UPAY_MERCHANT_ID", "UPAY_MERCHANT_KEY"],
+    "aamarpay": ["AAMARPAY_STORE_ID", "AAMARPAY_SIGNATURE_KEY"],
+    "shurjopay": ["SHURJOPAY_USERNAME", "SHURJOPAY_PASSWORD"],
+    "portpos": ["PORTPOS_APP_KEY", "PORTPOS_SECRET_KEY"],
+    "ekpay": ["EKPAY_MERCHANT_ID", "EKPAY_MERCHANT_KEY"],
+}
 
 
 class GatewayUnavailable(APIException):
@@ -25,6 +188,55 @@ def configured():
     return all(
         os.getenv(k) for k in ["SSLCOMMERZ_STORE_ID", "SSLCOMMERZ_STORE_PASSWORD", "PAYMENT_PUBLIC_URL"]
     )
+
+
+def gateway_api_configured(code: str) -> bool:
+    if code == "cod":
+        return True
+    keys = GATEWAY_ENV_KEYS.get(code, [])
+    return bool(keys) and all(os.getenv(k) for k in keys)
+
+
+def ensure_payment_gateways():
+    existing = set(PaymentGateway.objects.values_list("code", flat=True))
+    missing = [
+        PaymentGateway(**item)
+        for item in DEFAULT_PAYMENT_GATEWAYS
+        if item["code"] not in existing
+    ]
+    if missing:
+        PaymentGateway.objects.bulk_create(missing, ignore_conflicts=True)
+    return PaymentGateway.objects.order_by("display_order", "id")
+
+
+def serialize_gateway(gw: PaymentGateway, include_admin_fields: bool = False):
+    data = {
+        "code": gw.code,
+        "name": gw.name,
+        "name_bn": gw.name_bn,
+        "category": gw.category,
+        "active": gw.active,
+        "sandbox": gw.sandbox,
+        "account_number": gw.account_number,
+        "instructions": gw.instructions,
+        "instructions_bn": gw.instructions_bn,
+        "display_order": gw.display_order,
+        "api_configured": gateway_api_configured(gw.code),
+    }
+    if include_admin_fields:
+        data["id"] = gw.pk
+        data["updated_at"] = gw.updated_at.isoformat() if gw.updated_at else None
+    return data
+
+
+def is_gateway_usable(code: str) -> bool:
+    ensure_payment_gateways()
+    gw = PaymentGateway.objects.filter(code=code).first()
+    if not gw or not gw.active:
+        return False
+    if code == "sslcommerz":
+        return configured()
+    return True
 
 
 def gateway_base():
@@ -44,11 +256,223 @@ def credentials():
     }
 
 
+def can_manage_gateways(user) -> bool:
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or user.has_perm("operations.change_paymentgateway")
+            or user.has_perm("operations.change_order")
+        )
+    )
+
+
 class PaymentMethodsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({"methods": ["cod"] + (["sslcommerz"] if configured() else [])})
+        gateways = list(ensure_payment_gateways())
+        active_gateways = [
+            gw
+            for gw in gateways
+            if gw.active and (gw.code != "sslcommerz" or configured())
+        ]
+        methods = [gw.code for gw in active_gateways]
+        if not methods:
+            methods = ["cod"]
+        return Response(
+            {
+                "methods": methods,
+                "gateways": [serialize_gateway(gw) for gw in active_gateways],
+            }
+        )
+
+
+class PaymentGatewayListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not can_manage_gateways(request.user):
+            raise PermissionDenied("You do not have permission to manage payment gateways.")
+        gateways = ensure_payment_gateways()
+        return Response(
+            {
+                "results": [
+                    serialize_gateway(gw, include_admin_fields=True) for gw in gateways
+                ]
+            }
+        )
+
+
+class PaymentGatewayDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, code):
+        if not can_manage_gateways(request.user):
+            raise PermissionDenied("You do not have permission to manage payment gateways.")
+        ensure_payment_gateways()
+        with transaction.atomic():
+            gw = get_object_or_404(PaymentGateway.objects.select_for_update(), code=code)
+            changed = {}
+            if "active" in request.data:
+                if not isinstance(request.data["active"], bool):
+                    raise ValidationError("active must be a boolean.")
+                gw.active = request.data["active"]
+                changed["active"] = gw.active
+            if "sandbox" in request.data:
+                if not isinstance(request.data["sandbox"], bool):
+                    raise ValidationError("sandbox must be a boolean.")
+                gw.sandbox = request.data["sandbox"]
+                changed["sandbox"] = gw.sandbox
+            if "account_number" in request.data:
+                val = str(request.data["account_number"] or "").strip()
+                if len(val) > 120:
+                    raise ValidationError("Account number is too long (maximum 120 characters).")
+                gw.account_number = val
+                changed["account_number"] = val
+            if "instructions" in request.data:
+                val = str(request.data["instructions"] or "").strip()
+                if len(val) > 500:
+                    raise ValidationError("Instructions must be 500 characters or fewer.")
+                gw.instructions = val
+                changed["instructions"] = val
+            if "instructions_bn" in request.data:
+                val = str(request.data["instructions_bn"] or "").strip()
+                if len(val) > 500:
+                    raise ValidationError("Bangla instructions must be 500 characters or fewer.")
+                gw.instructions_bn = val
+                changed["instructions_bn"] = val
+            if "display_order" in request.data:
+                try:
+                    order_num = int(request.data["display_order"])
+                except (TypeError, ValueError):
+                    raise ValidationError("display_order must be an integer.")
+                if order_num < 1 or order_num > 100:
+                    raise ValidationError("display_order must be between 1 and 100.")
+                gw.display_order = order_num
+                changed["display_order"] = order_num
+            gw.save()
+            audit(request.user, "payment_gateway.updated", gw.code, **changed)
+        return Response(serialize_gateway(gw, include_admin_fields=True))
+
+
+class PaymentSubmitTrxView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        raw_trx = str(request.data.get("trx_id", "")).strip().upper()
+        sender = str(request.data.get("sender_phone", "")).strip()
+        if not re.match(r"^[A-Z0-9_-]{4,60}$", raw_trx):
+            raise ValidationError(
+                "সঠিক ট্রানজেকশন আইডি (TrxID) দিন (৪–৬০ অক্ষর বা সংখ্যা) / Enter a valid Transaction ID (4–60 alphanumeric characters)."
+            )
+        if sender and not re.match(r"^\+?[0-9]{10,15}$", sender):
+            raise ValidationError("সঠিক প্রেরকের মোবাইল নম্বর দিন / Enter a valid sender phone number.")
+        with transaction.atomic():
+            order = get_object_or_404(
+                Order.objects.select_for_update(), pk=order_id, customer=request.user
+            )
+            if order.payment_method in {"cod", "sslcommerz"}:
+                raise ValidationError(
+                    "Manual Transaction ID submission applies only to Mobile Financial Services, Bank Transfer or manual gateway orders."
+                )
+            if order.payment_status == "paid" or order.status in {"cancelled", "rejected", "returned"}:
+                raise ValidationError("This order cannot accept a new payment reference.")
+            if Payment.objects.filter(reference=raw_trx).exclude(order=order).exists():
+                raise ValidationError("This Transaction ID has already been used.")
+            payment = Payment.objects.filter(order=order, provider=order.payment_method).first()
+            if payment:
+                if payment.status == "verified":
+                    raise ValidationError("Payment is already verified.")
+                payment.reference = raw_trx
+                payment.session_key = sender[:100]
+                payment.status = "review_required"
+                payment.save(update_fields=["reference", "session_key", "status"])
+            else:
+                payment = Payment.objects.create(
+                    order=order,
+                    reference=raw_trx,
+                    provider=order.payment_method,
+                    amount=order.total,
+                    session_key=sender[:100],
+                    status="review_required",
+                )
+            order.payment_status = "review_required"
+            order.save(update_fields=["payment_status"])
+            audit(
+                request.user,
+                "payment.trx_submitted",
+                order.pk,
+                provider=order.payment_method,
+                reference=raw_trx,
+                sender=sender,
+            )
+        return Response(
+            {
+                "order_id": str(order.pk),
+                "payment_method": order.payment_method,
+                "payment_status": order.payment_status,
+                "trx_id": payment.reference,
+                "status": payment.status,
+            }
+        )
+
+
+class PaymentVerifyTrxView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        if not can_manage_gateways(request.user):
+            raise PermissionDenied("You do not have permission to verify payments.")
+        decision = str(request.data.get("decision", "verified")).strip()
+        if decision not in {"verified", "rejected"}:
+            raise ValidationError("Decision must be 'verified' or 'rejected'.")
+        with transaction.atomic():
+            order = get_object_or_404(Order.objects.select_for_update(), pk=order_id)
+            payment = (
+                Payment.objects.select_for_update()
+                .filter(order=order)
+                .order_by("-created_at")
+                .first()
+            )
+            if not payment:
+                raise ValidationError("No submitted payment record found for this order.")
+            if decision == "verified":
+                payment.status = "verified"
+                payment.verified_at = timezone.now()
+                payment.save(update_fields=["status", "verified_at"])
+                order.payment_status = "paid"
+                order.save(update_fields=["payment_status"])
+                audit(
+                    request.user,
+                    "payment.verified",
+                    order.pk,
+                    provider=payment.provider,
+                    reference=payment.reference,
+                    amount=str(payment.amount),
+                )
+                emit(order.customer, "order.paid", reference=str(order.pk), total=str(payment.amount))
+            else:
+                payment.status = "rejected"
+                payment.save(update_fields=["status"])
+                order.payment_status = "unpaid"
+                order.save(update_fields=["payment_status"])
+                audit(
+                    request.user,
+                    "payment.rejected",
+                    order.pk,
+                    provider=payment.provider,
+                    reference=payment.reference,
+                )
+        return Response(
+            {
+                "order_id": str(order.pk),
+                "payment_status": order.payment_status,
+                "trx_id": payment.reference,
+                "status": payment.status,
+            }
+        )
 
 
 class PaymentStartView(APIView):

@@ -1,35 +1,44 @@
 .project-plans,
 .project-account,
 .investor-gallery {
-  --investor-ink: #183539;
-  --investor-muted: #567075;
+  --investor-ink: #121018;
+  --investor-muted: #554f63;
   color: var(--investor-ink);
 }
 .project-plans,
 .project-account {
-  max-width: 1200px;
+  max-width: 1240px;
 }
 .investor-nav {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  border-bottom: 1px solid #dce5e3;
-  padding-bottom: 18px;
-  margin-bottom: 32px;
+  border-bottom: 1.5px solid #e9d5f5;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
 }
 .investor-nav a {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 10px 16px;
-  border-radius: 24px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid #e2c9f2;
+  background: #ffffff;
   text-decoration: none;
-  font-size: 14px;
-  color: #36565a;
+  font-size: 13px;
+  font-weight: 700;
+  color: #121018;
+}
+.investor-nav a:hover {
+  border-color: #6b1199;
+  color: #6b1199;
+  background: #faf5ff;
 }
 .investor-nav a[aria-current="page"] {
-  background: #183539;
-  color: white;
+  background: linear-gradient(135deg, #6b1199 0%, #d81b60 100%);
+  border-color: #6b1199;
+  color: #ffffff;
 }
 .investor-hero {
   display: grid;
@@ -38,8 +47,9 @@
   overflow: hidden;
   border-radius: 24px;
   background:
-    radial-gradient(ellipse at right top, #356366, transparent 65%), #183539;
-  color: white;
+    radial-gradient(ellipse at right top, rgba(216, 27, 96, 0.28), transparent 65%),
+    linear-gradient(135deg, #121018 0%, #4a0d6e 55%, #6b1199 100%);
+  color: #ffffff;
   margin-bottom: 24px;
 }
 .investor-hero-copy {
@@ -82,10 +92,11 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: 24px 0;
-  border: 1px solid #dce5e3;
+  border: 1.5px solid #e9d5f5;
   border-radius: 16px;
-  background: white;
+  background: #ffffff;
   overflow: hidden;
+  box-shadow: 0 6px 20px rgba(18, 16, 24, 0.04);
 }
 .investor-workspace-links a {
   display: flex;
@@ -93,13 +104,14 @@
   gap: 16px;
   padding: 24px;
   text-decoration: none;
-  color: #183539;
+  color: #121018;
 }
 .investor-workspace-links a + a {
-  border-left: 1px solid #dce5e3;
+  border-left: 1px solid #e9d5f5;
 }
 .investor-workspace-links a:hover {
-  background: #eef4f1;
+  background: #faf5ff;
+  color: #6b1199;
 }
 .investor-workspace-links a > span {
   display: grid;
@@ -108,21 +120,23 @@
 }
 .investor-workspace-links a small {
   font-size: 12px;
-  color: #567075;
+  color: #554f63;
   line-height: 1.6;
 }
 .investor-workspace-links svg {
   flex-shrink: 0;
+  color: #6b1199;
 }
 .investor-section-intro {
   max-width: 720px;
-  color: #567075;
+  color: #554f63;
   line-height: 1.8;
   margin-bottom: 24px;
 }
 .investor-selected-caption {
   display: block;
-  color: #84418b;
+  color: #6b1199;
+  font-weight: 700;
   font-size: 13px;
   margin-bottom: 16px;
 }
@@ -132,13 +146,13 @@
   line-height: 1.17;
   letter-spacing: -0.035em;
   margin: 20px 0;
-  color: white;
+  color: #ffffff;
 }
 .depth-ui .investor-hero .eyebrow {
-  color: #bce1d3;
+  color: #7ef2b2;
 }
 .investor-hero .page-intro {
-  color: #d2e5e2;
+  color: #f4e6fa;
   max-width: 650px;
   font-size: 18px;
 }
@@ -149,19 +163,20 @@
   margin: 28px 0;
 }
 .investor-hero .button.outline {
-  border-color: #9fbeba;
-  color: white;
-  background: transparent;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 .investor-hero-note {
   padding-top: 20px;
-  border-top: 1px solid #ffffff26;
-  color: #d2e5e2;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f4e6fa;
   font-size: 13px;
 }
 .project-plans > .notice {
-  background: #f8f5ed;
-  border: 1px solid #e8dfc9;
+  background: #faf5ff;
+  border: 1.5px solid #e2c4f5;
+  border-left: 4px solid #6b1199;
   border-radius: 12px;
   padding: 20px 24px;
   font-size: 14px;
@@ -210,13 +225,14 @@
   gap: 5px;
   border-radius: 20px;
   padding: 7px 11px;
-  background: #ffffffed;
-  color: #183539;
+  background: #ffffff;
+  color: #121018;
+  font-weight: 700;
   font-size: 11px;
 }
 .project-plans .project-plan.selected .investor-plan-choice {
-  color: white;
-  background: #84418b;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6b1199, #d81b60);
 }
 .project-plans .investor-plan-body {
   display: grid;
@@ -226,24 +242,25 @@
 }
 .project-plans .investor-plan-body strong {
   font-size: 17px;
+  color: #121018;
 }
 .project-plans .investor-plan-price {
   font-size: 27px;
-  font-weight: 700;
-  color: #183539;
+  font-weight: 800;
+  color: #0a7a3b;
 }
 .project-plans .investor-plan-price small {
   font-size: 12px;
-  font-weight: 400;
-  color: #567075;
+  font-weight: 500;
+  color: #554f63;
 }
 .project-plans .project-plan,
 .project-account .project-plan,
 .investor-gallery .project-plan {
-  border: 1px solid #dce5e3;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: none;
+  border: 1.5px solid #e9d5f5;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(18, 16, 24, 0.04);
   padding: 22px;
   min-width: 0;
   text-align: left;
@@ -251,9 +268,9 @@
 }
 .project-plans .project-plan.selected,
 .project-account .project-plan[aria-pressed="true"] {
-  border-color: #943c98;
-  background: #faf3fa;
-  box-shadow: inset 0 0 0 1px #943c98;
+  border-color: #6b1199;
+  background: #faf5ff;
+  box-shadow: inset 0 0 0 1px #6b1199;
 }
 .project-plan strong {
   line-height: 1.6;
@@ -271,11 +288,11 @@
 .project-account .project-calculator {
   max-width: none;
   width: 100%;
-  border: 1px solid #dce5e3;
+  border: 1.5px solid #e9d5f5;
   border-radius: 18px;
   padding: clamp(20px, 3vw, 32px);
-  background: white;
-  box-shadow: none;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(18, 16, 24, 0.04);
   min-width: 0;
 }
 .investor-calculators h2 {
@@ -283,10 +300,12 @@
 }
 .project-totals div {
   padding: 13px 0;
-  border-bottom: 1px solid #e8edeb;
+  border-bottom: 1px solid #f0e4f8;
 }
 .project-totals dd {
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #0a7a3b;
 }
 .investor-guide {
   margin: 44px 0;
@@ -302,31 +321,37 @@
   margin: 28px 0;
 }
 .investor-steps article {
-  background: #eef4f1;
+  background: #ffffff;
+  border: 1.5px solid #e9d5f5;
+  border-top: 4px solid #6b1199;
   border-radius: 16px;
   padding: 25px;
+  box-shadow: 0 6px 20px rgba(18, 16, 24, 0.04);
 }
 .investor-step-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #567075;
+  color: #6b1199;
+  font-weight: 700;
 }
 .investor-steps h3 {
   margin-top: 22px;
+  color: #121018;
 }
 .investor-steps p,
 .investor-help p {
   line-height: 1.8;
-  color: #52686c;
+  color: #554f63;
 }
 .investor-help {
   padding: 18px 0;
-  border-bottom: 1px solid #dce5e3;
+  border-bottom: 1px solid #e9d5f5;
 }
 .investor-help summary {
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  color: #121018;
 }
 .investor-enquiry {
   max-width: 800px !important;
@@ -357,11 +382,12 @@
   position: absolute;
   bottom: 12px;
   left: 12px;
-  background: #ffffffeb;
+  background: #ffffff;
   padding: 5px 10px;
   border-radius: 15px;
   font-size: 11px;
-  color: #183539;
+  font-weight: 700;
+  color: #121018;
 }
 .investor-gallery .project-plan-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -370,12 +396,12 @@
 .investor-gallery progress,
 .project-account progress {
   width: 100%;
-  accent-color: #497d70;
+  accent-color: #0a7a3b;
   display: block;
   margin: 12px 0;
 }
 .investor-gallery details {
-  border-top: 1px solid #dce5e3;
+  border-top: 1px solid #e9d5f5;
   padding-top: 16px;
   margin-top: 20px;
 }
@@ -387,9 +413,10 @@
   max-width: 800px;
 }
 .investor-next-step {
-  background: #eef4f1;
-  border-left: 3px solid #497d70;
-  border-radius: 0 12px 12px 0;
+  background: #ebf9f1;
+  border: 1px solid #9de0ba;
+  border-left: 4px solid #0a7a3b;
+  border-radius: 12px;
   padding: 20px 24px;
   margin: 20px 0 28px;
 }

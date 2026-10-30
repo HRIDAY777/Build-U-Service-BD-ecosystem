@@ -1,0 +1,440 @@
+.event-planning-page {
+  width: min(1320px, 100%);
+  padding: clamp(24px, 3vw, 40px) clamp(18px, 3vw, 38px) 76px;
+  color: #342737;
+}
+
+.event-planning-page .eyebrow {
+  color: #93614f;
+  letter-spacing: 1.2px;
+}
+
+.event-hero {
+  position: relative;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: clamp(25px, 4vw, 56px);
+  min-height: 0;
+  margin-bottom: 20px;
+  padding: clamp(24px, 3.4vw, 42px);
+  border-color: #efdfdf;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 2% 5%, #fff8f1 0, transparent 55%),
+    radial-gradient(ellipse at 95% 95%, #f0dfeb 0, transparent 46%),
+    linear-gradient(120deg, #fcf4f0, #f8eff5);
+}
+
+.event-hero h1 {
+  color: #3c273a;
+  font-size: clamp(36px, 4vw, 55px);
+  letter-spacing: -1.6px;
+}
+
+.event-hero-kicker {
+  margin-bottom: 14px;
+  color: #98654d;
+  letter-spacing: 1.25px;
+}
+
+.event-hero-copy > p {
+  color: #766773;
+  line-height: 1.8;
+}
+
+.event-primary-cta {
+  border-color: #793b61;
+  background: linear-gradient(130deg, #8b456b, #71365f);
+  box-shadow: 0 8px 18px rgb(111 48 89 / 16%);
+}
+
+.event-primary-cta:hover {
+  background: #66304f;
+  box-shadow: 0 10px 24px rgb(87 36 60 / 24%);
+}
+
+.event-secondary-cta {
+  color: #754d61;
+}
+
+.event-hero-points {
+  gap: 7px;
+  margin-top: 21px;
+}
+
+.event-hero-points span {
+  border-color: #ead9df;
+  background: rgb(255 252 249 / 82%);
+  color: #795b68;
+}
+
+.event-planning-page .event-cover {
+  height: clamp(320px, 34vw, 408px);
+  border-radius: 18px 84px 18px 18px;
+  box-shadow: 0 20px 46px -28px rgb(72 42 49 / 35%);
+}
+
+.event-planning-page .event-cover > img {
+  object-position: center 44%;
+  transition: transform 450ms ease;
+}
+
+.event-planning-page .event-cover:hover > img {
+  transform: scale(1.025);
+}
+
+.event-planning-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 32px;
+}
+
+.event-planning-nav a {
+  display: flex;
+  min-height: 55px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 15px;
+  color: #544151;
+  background: #fff;
+  border: 1px solid #eee3e8;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgb(64 42 57 / 5%);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.event-planning-nav a:hover {
+  transform: translateY(-2px);
+  border-color: #d7b4c8;
+  box-shadow: 0 9px 20px rgb(64 42 57 / 10%);
+}
+
+.event-planning-nav a > span {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+  place-items: center;
+  color: #81466a;
+  background: #f7edf2;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.event-planning-page .event-packages,
+.event-planning-page .service-package-section {
+  scroll-margin-top: 28px;
+}
+
+.event-planning-page .event-packages {
+  margin-bottom: 30px;
+  padding: clamp(22px, 3vw, 34px);
+  border-color: #efe5e5;
+  border-radius: 23px;
+  box-shadow: 0 18px 40px -34px rgb(67 43 50 / 22%);
+}
+
+.event-planning-page .event-packages .record-head h2,
+.event-planning-page .service-package-section h2 {
+  color: #382b39;
+}
+
+.event-planning-page .event-package-grid {
+  gap: 18px;
+}
+
+.event-planning-page .event-package-card {
+  border-color: #eee2e4;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, #fdf9f8);
+}
+
+.event-planning-page .event-package-card > img {
+  height: 188px;
+}
+
+.event-planning-page .event-package-body {
+  padding: 20px 20px 18px;
+}
+
+.event-planning-page .event-package-body .eyebrow {
+  display: inline-flex;
+  padding: 4px 8px;
+  color: #86516b;
+  background: #f7edf1;
+  border-radius: 999px;
+  font-size: 8px;
+}
+
+.event-planning-page .event-package-body h3 {
+  color: #403144;
+  font-size: 18px;
+}
+
+.event-planning-page .event-package-price {
+  padding: 5px 10px;
+  color: #75435f;
+  background: #f7edf1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.event-planning-page .event-package-body ul {
+  color: #71636c;
+  line-height: 1.8;
+}
+
+.event-planning-page .event-package-body li::marker {
+  color: #a1748a;
+}
+
+.event-planning-page .event-package-body .button {
+  min-height: 43px;
+  border-radius: 10px;
+  border-color: #d9c2cb;
+  color: #704855;
+}
+
+.event-planning-page .event-package-body .button:hover,
+.event-planning-page .event-package-body .button[aria-pressed="true"] {
+  border-color: #793b61;
+  background: #793b61;
+  box-shadow: 0 7px 16px rgb(111 48 89 / 15%);
+}
+
+.event-planning-page .service-package-section {
+  margin-bottom: 34px;
+  padding: clamp(22px, 3vw, 34px);
+  border-color: #eee4e4;
+  border-radius: 23px;
+  background:
+    radial-gradient(ellipse at 95% 4%, #f6e8ed 0, transparent 34%),
+    #faf6f5;
+}
+
+.event-planning-page .service-package-section > .eyebrow {
+  color: #956347;
+}
+
+.event-planning-page .service-package-list {
+  gap: 11px;
+  margin-top: 22px;
+}
+
+.event-planning-page .service-package-group {
+  padding: 15px;
+  border-color: #eee6e6;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px -20px rgb(67 43 50 / 24%);
+}
+
+.event-planning-page .service-package-heading {
+  margin-bottom: 11px;
+}
+
+.event-planning-page .service-package-heading h3 {
+  color: #493643;
+  font-size: 16px;
+}
+
+.event-planning-page .service-package-heading span {
+  color: #8b7b82;
+}
+
+.event-planning-page .service-tier-grid {
+  gap: 9px;
+}
+
+.event-planning-page .service-tier {
+  min-height: 132px;
+  padding: 12px;
+  border-color: #f0e8e8;
+  border-radius: 12px;
+  background: #fdfafa;
+}
+
+.event-planning-page .service-tier .eyebrow {
+  color: #876079;
+}
+
+.event-planning-page .service-tier strong {
+  color: #794661;
+}
+
+.event-planning-page .service-tier.tier-1 {
+  background: #f8f2f7;
+}
+
+.event-planning-page .service-tier.tier-2 {
+  border-color: #eee2d0;
+  background: #fffbf3;
+}
+
+.event-planning-page .service-tier.tier-3 {
+  border-color: #dfc5d6;
+  background: #f8eff5;
+}
+
+.event-planning-page .service-tier .button {
+  border-radius: 9px;
+  border-color: #e0d0d5;
+}
+
+.event-planning-page .service-tier .button[aria-pressed="true"] {
+  border-color: #793b61;
+  background: #793b61;
+}
+
+.event-request-section {
+  gap: 28px 42px;
+  padding: clamp(24px, 4vw, 42px);
+  border-color: #eee3e5;
+  border-radius: 23px;
+  background: linear-gradient(145deg, #fff, #fcf7f8);
+}
+
+.event-request-section > .event-form-panel {
+  border: 1px solid #f0e6e5;
+  background: #fff;
+}
+
+.event-form-panel .field input:focus,
+.event-form-panel .field select:focus,
+.event-form-panel .field textarea:focus {
+  border-color: #b884a0;
+  box-shadow: 0 0 0 3px rgb(167 112 142 / 12%);
+}
+
+.event-form-panel .check-row:has(input:checked) {
+  border-color: #c9a7b8;
+  background: #fbf3f7;
+}
+
+.event-form-panel > .button {
+  background: linear-gradient(130deg, #8b456b, #71365f);
+}
+
+.event-signin-panel {
+  border-color: #ead9e0;
+  background:
+    radial-gradient(circle at 90% 15%, rgb(255 255 255 / 70%), transparent 28%),
+    linear-gradient(125deg, #f7edf1, #fff8f1);
+}
+
+.event-signin-panel .event-primary-cta {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 820px) {
+  .event-planning-page {
+    padding-top: 28px;
+  }
+
+  .event-hero {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .event-planning-page .event-cover {
+    height: clamp(280px, 55vw, 400px);
+  }
+
+  .event-planning-nav {
+    gap: 8px;
+  }
+
+  .event-planning-nav a {
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 520px) {
+  .event-planning-page {
+    padding: 18px 14px 70px;
+  }
+
+  .event-hero {
+    gap: 18px;
+    margin-bottom: 16px;
+    padding: 20px 17px 17px;
+  }
+
+  .event-hero h1 {
+    font-size: clamp(32px, 8.6vw, 40px);
+  }
+
+  .event-planning-page .event-cover {
+    height: 220px;
+  }
+
+  .event-planning-nav {
+    grid-template-columns: repeat(3, minmax(128px, 1fr));
+    gap: 8px;
+    margin: 0 -2px 24px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    scrollbar-width: thin;
+  }
+
+  .event-planning-nav a {
+    min-height: 48px;
+    gap: 7px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .event-planning-nav a > span {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+  }
+
+  .event-planning-page .event-packages,
+  .event-planning-page .service-package-section {
+    margin-bottom: 24px;
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .event-planning-page .event-package-card {
+    border-radius: 14px;
+  }
+
+  .event-planning-page .event-package-card > img {
+    height: 160px;
+  }
+
+  .event-planning-page .event-package-body {
+    padding: 15px;
+  }
+
+  .event-planning-page .service-package-group {
+    padding: 12px;
+  }
+
+  .event-planning-page .service-tier {
+    min-height: 130px;
+    padding: 10px;
+  }
+
+  .event-request-section {
+    padding: 20px 15px;
+    border-radius: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-planning-page .event-cover > img {
+    transition: none;
+  }
+}

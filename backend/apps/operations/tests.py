@@ -289,6 +289,11 @@ class WorkflowTests(TestCase):
                 ).status_code,
                 200,
             )
+            download = self.client.get(f"/api/v1/orders/{order_id}/prescription-file/")
+            self.assertEqual(download.status_code, 200)
+            self.assertEqual(download["Cache-Control"], "private, no-store")
+            self.assertEqual(download["X-Content-Type-Options"], "nosniff")
+            download.close()
             self.assertEqual(Order.objects.get(pk=order_id).status, "placed")
 
     def test_cod_requires_finance_and_delivery(self):

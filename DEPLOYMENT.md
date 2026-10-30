@@ -10,9 +10,11 @@ Use the existing Python virtual environment, `DJANGO_DEBUG=true`, Django migrati
 
 Compose defaults to the private `.env` file. `APP_ENV_FILE` can select another explicitly chosen private environment file. The example file may be used for configuration-only validation with test placeholders; it cannot launch a production service. Syntax validation is separate from executing containers.
 
+Compose waits for PostgreSQL and Redis health before starting backend workers. The backend readiness endpoint checks both database and Celery-broker connectivity; frontend startup waits for backend readiness. `/health/` remains a database liveness check, while `/ready/` reports only dependency status and does not expose connection details.
+
 1. Choose hosting, PostgreSQL/Redis and trusted TLS termination. Provision DNS explicitly; intended subdomains are not currently configured applications.
 2. Set secret key, database password/URL, allowed hosts, CSRF origins and Redis settings in private server configuration; never in Git or chat.
-3. Build images; run migrations and collectstatic as documented; retain DB/private-media volumes. Validate non-root permissions and authenticated private downloads.
+3. Build images; run migrations and collectstatic as documented; retain DB/private-media volumes. The proxy serves only `/media/site-appearance/` publicly for admin-managed page images; keep all other private media inaccessible. Validate non-root permissions and authenticated private downloads.
 4. Start one Beat scheduler and appropriate workers; monitor outbox/run retries. Production email requires SMTP delivery verification.
 5. Configure private storage/scanning, log retention, alerts and access-limited backups. Back up PostgreSQL and private files consistently, encrypt and document retention. Test restoration in an isolated environment, never over live data.
 6. Run PostgreSQL locking/concurrency tests and the real browser suite against staging. Verify privacy, prescriptions, order/booking/delivery flows and permitted financial operations.

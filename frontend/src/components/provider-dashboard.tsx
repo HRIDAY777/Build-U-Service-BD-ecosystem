@@ -13,6 +13,7 @@ import {
 import { ScheduleEditor } from "./schedule-editor";
 import { MechanicPhoto } from "./mechanic-photo";
 import { ProviderCalendar } from "./provider-calendar";
+import { ProfileCard, RoleWorkspaces } from "./profile-card";
 import { useCallback, useEffect, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { Text, useApp } from "./provider";
@@ -139,6 +140,8 @@ export function ProviderDashboard() {
       <h1>
         <UiText text={"প্রোভাইডার পোর্টাল / Provider workspace"} />
       </h1>
+      <RoleWorkspaces currentPath="/provider" />
+      <ProfileCard collapsible />
       {error && (
         <p className="error" role="alert">
           <UiText text={error} />

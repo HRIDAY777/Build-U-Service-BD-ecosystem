@@ -80,7 +80,12 @@ export type User = {
   username: string;
   email: string;
   first_name: string;
+  last_name?: string;
+  phone?: string;
+  language?: "bn" | "en";
+  marketing_consent?: boolean;
   is_staff: boolean;
+  is_superuser?: boolean;
   email_verified: boolean;
   roles: string[];
 };

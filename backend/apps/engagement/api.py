@@ -302,6 +302,8 @@ class DashboardView(APIView):
                     "total"
                 ]
                 or 0,
+                "open_tickets": SupportTicket.objects.filter(customer=user, status="open").count(),
+                "unread_notifications": Notification.objects.filter(user=user, read=False).count(),
             }
         )
 

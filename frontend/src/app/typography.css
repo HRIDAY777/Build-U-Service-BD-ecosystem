@@ -1,0 +1,74 @@
+/* Keep page titles, section headings and body copy consistent across routes. */
+:root {
+  --type-page-title: clamp(1.9rem, 3vw, 2.5rem);
+  --type-section-title: clamp(1.5rem, 2.4vw, 2rem);
+  --type-card-title: 1.125rem;
+  --type-body: 0.9375rem;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font);
+}
+
+.depth-ui :is(.page-wrap, .page-shell) h1 {
+  font-size: var(--type-page-title);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+body :is(.page-wrap, .page-shell) h2,
+.landing-page h2 {
+  font-size: var(--type-section-title);
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+body :is(.page-wrap, .page-shell) h3,
+.landing-page h3 {
+  font-size: var(--type-card-title);
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+body :is(.page-wrap, .page-shell) p {
+  font-size: var(--type-body);
+  line-height: 1.75;
+}
+
+body :is(.page-wrap, .page-shell) .page-intro {
+  max-width: 700px;
+  font-size: var(--type-body);
+  line-height: 1.75;
+}
+
+body :is(.page-wrap, .page-shell) .eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --type-page-title: clamp(1.75rem, 7vw, 2.125rem);
+    --type-section-title: clamp(1.375rem, 5.5vw, 1.625rem);
+  }
+}

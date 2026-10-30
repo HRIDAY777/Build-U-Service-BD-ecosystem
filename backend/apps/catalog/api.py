@@ -1,5 +1,6 @@
 from django.db.models import Prefetch, Q
 from rest_framework import serializers, viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db import transaction
@@ -143,6 +144,7 @@ class OfferingSerializer(serializers.ModelSerializer):
 
 class DivisionViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = DivisionSerializer
     queryset = Division.objects.filter(active=True).order_by("id")
 
@@ -157,6 +159,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = CategorySerializer
     pagination_class = None
 
@@ -187,6 +190,7 @@ class CatalogFilters(serializers.Serializer):
 
 class OfferingViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = OfferingSerializer
 
     @action(detail=True, methods=["get"])
@@ -442,9 +446,17 @@ class AreaSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "name_bn", "district", "delivery_fee", "divisions"]
 
 
+class AreaPagination(PageNumberPagination):
+    page_size = 500
+    page_size_query_param = "page_size"
+    max_page_size = 1000
+
+
 class AreaViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = AreaSerializer
+    pagination_class = AreaPagination
     queryset = ServiceArea.objects.filter(active=True).prefetch_related("divisions").order_by("id")
 
     def get_queryset(self):
@@ -483,6 +495,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = OrganizationSerializer
 
     def get_queryset(self):
@@ -508,6 +521,7 @@ class ShopBrandSerializer(serializers.ModelSerializer):
 
 class ShopBrandViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = ShopBrandSerializer
     pagination_class = None
     queryset = ShopBrand.objects.filter(active=True).order_by("name", "pk")
@@ -521,6 +535,7 @@ class ShopCollectionSerializer(serializers.ModelSerializer):
 
 class ShopCollectionViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = []
     serializer_class = ShopCollectionSerializer
     pagination_class = None
     queryset = ShopCollection.objects.filter(active=True).order_by("name", "pk")

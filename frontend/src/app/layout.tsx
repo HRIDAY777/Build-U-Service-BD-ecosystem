@@ -1,5 +1,5 @@
 import { UiText } from "@/components/ui-text";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Provider } from "@/components/provider";
 import { Header, Footer } from "@/components/shell";
 import "./globals.css";
@@ -8,7 +8,21 @@ import "./depth.css";
 import "./landing.css";
 import "./catalog.css";
 import "./investor.css";
+import "./home-reference.css";
+import "./typography.css";
 import { SpatialExperience } from "@/components/spatial-experience";
+import {
+  PageAppearanceProvider,
+  PageVideoSlot,
+} from "@/components/page-appearance";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.uservicebd.com",
@@ -20,8 +34,8 @@ export const metadata: Metadata = {
   description:
     "খাবার, কেনাকাটা, ঘরের সেবা ও ডেলিভারি — একসাথে U Service BD-তে।",
   icons: {
-    icon: "/images/brand/u-service-logo.png",
-    apple: "/images/brand/u-service-logo.png",
+    icon: "/images/brand/u-service-logo-transparent.png",
+    apple: "/images/brand/u-service-logo-transparent.png",
   },
   openGraph: { type: "website", locale: "bn_BD", siteName: "U Service BD" },
 };
@@ -34,13 +48,19 @@ export default function RootLayout({
     <html lang="bn" data-scroll-behavior="smooth">
       <body className="depth-ui">
         <Provider>
-          <SpatialExperience />
-          <a href="#main" className="skip-link">
-            <UiText text={"Skip to content"} />
-          </a>
-          <Header />
-          <main id="main">{children}</main>
-          <Footer />
+          <PageAppearanceProvider>
+            <SpatialExperience />
+            <a href="#main" className="skip-link">
+              <UiText text={"Skip to content"} />
+            </a>
+            <Header />
+            <main id="main">
+              <PageVideoSlot position="top" />
+              {children}
+              <PageVideoSlot position="bottom" />
+            </main>
+            <Footer />
+          </PageAppearanceProvider>
         </Provider>
       </body>
     </html>

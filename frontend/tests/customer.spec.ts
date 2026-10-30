@@ -1,5 +1,4 @@
 import { test, expect, Page } from "@playwright/test";
-import fs from "node:fs";
 async function fillAddress(page: Page, prefix = "") {
   await page.locator(`[name="${prefix}recipient"]`).fill("E2E Demo Customer");
   await page.locator(`[name="${prefix}phone"]`).fill("01712345678");
@@ -14,9 +13,9 @@ test("customer can register, purchase, book and request delivery", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator("h1")).toContainText("একটু সহজ হোক");
-  await page.getByRole("button", { name: "Change language" }).click();
-  await expect(page.locator("h1")).toContainText("Everyday life.");
+  await expect(page.locator("h1")).toContainText("একই প্ল্যাটফর্মে");
+  await page.getByRole("button", { name: "ভাষা বদলান" }).click();
+  await expect(page.locator("h1")).toContainText("one trusted platform.");
   await page.goto("/login");
   await page
     .getByRole("button", { name: "New here? Create an account" })
@@ -48,7 +47,10 @@ test("customer can register, purchase, book and request delivery", async ({
   await page.getByRole("button", { name: "Cancel request" }).first().click();
   await expect(page.locator(".record .status").first()).toHaveText("cancelled");
   await page.goto("/catalog?division=electrician");
-  await page.getByRole("link", { name: "Book Ceiling fan repair" }).click();
+  await page
+    .getByRole("navigation", { name: "Electrical services" })
+    .getByRole("link", { name: "Ceiling fan repair", exact: true })
+    .click();
   const future = new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 16);
   await page.locator('[name="scheduled_at"]').fill(future);
   await fillAddress(page);
@@ -122,28 +124,29 @@ test("customer can register, purchase, book and request delivery", async ({
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
-test("desktop and mobile homepage fit without horizontal overflow", async ({
-  page,
-}) => {
-  fs.mkdirSync("../artifacts", { recursive: true });
+test("desktop and mobile homepage fit without horizontal overflow", async (
+  { page },
+  testInfo,
+) => {
   for (const size of [
     { width: 1440, height: 1000 },
     { width: 390, height: 844 },
   ]) {
     await page.setViewportSize(size);
     await page.goto("/");
-    await expect(page.locator(".landing-service-link")).toHaveCount(8);
+    await expect(page.locator(".home-category-rail a")).toHaveCount(9);
+    await expect(page.locator(".home-service-card").first()).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBeTruthy();
-    await page.screenshot({
-      path: `../artifacts/home-${size.width}.png`,
-      fullPage: true,
-    });
+    await page.screenshot({ path: testInfo.outputPath(`home-${size.width}.png`), fullPage: true });
     if (size.width < 500) {
-      await page.getByRole("button", { name: "Toggle navigation" }).click();
+      const menu = page.locator('button[aria-controls="main-navigation"]');
+      await expect(menu).toHaveAttribute("aria-expanded", "false");
+      await menu.click();
+      await expect(menu).toHaveAttribute("aria-expanded", "true");
       await expect(page.locator("#main-navigation")).toBeVisible();
     }
   }

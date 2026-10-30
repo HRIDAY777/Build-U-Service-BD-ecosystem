@@ -39,12 +39,32 @@ class UserSerializer(serializers.ModelSerializer):
             "marketing_consent",
             "email_verified",
             "is_staff",
+            "is_superuser",
             "roles",
         ]
-        read_only_fields = ["id", "username", "email", "is_staff", "roles", "email_verified"]
+        read_only_fields = [
+            "id",
+            "username",
+            "email",
+            "is_staff",
+            "is_superuser",
+            "roles",
+            "email_verified",
+        ]
+
+    def validate_phone(self, value):
+        value = (value or "").strip()
+        if value and not re.fullmatch(r"\+?[0-9]{10,15}", value):
+            raise serializers.ValidationError("Enter a valid phone number.")
+        return value
 
     def get_roles(self, obj):
-        return list(obj.groups.values_list("name", flat=True))
+        roles = list(obj.groups.values_list("name", flat=True))
+        if obj.is_superuser and "Admin" not in roles:
+            roles.append("Admin")
+        if hasattr(obj, "organization_set") and obj.organization_set.exists() and "Partner" not in roles:
+            roles.append("Partner")
+        return roles
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -134,6 +154,8 @@ class AuthView(APIView):
                     user=request.user, granted=serializer.validated_data["marketing_consent"]
                 )
             serializer.save()
+            if set(serializer.validated_data) - {"marketing_consent"}:
+                audit(request.user, "account.profile_updated", request.user.pk)
         return Response(serializer.data)
 
 
@@ -188,6 +210,7 @@ class SecurityHistoryView(generics.ListAPIView):
         return AuditLog.objects.filter(entity=str(self.request.user.pk), action__in=[
             "account.registered", "account.login", "account.logout", "account.password_changed",
             "account.password_reset", "account.logout_all", "account.email_verified", "account.deletion_requested",
+            "account.profile_updated",
         ]).order_by("-created_at", "-pk")
 
     def list(self, request, *args, **kwargs):

@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("run", "migrate", "check", "migration-check", "test", "seed-extended-demo")][string]$Mode = "run",
+    [ValidateSet("run", "migrate", "check", "migration-check", "test", "seed-extended-demo", "seed-shariatpur")][string]$Mode = "run",
     [ValidateRange(1024, 65535)][int]$Port = 8002,
     [string[]]$TestLabels = @("apps")
 )
@@ -26,5 +26,6 @@ switch ($Mode) {
     "migration-check" { & $taskPython $taskManage makemigrations --check --dry-run }
     "test" { Push-Location (Join-Path $taskRoot "backend"); try { & $taskPython $taskManage test @TestLabels --noinput } finally { Pop-Location } }
     "seed-extended-demo" { & $taskPython $taskManage seed_extended_demo }
+    "seed-shariatpur" { & $taskPython $taskManage seed_shariatpur_areas }
 }
 exit $LASTEXITCODE

@@ -1,50 +1,70 @@
 import { UiText } from "@/components/ui-text";
-import { DeliveryForm } from "@/components/forms";
-import { Photo } from "@/components/photo";
 import { Text } from "@/components/provider";
-import { divisionPhotos } from "@/lib/photos";
+import { DeliveryForm } from "@/components/forms";
 import { DeliveryList } from "@/components/delivery-tracking";
 import Link from "next/link";
+import { DeliveryStorefront } from "@/components/delivery-storefront";
+import "./delivery-reference.css";
+import { ArrowRight } from "lucide-react";
+
 export default function Delivery() {
   return (
-    <div className="page-wrap">
-      <section className="delivery-brand-cover">
-        <div className="delivery-brand-photo">
-          <Photo
-            src={divisionPhotos.delivery}
-            alt="U Service লোগোসহ ডেলিভারি জার্সির নমুনা"
-            eager
-          />
+    <div className="delivery-reference-page">
+      <DeliveryStorefront />
+      <main className="delivery-lower-content">
+        <section
+          id="delivery-request"
+          className="delivery-request-section"
+          aria-labelledby="delivery-request-title"
+        >
+          <div className="delivery-form-heading">
+            <span className="delivery-form-kicker">
+              <UiText text={"DELIVERY REQUEST"} />
+            </span>
+            <h2 id="delivery-request-title">
+              <Text bn="ডেলিভারির অনুরোধ করুন" en="Request a delivery" />
+            </h2>
+            <p>
+              <Text
+                bn="পিকআপ ও গন্তব্যের ঠিকানা, পার্সেলের তথ্য এবং যোগাযোগের বিবরণ দিন। অনুরোধ জমা দেওয়ার আগে প্রযোজ্য চার্জ দেখুন।"
+                en="Add pickup and destination addresses, parcel details and contact information. Review the applicable fee before submitting."
+              />
+            </p>
+          </div>
+          <div className="delivery-request-panel">
+            {["general", "documents", "clothing", "electronics", "other"].map(
+              (type) => (
+                <span
+                  id={`delivery-request-${type}`}
+                  className="delivery-form-anchor"
+                  key={type}
+                />
+              ),
+            )}
+            <DeliveryForm />
+          </div>
+        </section>
+        <div className="delivery-rider-link">
+          <div>
+            <h2>
+              <Text bn="ডেলিভারি রাইডার?" en="Delivery rider?" />
+            </h2>
+            <p>
+              <Text
+                bn="আপনার রাইডার ড্যাশবোর্ড থেকে ডেলিভারির কাজ পরিচালনা করুন।"
+                en="Manage delivery jobs from your rider dashboard."
+              />
+            </p>
+          </div>
+          <Link className="delivery-rider-button" href="/rider">
+            <UiText text={"রাইডার ড্যাশবোর্ড / Rider dashboard"} />
+            <ArrowRight size={17} />
+          </Link>
         </div>
-        <div className="delivery-brand-copy">
-          <span className="eyebrow">
-            <UiText text={"U SERVICE · DELIVERY"} />
-          </span>
-          <h1>
-            <Text
-              bn="আপনার পার্সেল, আমাদের যত্নে।"
-              en="Your parcel, in our care."
-            />
-          </h1>
-          <p>
-            <Text
-              bn="পিকআপ ও গন্তব্যের ঠিকানা বেছে ডেলিভারির অনুরোধ করুন। উপলব্ধ এলাকা ও চার্জ ফর্মে দেখুন।"
-              en="Choose pickup and destination addresses to request delivery. Check available areas and fees in the form."
-            />
-          </p>
-          <small>
-            <Text
-              bn="ব্র্যান্ডেড জার্সির ডিজাইন নমুনা · AI দিয়ে সম্পাদিত ছবি"
-              en="Branded uniform concept · AI-edited photograph"
-            />
-          </small>
-        </div>
-      </section>
-      <DeliveryForm />
-      <Link className="button secondary" href="/rider">
-        <UiText text={"রাইডার ড্যাশবোর্ড / Rider dashboard"} />
-      </Link>
-      <DeliveryList />
+        <section className="delivery-tracking-section">
+          <DeliveryList />
+        </section>
+      </main>
     </div>
   );
 }

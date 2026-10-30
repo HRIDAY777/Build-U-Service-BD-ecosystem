@@ -1,5 +1,31 @@
 import { test, expect } from "@playwright/test";
 
+test("event planning page adapts to mobile and guides guests from packages to sign-in", async ({
+  page,
+}) => {
+  await page.goto("/events");
+  await expect(
+    page.getByRole("heading", { name: "আপনার বিশেষ দিন, সুন্দর আয়োজন" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /আপনার প্যাকেজ বাছুন/ }).click();
+  await expect(page).toHaveURL(/#event-packages$/);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+
+  const firstPackage = page.locator(".event-package-card").first();
+  await firstPackage.getByRole("button").click();
+  await expect(firstPackage.getByRole("button")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.locator(".event-signin-panel")).toBeInViewport();
+});
+
 test("event packages survive sign-in and are saved with the customer's request", async ({
   page,
   context,

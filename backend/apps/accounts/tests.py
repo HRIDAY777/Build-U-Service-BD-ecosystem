@@ -78,3 +78,66 @@ class SecurityHistoryTests(TestCase):
     def test_anonymous_access_is_denied(self):
         self.client.force_authenticate(None)
         self.assertIn(self.client.get(self.url).status_code, [401, 403])
+
+
+@override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])
+class ProfileAndRoleDashboardTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            username="profile-owner",
+            email="profile@example.invalid",
+            password="old-password-123",
+            first_name="Initial",
+            phone="+8801711000000",
+        )
+        self.client.force_authenticate(self.user)
+
+    def test_profile_patch_updates_details_validates_phone_and_audits(self):
+        bad = self.client.patch("/api/v1/auth/me/", {"phone": "invalid-phone"}, format="json")
+        self.assertEqual(bad.status_code, 400)
+
+        res = self.client.patch(
+            "/api/v1/auth/me/",
+            {
+                "first_name": "Rahim",
+                "last_name": "Uddin",
+                "phone": "+8801712345678",
+                "language": "en",
+                "marketing_consent": True,
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["first_name"], "Rahim")
+        self.assertEqual(res.data["last_name"], "Uddin")
+        self.assertEqual(res.data["phone"], "+8801712345678")
+        self.assertEqual(res.data["language"], "en")
+        self.assertTrue(res.data["marketing_consent"])
+        self.assertTrue(
+            AuditLog.objects.filter(entity=str(self.user.pk), action="account.profile_updated").exists()
+        )
+
+    def test_roles_include_admin_and_partner_organization_owner(self):
+        from apps.catalog.models import Division, Organization
+
+        div = Division.objects.create(slug="food-role-test", name="Food", name_bn="খাবার", kind="goods")
+        Organization.objects.create(
+            owner=self.user,
+            division=div,
+            name="Partner Kitchen",
+            area="Dhaka",
+        )
+        me = self.client.get("/api/v1/auth/me/")
+        self.assertEqual(me.status_code, 200)
+        self.assertIn("Partner", me.data["roles"])
+
+        admin = get_user_model().objects.create_superuser(
+            username="super-role-test", email="super@example.invalid", password="old-password-123"
+        )
+        self.client.force_authenticate(admin)
+        admin_me = self.client.get("/api/v1/auth/me/")
+        self.assertIn("Admin", admin_me.data["roles"])
+        self.assertTrue(admin_me.data["is_superuser"])
+

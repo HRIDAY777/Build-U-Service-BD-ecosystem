@@ -18,9 +18,9 @@ def validate_public_media_url(value):
         except ValidationError as error:
             raise ValidationError("Enter a valid HTTPS URL.") from error
         return
-    if value.startswith(("/images/", "/videos/")):
+    if value.startswith(("/images/", "/videos/", "/media/site-appearance/")):
         valid_local_path = re.fullmatch(
-            r"/(?:images|videos)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+",
+            r"/(?:images|videos|media/site-appearance)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+",
             value,
         ) and not any(part in {".", ".."} for part in value.split("/"))
         if valid_local_path:

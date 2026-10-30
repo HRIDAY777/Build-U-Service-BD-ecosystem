@@ -4,10 +4,12 @@ const config: NextConfig = {
   output: "standalone",
   skipTrailingSlashRedirect: true,
   async rewrites() {
-    return ["/api/:path*", "/admin/:path*", "/static/:path*"].map((source) => ({
-      source,
-      destination: `${backend}${source}${source.startsWith("/static") ? "" : "/"}`,
-    }));
+    return ["/api/:path*", "/admin/:path*", "/static/:path*", "/media/:path*"].map(
+      (source) => ({
+        source,
+        destination: `${backend}${source}${source.startsWith("/static") || source.startsWith("/media") ? "" : "/"}`,
+      }),
+    );
   },
   async headers() {
     return [

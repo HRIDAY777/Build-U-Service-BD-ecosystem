@@ -1,5 +1,7 @@
 # Feature matrix
 
+Updated 17 October 2026. The user-facing completion sequence is [docs/COMPLETION_PLAN.bn.md](docs/COMPLETION_PLAN.bn.md). This matrix describes local implementation and remaining gates; it is not a production completion percentage.
+
 Canonical detailed matrix: [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md). Statuses and priorities are defined there. This summary groups requirements from the new enterprise request; it is not a completion percentage.
 
 | Requirement group | Current classification | Remaining acceptance gate |
@@ -9,14 +11,14 @@ Canonical detailed matrix: [IMPLEMENTATION_AUDIT.md](IMPLEMENTATION_AUDIT.md). S
 | Customer workspace | Implemented; security event history added | Complete financial history, MFA and device/failed-attempt monitoring |
 | Food | Locally verified core; improvement needed | Branch/staff onboarding, commissions/settlements |
 | Pharmacy | Partial; external configuration | Eligibility, expiry controls, regulatory verification and staged workflow |
-| Electrician/mechanic | Locally verified core; improvement needed | Skills/quotes/rescheduling/parts/payment |
-| Shop | Locally verified core; improvement needed | Advanced catalog/promotions and settlement |
+| Electrician/mechanic | Local booking, staff-approved service/area eligibility, rescheduling, availability preview, mechanic quotes/consent/history/photos/reports | Capacity reservation, real eligibility configuration, towing/parts procurement/payment |
+| Shop | 31/33 original local capabilities implemented, including advanced catalog/media/discovery and partner editing | Live online payment/refund; enterprise promotions and settlement |
 | Admin and partner | Partial; private onboarding, document decisions and renewal submissions implemented | Automatic monitoring/suspension, specialist eligibility, scanning/retention and complete modules |
 | Payments/revenue | Partial/missing/external | Live verification, refunds, commissions, settlements |
 | Delivery/location | Locally verified core; improvement needed | Recipient evidence, dispatch exceptions; GPS needs actual provider/data |
-| Notifications/support | Partial; private partner renewal reminders added | Preferences, templates, external delivery channels, scheduler deployment and ticket routing |
+| Notifications/support | In-app messages/reminders; private support conversations/reopen, classification, staff routing and priority/assignment queues | Preferences, templates, external channels, live scheduler, SLA/escalation |
 | AI/agents | Partial/design only | Provider gateway/tools/conversations/workflow/cost/permission infrastructure |
-| Automation | Implemented; failure isolation tested | Worker monitoring, dead-letter operations and external-email delivery guarantees |
+| Automation | Rule isolation, exhausted-run monitoring, guarded manual retries and persisted backoff/due-only dispatch implemented | Live worker/Beat execution, alerts, external delivery guarantees |
 | SEO/analytics | Partial | Actual metrics, schema/canonicals, consent/attribution |
 | Security/performance | Partial | MFA/scanning/retention, load/accessibility, monitoring and independent review |
 | Deployment/subdomains | Designed; external configuration | DNS/TLS/staging/SSO/restore/concurrency evidence |
@@ -46,4 +48,4 @@ Variant cancellation/rejection/return now restores the correct inventory source;
 
 ## Automation failure operations
 
-Implemented exhausted-run monitoring and read-only admin with separately authorized one-attempt retry queueing and preserved counters. PostgreSQL concurrency test covers duplicate operator requests. Worker execution, external delivery, alerts and backoff remain unverified or unimplemented.
+Implemented exhausted-run monitoring and read-only admin with separately authorized one-attempt retry queueing and preserved counters. PostgreSQL concurrency test covers duplicate operator requests. Persisted retry backoff and exhausted-event parking are also implemented and tested. Worker execution, external delivery and alerts remain open.

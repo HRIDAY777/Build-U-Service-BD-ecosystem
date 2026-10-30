@@ -4,6 +4,7 @@ test("U Shop filters, product media and discovery work in Bangla and English", a
   page,
 }) => {
   await page.goto("/catalog?division=shop");
+  await page.getByRole("button", { name: "খোঁজার শর্ত" }).click();
 
   const category = page.getByLabel("ক্যাটাগরি");
   await expect(
@@ -40,7 +41,7 @@ test("U Shop filters, product media and discovery work in Bangla and English", a
   await expect(page.getByRole("heading", { name: "একই ধরনের পণ্য" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "আরও পণ্য দেখুন" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Change language" }).click();
+  await page.getByRole("button", { name: "ভাষা বদলান" }).click();
   await expect(page.getByRole("link", { name: "← Back to U Shop" })).toBeVisible();
   await expect(page.getByText("Collections", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Size / Color / Option")).toContainText(

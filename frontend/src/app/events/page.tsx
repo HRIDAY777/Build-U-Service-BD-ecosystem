@@ -12,6 +12,7 @@ import {
   LocalityInput,
   addressLine,
 } from "@/components/location-picker";
+import "../events-reference.css";
 
 type EventRequest = {
   id: string;
@@ -244,7 +245,11 @@ function EventPackages({
   onSelect: (bundle: string) => void;
 }) {
   return (
-    <section className="event-packages" aria-labelledby="event-packages-title">
+    <section
+      className="event-packages"
+      id="event-packages"
+      aria-labelledby="event-packages-title"
+    >
       <div className="record-head">
         <div>
           <span className="eyebrow">
@@ -306,6 +311,93 @@ function EventPackages({
         />
       </p>
     </section>
+  );
+}
+
+function EventHero() {
+  return (
+    <section className="event-hero" aria-labelledby="events-title">
+      <div className="event-hero-copy">
+        <span className="event-hero-kicker">
+          U EVENTS · MADE FOR YOUR MOMENTS
+        </span>
+        <h1 id="events-title">
+          <Text
+            bn="আপনার বিশেষ দিন, সুন্দর আয়োজন"
+            en="Make your special day unforgettable"
+          />
+        </h1>
+        <p>
+          <Text
+            bn="বিয়ে, জন্মদিন বা কর্পোরেট অনুষ্ঠান—ভেন্যু থেকে খাবার, সাজসজ্জা ও সমন্বয়; পরিকল্পনা করুন এক জায়গা থেকেই।"
+            en="From weddings and birthdays to corporate gatherings, plan your venue, food, decor and coordination in one place."
+          />
+        </p>
+        <div className="event-hero-actions">
+          <Link href="#event-packages" className="event-primary-cta">
+            <Text bn="আপনার প্যাকেজ বাছুন" en="Explore packages" />
+            <span aria-hidden="true">→</span>
+          </Link>
+          <a className="event-secondary-cta" href="#event-request">
+            <Text bn="পরিকল্পনা শুরু করুন" en="Start planning" />
+          </a>
+        </div>
+        <div className="event-hero-points">
+          <span>
+            <Text bn="আপনার বাজেট অনুযায়ী" en="For your budget" />
+          </span>
+          <span>
+            <Text bn="একটি নির্ভরযোগ্য টিম" en="A dedicated team" />
+          </span>
+          <span>
+            <Text bn="কাস্টম কোটেশন" en="Custom quotes" />
+          </span>
+        </div>
+      </div>
+      <div className="event-cover">
+        <Photo
+          src="/images/photos/wedding.jpg"
+          alt="বাংলাদেশের বিয়ের আয়োজন / A wedding ceremony in Bangladesh"
+          eager
+        />
+        <span className="photo-demo-label">
+          <UiText text={"স্টক ছবি · পরিকল্পনার অনুপ্রেরণা"} />
+        </span>
+        <div className="event-photo-caption">
+          <span>
+            <Text
+              bn="আপনার গল্প, আপনার আয়োজন"
+              en="Your story, your celebration"
+            />
+          </span>
+          <strong>
+            <Text
+              bn="মনে রাখার মতো প্রতিটি মুহূর্ত"
+              en="Every moment, beautifully remembered"
+            />
+          </strong>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EventPlanningNav() {
+  return (
+    <nav className="event-planning-nav" aria-label="Event planning steps">
+      <Link href="#event-packages">
+        <span>01</span>
+        <Text bn="প্যাকেজ বাছুন" en="Choose a package" />
+      </Link>
+      <Link href="#service-package-title">
+        <span>02</span>
+        <Text bn="সেবা তুলনা করুন" en="Compare services" />
+      </Link>
+      <Link href="#event-request">
+        <span>03</span>
+        <Text bn="পরিকল্পনা পাঠান" en="Send your plan" />
+      </Link>
+    </nav>
   );
 }
 
@@ -427,211 +519,218 @@ export default function EventsPage() {
 
   if (!user) {
     return (
-      <main className="page-shell narrow">
-        <div className="event-cover">
-          <Photo
-            src="/images/photos/wedding.jpg"
-            alt="বাংলাদেশের বিয়ের আয়োজন / A wedding ceremony in Bangladesh"
-            eager
-          />
-          <span className="photo-demo-label">
-            <UiText text={"স্টক ছবি · পরিকল্পনার অনুপ্রেরণা"} />
-          </span>
-        </div>
+      <main className="page-shell event-planning-page">
+        <EventHero />
+        <EventPlanningNav />
         <EventPackages selection={selection} onSelect={selectBundle} />
         <ServicePackageTable selection={selection} onSelect={selectTier} />
-        <h1>
-          <UiText text={"Wedding & event planning"} />
-        </h1>
-        <p>
-          <UiText
-            text={"Please sign in to request a wedding or event package."}
-          />
-        </p>
-        <Link href="/login" className="button">
-          <UiText text={"Sign in"} />
-        </Link>
+        <section className="event-signin-panel" id="event-request">
+          <div>
+            <span className="eyebrow">ONE LAST STEP</span>
+            <h2>
+              <Text
+                bn="আপনার আয়োজনের পরিকল্পনা শুরু করুন"
+                en="Let’s start planning your event"
+              />
+            </h2>
+            <p>
+              <UiText
+                text={"Please sign in to request a wedding or event package."}
+              />
+            </p>
+          </div>
+          <Link href="/login" className="event-primary-cta">
+            <UiText text={"Sign in"} />
+            <span aria-hidden="true">→</span>
+          </Link>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="page-shell narrow">
-      <div className="event-cover">
-        <Photo
-          src="/images/photos/wedding.jpg"
-          alt="বাংলাদেশের বিয়ের আয়োজন / A wedding ceremony in Bangladesh"
-          eager
-        />
-        <span className="photo-demo-label">
-          <UiText text={"স্টক ছবি · পরিকল্পনার অনুপ্রেরণা"} />
-        </span>
-      </div>
+    <main className="page-shell event-planning-page">
+      <EventHero />
+      <EventPlanningNav />
       <EventPackages selection={selection} onSelect={selectBundle} />
       <ServicePackageTable selection={selection} onSelect={selectTier} />
-      <span className="eyebrow">
-        <UiText text={"U EVENTS"} />
-      </span>
-      <h1>
-        <Text bn="বিয়ে ও ইভেন্ট ম্যানেজমেন্ট" en="Wedding & event management" />
-      </h1>
-      <p className="page-intro">
-        <UiText
-          text={
-            "Tell us what you are planning. Our team can review the brief, suggest a package, and confirm the next steps."
-          }
-        />
-      </p>
-      {error && (
-        <p className="error" role="alert">
-          <UiText text={error} />
-        </p>
-      )}
-      {(selection.bundle || Object.keys(selection.tiers || {}).length > 0) && (
-        <div className="notice" role="status">
-          <strong>
-            <UiText text={"নির্বাচিত প্যাকেজ / Selected package"} />
-          </strong>
-          {selection.bundle && (
-            <p>{eventPackages[bundleIds.indexOf(selection.bundle)]?.name}</p>
-          )}
-          {Object.entries(selection.tiers || {}).map(([service, tier]) => (
-            <p key={service}>
-              {translateUi(service, lang)} · {tierNames[tierIds.indexOf(tier)]}
-            </p>
-          ))}
-          <button
-            type="button"
-            className="button secondary"
-            onClick={() => selectPackage({})}
-          >
-            <UiText text={"প্যাকেজ সরান / Clear packages"} />
-          </button>
-          <p>
+      <section className="event-request-section">
+        <div className="event-request-heading">
+          <span className="eyebrow">YOUR EVENT, YOUR WAY</span>
+          <h2>
+            <Text
+              bn="আপনার আয়োজনের বিস্তারিত জানান"
+              en="Tell us about your event"
+            />
+          </h2>
+          <p className="page-intro">
             <UiText
               text={
-                "ডেমো মূল্য চূড়ান্ত নয়। টিমের নিশ্চিত কোটেশন গ্রহণের পর আয়োজন নিশ্চিত হবে।"
+                "Tell us what you are planning. Our team can review the brief, suggest a package, and confirm the next steps."
               }
             />
           </p>
         </div>
-      )}
-      <form className="form-panel" id="event-request" onSubmit={submit}>
-        <div className="form-grid">
-          <label className="field">
-            <UiText text={"Event type"} />
-            <select name="event_type" defaultValue="wedding">
-              <option value="wedding">
-                <UiText text={"Wedding"} />
-              </option>
-              <option value="birthday">
-                <UiText text={"Birthday"} />
-              </option>
-              <option value="corporate">
-                <UiText text={"Corporate"} />
-              </option>
-              <option value="other">
-                <UiText text={"Other"} />
-              </option>
-            </select>
-          </label>
-          <label className="field">
-            <UiText text={"Event title"} />
-            <input
-              name="title"
-              required
-              maxLength={160}
-              placeholder={
-                lang === "bn"
-                  ? "যেমন: রাহিম ও আয়েশার বিয়ে"
-                  : "For example: Rahim & Ayesha's wedding"
-              }
-            />
-          </label>
-          <label className="field">
-            <UiText text={"Event date"} />
-            <input name="event_date" required type="date" />
-          </label>
-          <label className="field">
-            <UiText text={"Guest count"} />
-            <input
-              name="guest_count"
-              required
-              type="number"
-              min={1}
-              max={100000}
-            />
-          </label>
-          <label className="field">
-            <UiText text={"Venue"} />
-            <input
-              name="venue"
-              required
-              maxLength={180}
-              placeholder={
-                lang === "bn"
-                  ? "ভেন্যুর নাম বা বাড়ির ঠিকানা"
-                  : "Venue or home address"
-              }
-            />
-          </label>
-          <label className="field">
-            <UiText text={"Area"} />
-            <LocalityInput name="area" required />
-          </label>
-          <label className="field">
-            <UiText text={"Estimated budget (BDT)"} />
-            <input name="budget" type="number" min={0} step="0.01" />
-          </label>
-        </div>
-        <LocationPicker />
-        <fieldset className="field-group">
-          <legend>
-            <UiText text={"Services needed"} />
-          </legend>
-          <div className="check-grid">
-            {serviceOptions.map((service) => (
-              <label className="check-row" key={service}>
-                <input
-                  type="checkbox"
-                  name="services"
-                  value={service}
-                  checked={selectedServices.includes(service)}
-                  onChange={(e) => {
-                    setSelectedServices((current) =>
-                      e.target.checked
-                        ? [...current, service]
-                        : current.filter((item) => item !== service),
-                    );
-                    if (!e.target.checked) {
-                      const tiers = { ...selection.tiers };
-                      delete tiers[service];
-                      selectPackage({ ...selection, tiers });
-                    }
-                  }}
-                />
-                <UiText text={service} />
-              </label>
+        {error && (
+          <p className="error" role="alert">
+            <UiText text={error} />
+          </p>
+        )}
+        {(selection.bundle ||
+          Object.keys(selection.tiers || {}).length > 0) && (
+          <div className="notice" role="status">
+            <strong>
+              <UiText text={"নির্বাচিত প্যাকেজ / Selected package"} />
+            </strong>
+            {selection.bundle && (
+              <p>{eventPackages[bundleIds.indexOf(selection.bundle)]?.name}</p>
+            )}
+            {Object.entries(selection.tiers || {}).map(([service, tier]) => (
+              <p key={service}>
+                {translateUi(service, lang)} ·{" "}
+                {tierNames[tierIds.indexOf(tier)]}
+              </p>
             ))}
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => selectPackage({})}
+            >
+              <UiText text={"প্যাকেজ সরান / Clear packages"} />
+            </button>
+            <p>
+              <UiText
+                text={
+                  "ডেমো মূল্য চূড়ান্ত নয়। টিমের নিশ্চিত কোটেশন গ্রহণের পর আয়োজন নিশ্চিত হবে।"
+                }
+              />
+            </p>
           </div>
-        </fieldset>
-        <label className="field">
-          <UiText text={"Planning notes"} />
-          <textarea
-            name="notes"
-            maxLength={2000}
-            placeholder={
-              lang === "bn"
-                ? "সাজসজ্জার ধরন, খাবারের পছন্দ, সময় বা বিশেষ অনুরোধ"
-                : "Theme, food preferences, timing, or special requests"
-            }
-          />
-        </label>
-        <button className="button" disabled={busy}>
-          <UiText text={busy ? "Sending…" : "Request event planning"} />
-        </button>
-      </form>
-      <section style={{ marginTop: 30 }}>
+        )}
+        <form
+          className="form-panel event-form-panel"
+          id="event-request"
+          onSubmit={submit}
+        >
+          <h3>
+            <Text bn="অনুষ্ঠানের বিস্তারিত" en="Event details" />
+          </h3>
+          <div className="form-grid">
+            <label className="field">
+              <UiText text={"Event type"} />
+              <select name="event_type" defaultValue="wedding">
+                <option value="wedding">
+                  <UiText text={"Wedding"} />
+                </option>
+                <option value="birthday">
+                  <UiText text={"Birthday"} />
+                </option>
+                <option value="corporate">
+                  <UiText text={"Corporate"} />
+                </option>
+                <option value="other">
+                  <UiText text={"Other"} />
+                </option>
+              </select>
+            </label>
+            <label className="field">
+              <UiText text={"Event title"} />
+              <input
+                name="title"
+                required
+                maxLength={160}
+                placeholder={
+                  lang === "bn"
+                    ? "যেমন: রাহিম ও আয়েশার বিয়ে"
+                    : "For example: Rahim & Ayesha's wedding"
+                }
+              />
+            </label>
+            <label className="field">
+              <UiText text={"Event date"} />
+              <input name="event_date" required type="date" />
+            </label>
+            <label className="field">
+              <UiText text={"Guest count"} />
+              <input
+                name="guest_count"
+                required
+                type="number"
+                min={1}
+                max={100000}
+              />
+            </label>
+            <label className="field">
+              <UiText text={"Venue"} />
+              <input
+                name="venue"
+                required
+                maxLength={180}
+                placeholder={
+                  lang === "bn"
+                    ? "ভেন্যুর নাম বা বাড়ির ঠিকানা"
+                    : "Venue or home address"
+                }
+              />
+            </label>
+            <label className="field">
+              <UiText text={"Area"} />
+              <LocalityInput name="area" required />
+            </label>
+            <label className="field">
+              <UiText text={"Estimated budget (BDT)"} />
+              <input name="budget" type="number" min={0} step="0.01" />
+            </label>
+          </div>
+          <LocationPicker />
+          <fieldset className="field-group">
+            <legend>
+              <UiText text={"Services needed"} />
+            </legend>
+            <div className="check-grid">
+              {serviceOptions.map((service) => (
+                <label className="check-row" key={service}>
+                  <input
+                    type="checkbox"
+                    name="services"
+                    value={service}
+                    checked={selectedServices.includes(service)}
+                    onChange={(e) => {
+                      setSelectedServices((current) =>
+                        e.target.checked
+                          ? [...current, service]
+                          : current.filter((item) => item !== service),
+                      );
+                      if (!e.target.checked) {
+                        const tiers = { ...selection.tiers };
+                        delete tiers[service];
+                        selectPackage({ ...selection, tiers });
+                      }
+                    }}
+                  />
+                  <UiText text={service} />
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className="field">
+            <UiText text={"Planning notes"} />
+            <textarea
+              name="notes"
+              maxLength={2000}
+              placeholder={
+                lang === "bn"
+                  ? "সাজসজ্জার ধরন, খাবারের পছন্দ, সময় বা বিশেষ অনুরোধ"
+                  : "Theme, food preferences, timing, or special requests"
+              }
+            />
+          </label>
+          <button className="button" disabled={busy}>
+            <UiText text={busy ? "Sending…" : "Request event planning"} />
+          </button>
+        </form>
+      </section>
+      <section className="event-history-section">
         <h2>
           <UiText text={"Your event requests"} />
         </h2>

@@ -53,11 +53,17 @@ def checkout(user, data, key, preview=False):
         if previous.request_hash != digest:
             raise ValidationError("This checkout key was already used with different details.")
         return previous
-    if data.get("payment_method", "cod") == "sslcommerz":
-        from .payments import configured
+    payment_method = data.get("payment_method", "cod")
+    if payment_method == "sslcommerz":
+        from .payments import configured, is_gateway_usable
 
-        if not configured():
+        if not configured() or not is_gateway_usable("sslcommerz"):
             raise ValidationError("Online payments are not configured.")
+    else:
+        from .payments import is_gateway_usable
+
+        if not is_gateway_usable(payment_method):
+            raise ValidationError("This payment method is currently deactivated.")
     quantities = {}
     for item in data["items"]:
         quantities[item["offering"]] = quantities.get(item["offering"], 0) + item["quantity"]

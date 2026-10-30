@@ -18,6 +18,7 @@ const labels: Record<string, [string, string]> = {
     "অ্যাকাউন্ট মুছে ফেলার অনুরোধ",
     "Account deletion requested",
   ],
+  "account.profile_updated": ["প্রোফাইল আপডেট", "Profile updated"],
 };
 
 export function SecurityHistory() {

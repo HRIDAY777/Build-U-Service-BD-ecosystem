@@ -15,14 +15,25 @@ services:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
   backend:
     build: ./backend
     env_file: ${APP_ENV_FILE:-.env}
     depends_on:
       db: {condition: service_healthy}
-      redis: {condition: service_started}
+      redis: {condition: service_healthy}
     volumes: ["private_media:/app/media", "static_files:/app/staticfiles"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready/', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
   worker:
     build: ./backend
@@ -30,7 +41,7 @@ services:
     env_file: ${APP_ENV_FILE:-.env}
     depends_on:
       db: {condition: service_healthy}
-      redis: {condition: service_started}
+      redis: {condition: service_healthy}
     volumes: ["private_media:/app/media"]
     restart: unless-stopped
   beat:
@@ -44,13 +55,16 @@ services:
     environment:
       API_INTERNAL_URL: http://backend:8000
       NEXT_PUBLIC_SITE_URL: https://www.uservicebd.com
-    depends_on: [backend]
+    depends_on:
+      backend: {condition: service_healthy}
     restart: unless-stopped
   proxy:
     image: nginx:1.28-alpine
     ports: ["127.0.0.1:8080:80"]
-    volumes: ["./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro", "static_files:/static:ro"]
-    depends_on: [frontend, backend]
+    volumes: ["./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro", "static_files:/static:ro", "private_media:/media:ro"]
+    depends_on:
+      frontend: {condition: service_started}
+      backend: {condition: service_healthy}
     restart: unless-stopped
 volumes:
   postgres_data:

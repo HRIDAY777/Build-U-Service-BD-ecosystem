@@ -12,6 +12,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, PageResult } from "@/lib/api";
 import { useApp } from "@/components/provider";
+import { ProfileCard, RoleWorkspaces } from "@/components/profile-card";
 
 type Ticket = {
   id: number;
@@ -212,6 +213,8 @@ export default function SupportPage() {
       <h1>
         <UiText text={"Support / সহায়তা"} />
       </h1>
+      <RoleWorkspaces currentPath="/support" />
+      <ProfileCard collapsible />
       <p>
         <UiText
           text={

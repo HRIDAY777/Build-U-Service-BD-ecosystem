@@ -279,3 +279,30 @@ class ReturnRequest(models.Model):
     review_note = models.CharField(max_length=2000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+
+class PaymentGateway(models.Model):
+    CATEGORIES = [
+        ("cash", "Cash on Delivery"),
+        ("mfs", "Mobile Financial Service (MFS)"),
+        ("aggregator", "Payment Gateway / Cards & Banking"),
+        ("bank", "Bank Transfer"),
+    ]
+    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=80)
+    name_bn = models.CharField(max_length=80)
+    category = models.CharField(max_length=20, choices=CATEGORIES, default="mfs")
+    active = models.BooleanField(default=False)
+    sandbox = models.BooleanField(default=True)
+    account_number = models.CharField(max_length=120, blank=True)
+    instructions = models.CharField(max_length=500, blank=True)
+    instructions_bn = models.CharField(max_length=500, blank=True)
+    display_order = models.PositiveSmallIntegerField(default=10)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["display_order", "id"]
+
+    def __str__(self):
+        return f"{self.name} ({'Active' if self.active else 'Inactive'})"

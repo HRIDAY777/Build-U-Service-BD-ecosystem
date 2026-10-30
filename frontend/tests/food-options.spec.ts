@@ -1,28 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-
-function localFixture(script: string) {
-  const target = new URL(process.env.E2E_URL || "http://127.0.0.1:3000");
-  if (!["127.0.0.1", "localhost"].includes(target.hostname))
-    throw new Error("Restaurant fixture requires local test servers.");
-  const root = path.resolve(process.cwd(), "..");
-  const python = path.join(
-    root,
-    ".venv",
-    process.platform === "win32" ? "Scripts/python.exe" : "bin/python",
-  );
-  return execFileSync(python, ["manage.py", "shell", "--command", script], {
-    cwd: path.join(root, "backend"),
-    encoding: "utf8",
-    env: { ...process.env, DJANGO_DEBUG: "true" },
-  });
-}
+import { localFixture } from "./local-fixture";
 
 test("food choices price distinct cart lines and preserve order details", async ({
   page,
   context,
 }) => {
+  await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
   const username = `qa_options_${Date.now()}`;
   const csrf = await (await context.request.get("/api/v1/auth/csrf/")).json();
   const response = await context.request.post("/api/v1/auth/register/", {
@@ -52,7 +35,7 @@ print('MEAL_ID='+str(meal.pk))
   const id = fixture.match(/MEAL_ID=(\d+)/)![1];
   try {
     await page.goto("/portal");
-    await page.getByRole("button", { name: "ক্যাটালগ", exact: true }).click();
+    await page.getByRole("button", { name: "Catalog", exact: true }).click();
     await page.getByRole("button", { name: /Manage food options/ }).click();
     const editor = page.locator('section[aria-label="Food options"]');
     await expect(
@@ -63,9 +46,9 @@ print('MEAL_ID='+str(meal.pk))
     await page.goto(`/catalog/${id}`);
     const add = page.getByRole("button", { name: /Add to bag/ });
     await expect(add).toBeDisabled();
-    await page.getByLabel(/ছোট/).check();
+    await page.getByLabel(/Small/).check();
     await add.click();
-    await page.getByLabel(/বড়/).check();
+    await page.getByLabel(/Large/).check();
     await add.click();
     await page.goto("/checkout");
     await expect(page.locator(".cart-line")).toHaveCount(2);
@@ -79,8 +62,8 @@ print('MEAL_ID='+str(meal.pk))
     ).toBeVisible();
     await page.getByRole("button", { name: /Confirm order/ }).click();
     await expect(page).toHaveURL(/account/);
-    await expect(page.locator(".record").first()).toContainText("ছোট");
-    await expect(page.locator(".record").first()).toContainText("বড়");
+    await expect(page.locator(".record").first()).toContainText("Small");
+    await expect(page.locator(".record").first()).toContainText("Large");
   } finally {
     localFixture(`
 from django.contrib.auth import get_user_model

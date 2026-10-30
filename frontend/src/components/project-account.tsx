@@ -8,6 +8,7 @@ import { useApp } from "./provider";
 import { LocationPicker, addressLine } from "./location-picker";
 import { ProjectHistory } from "./project-history";
 import { InvestorNavigation, InvestorNextStep } from "./investor-guide";
+import { ProfileCard, RoleWorkspaces } from "./profile-card";
 
 type Update = {
   id: number;
@@ -339,6 +340,8 @@ export function ProjectAccount() {
         </p>
       ) : (
         <>
+          <RoleWorkspaces currentPath="/project-account" />
+          <ProfileCard collapsible />
           <details
             className="form-panel project-calculator"
             open={!items.length && !permissions.manage}

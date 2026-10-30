@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, Division, PageResult } from "@/lib/api";
 import { useApp } from "./provider";
 import { PartnerHistory } from "./partner-history";
+import { ProfileCard, RoleWorkspaces } from "./profile-card";
 
 type Document = {
   id: number;
@@ -215,6 +216,8 @@ function PartnerApplicationsBody() {
   return (
     <div className="page-wrap">
       <h1>{t("পার্টনার আবেদন ও নথি", "Partner applications & documents")}</h1>
+      <RoleWorkspaces currentPath="/partner-application" />
+      <ProfileCard collapsible />
       <button
         disabled={busy}
         onClick={async () => {

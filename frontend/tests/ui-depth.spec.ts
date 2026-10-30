@@ -1,7 +1,31 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 
-test("spatial design fits public and workspace routes on desktop and mobile", async ({
+test("page titles use one typography system across public and account routes", async ({
+  page,
+}) => {
+  const routes = ["/events", "/login", "/catalog", "/wishlist"];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    let sharedTypography: { size: string; family: string } | undefined;
+    for (const route of routes) {
+      await page.goto(route);
+      const heading = page.locator("main h1").first();
+      await expect(heading).toBeVisible();
+      const typography = await heading.evaluate((element) => ({
+        size: getComputedStyle(element).fontSize,
+        family: getComputedStyle(element).fontFamily,
+      }));
+      if (sharedTypography) {
+        expect(typography, `${route} at ${width}px`).toEqual(sharedTypography);
+      } else {
+        sharedTypography = typography;
+      }
+    }
+  }
+});
+
+test("clean static design fits public and workspace routes on desktop and mobile", async ({
   page,
 }) => {
   fs.mkdirSync("../artifacts", { recursive: true });
@@ -27,7 +51,7 @@ test("spatial design fits public and workspace routes on desktop and mobile", as
     for (const route of routes) {
       await page.goto(route);
       await expect(page.locator("body")).toHaveClass(/depth-ui/);
-      await expect(page.locator(".spatial-motion-control")).toBeVisible();
+      await expect(page.locator("body")).toHaveAttribute("data-motion", "paused");
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -46,27 +70,4 @@ test("spatial design fits public and workspace routes on desktop and mobile", as
       }
     }
   }
-});
-
-test("sitewide animation preference persists and respects reduced motion", async ({
-  page,
-}) => {
-  await page.addInitScript(() => localStorage.setItem("us-lang", "en"));
-  await page.goto("/");
-  await page
-    .getByRole("button", { name: "Reduce animation", exact: true })
-    .click();
-  await expect(page.locator("body")).toHaveAttribute("data-motion", "paused");
-  await page.goto("/book/156");
-  await expect(page.locator("body")).toHaveAttribute("data-motion", "paused");
-  await expect(
-    page.getByRole("button", { name: "Enable animation", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  expect(
-    await page
-      .locator(".spatial-orb")
-      .first()
-      .evaluate((node) => getComputedStyle(node).animationName),
-  ).toBe("none");
 });

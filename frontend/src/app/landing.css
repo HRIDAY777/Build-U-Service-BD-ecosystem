@@ -1,7 +1,6 @@
 /* Homepage art direction: ink, warm white and the company's magenta. */
 body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account)) {
   background: #fafaf8;
-  font-family: "Segoe UI", "Nirmala UI", sans-serif;
 }
 body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
   .spatial-backdrop {
@@ -110,7 +109,6 @@ body:has(:is(.landing-page, .catalog-page, .project-plans, .project-account))
   color: #dfb9d7;
 }
 html[lang="en"] .landing-hero h1 span {
-  font-family: Georgia, "Times New Roman", serif;
   font-style: italic;
   font-weight: 400;
 }

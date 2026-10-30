@@ -1,4 +1,15 @@
 import { test, expect } from "@playwright/test";
+test("homepage language switch is visible and changes the page language", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const languageSwitch = page.getByRole("button", { name: "ভাষা বদলান" });
+  await expect(languageSwitch).toBeVisible();
+  await languageSwitch.click();
+  await expect(page.locator("h1")).toContainText("one trusted platform.");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});
+
 test("Bangla labels change with the selected language and survive reload", async ({
   page,
   context,
@@ -10,7 +21,7 @@ test("Bangla labels change with the selected language and survive reload", async
   await expect(
     page.locator("footer").getByRole("link", { name: "ব্যবসায়িক অংশীদার হোন" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Change language" }).click();
+  await page.getByRole("button", { name: "ভাষা বদলান" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Wishlist");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");

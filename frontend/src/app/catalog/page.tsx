@@ -1,12 +1,31 @@
 import { TranslatedInput } from "@/components/translated-elements";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
-import { serverGet, PageResult, Division, Offering } from "@/lib/api";
+import { serverGet, PageResult, Division, Offering, Area } from "@/lib/api";
 import { OfferingCard } from "@/components/offering-card";
 import { Text } from "@/components/provider";
 import { Restaurant, RestaurantInfo } from "@/components/restaurant-info";
 import { CatalogRefinement } from "@/components/catalog-refinement";
 import { ArrowRight } from "lucide-react";
+import {
+  ShopStorefront,
+  ShopHeader,
+  ShopBenefits,
+} from "@/components/shop-storefront";
+import "../shop-reference.css";
+import { FoodStorefront } from "@/components/food-storefront";
+import {
+  ElectricianHeader,
+  ElectricianStorefront,
+} from "@/components/electrician-storefront";
+import "../electrician-reference.css";
+import {
+  PharmacyHeader,
+  PharmacyStorefront,
+} from "@/components/pharmacy-storefront";
+import "../pharmacy-reference.css";
+import { CatalogOverview } from "@/components/catalog-overview";
+import "../catalog-overview.css";
 type Category = {
   id: number;
   division_slug: string;
@@ -56,7 +75,8 @@ export default async function Catalog({
     else next.delete("division");
     return `/catalog?${next}`;
   }
-  const [divisions, items, categories, brands, collections] = await Promise.all(
+  const [divisions, items, categories, brands, collections, electricianAreas] =
+    await Promise.all(
     [
       serverGet<PageResult<Division>>("divisions/"),
       serverGet<PageResult<Offering>>(`offerings/?${query}`),
@@ -69,8 +89,19 @@ export default async function Catalog({
       params.division === "shop"
         ? serverGet<ShopFilter[]>("shop-collections/")
         : null,
+      params.division === "electrician"
+        ? serverGet<PageResult<Area>>("areas/?division=electrician")
+        : null,
     ],
   );
+  const foodRestaurants =
+    params.division === "food"
+      ? await serverGet<PageResult<Restaurant>>("organizations/?division=food")
+      : null;
+  const foodHighlights =
+    params.division === "food"
+      ? await serverGet<PageResult<Offering>>("offerings/?division=food")
+      : null;
   const restaurant =
     params.organization && /^\d+$/.test(params.organization)
       ? await serverGet<Restaurant>(`organizations/${params.organization}/`)
@@ -94,8 +125,54 @@ export default async function Catalog({
   const selectedDivision = divisions?.results.find(
     (d) => d.slug === params.division,
   );
+  if (Object.keys(params).length === 0) {
+    return <CatalogOverview items={items?.results || []} />;
+  }
+  if (params.division === "electrician") {
+    return (
+      <div className="page-wrap catalog-page electrician-reference-page">
+        <ElectricianHeader />
+        <ElectricianStorefront
+          offerings={items?.results || []}
+          areas={electricianAreas}
+        />
+      </div>
+    );
+  }
+  if (params.division === "pharmacy") {
+    return (
+      <div className="page-wrap catalog-page pharmacy-reference-page">
+        <PharmacyHeader />
+        <PharmacyStorefront
+          categories={categories || []}
+          items={items}
+          query={params.q}
+          selected={params.category}
+        />
+      </div>
+    );
+  }
   return (
-    <div className="page-wrap catalog-page">
+    <div
+      className={`page-wrap catalog-page${params.division === "shop" ? " shop-reference-page" : params.division === "food" ? " food-reference-page" : ""}`}
+    >
+      {params.division === "food" && (
+        <FoodStorefront
+          categories={categories || []}
+          restaurants={foodRestaurants?.results || null}
+          items={foodHighlights?.results || []}
+          query={params.q}
+          selected={params.category}
+        />
+      )}
+      {params.division === "shop" && <ShopHeader />}
+      {params.division === "shop" && (
+        <ShopStorefront
+          categories={categories || []}
+          query={params.q}
+          selected={params.category}
+        />
+      )}
       <nav className="catalog-breadcrumb" aria-labelledby="catalog-path-label">
         <span id="catalog-path-label" className="sr-only">
           <Text bn="পাতার অবস্থান" en="Page location" />
@@ -106,43 +183,45 @@ export default async function Catalog({
         <span>/</span>
         <Text bn="সেবা ও কেনাকাটা" en="Explore & shop" />
       </nav>
-      <header className="catalog-heading">
-        <div>
-          <span className="eyebrow">
-            <UiText text={"U SERVICE BD · DISCOVER"} />
-          </span>
-          <h1>
-            {selectedDivision ? (
+      {params.division !== "shop" && params.division !== "food" && (
+        <header className="catalog-heading">
+          <div>
+            <span className="eyebrow">
+              <UiText text={"U SERVICE BD · DISCOVER"} />
+            </span>
+            <h1>
+              {selectedDivision ? (
+                <Text
+                  bn={selectedDivision.name_bn || selectedDivision.name}
+                  en={selectedDivision.name}
+                />
+              ) : (
+                <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Find your everyday." />
+              )}
+            </h1>
+            <p className="page-intro">
               <Text
-                bn={selectedDivision.name_bn || selectedDivision.name}
-                en={selectedDivision.name}
+                bn="খাবার, কেনাকাটা ও বিশ্বস্ত সেবা বেছে নিন।"
+                en="Discover meals, everyday essentials and professional services."
               />
-            ) : (
-              <Text bn="আপনার প্রয়োজন, এক জায়গায়" en="Find your everyday." />
-            )}
-          </h1>
-          <p className="page-intro">
+            </p>
+          </div>
+          <Link
+            className="text-link"
+            href={
+              params.division
+                ? `/stores?division=${encodeURIComponent(params.division)}`
+                : "/stores"
+            }
+          >
             <Text
-              bn="খাবার, কেনাকাটা ও বিশ্বস্ত সেবা বেছে নিন।"
-              en="Discover meals, everyday essentials and professional services."
+              bn="দোকান ও সেবাদাতা বেছে নিন"
+              en="Browse stores and providers"
             />
-          </p>
-        </div>
-        <Link
-          className="text-link"
-          href={
-            params.division
-              ? `/stores?division=${encodeURIComponent(params.division)}`
-              : "/stores"
-          }
-        >
-          <Text
-            bn="দোকান ও সেবাদাতা বেছে নিন"
-            en="Browse stores and providers"
-          />
-          <ArrowRight size={16} />
-        </Link>
-      </header>
+            <ArrowRight size={16} />
+          </Link>
+        </header>
+      )}
       {restaurant && (
         <section className="catalog-business">
           <h2>{restaurant.name}</h2>
@@ -187,8 +266,13 @@ export default async function Catalog({
             </Link>
           ))}
       </nav>
-      <div className="catalog-layout">
-        <CatalogRefinement>
+      <div
+        className="catalog-layout"
+        id={params.division === "food" ? "food-results" : "shop-products"}
+      >
+        <CatalogRefinement
+          collapsed={params.division === "shop" || params.division === "food"}
+        >
           <form className="form-panel catalog-filters" action="/catalog">
             <label className="field">
               <Text bn="পণ্য বা সেবা খুঁজুন" en="Search products or services" />
@@ -330,6 +414,7 @@ export default async function Catalog({
             </Link>
           </form>
         </CatalogRefinement>
+        {params.division === "shop" && <ShopBenefits />}
         <section
           className="catalog-results"
           aria-labelledby="catalog-results-title"

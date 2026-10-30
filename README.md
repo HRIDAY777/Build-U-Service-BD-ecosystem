@@ -11,6 +11,7 @@ The language switch now covers shared navigation/footer, account controls, event
 See [the master-prompt phase audit](docs/MASTER_PROMPT_AUDIT.md) and [the feature audit](docs/FEATURE_STATUS.md) for 26 working local feature groups and the remaining implementation and external dependencies. This count is not a completion percentage.
 
 - Corporate homepage, division browsing, searchable catalog and editable content pages.
+- Page-specific background uploads and image replacements managed in Django admin under **Page appearances**; image replacement rules match existing image alt text or URL on an exact page path.
 - Catalog price ranges, stock filtering and price/name/recent-update sorting, with filters preserved across division changes and pagination.
 - Public category browsing and category filtering within active divisions, with category selection reset when changing divisions.
 - Searchable, paginated stores/provider directory at `/stores`, with name/area/division filters and links to each approved business's catalog.
@@ -82,7 +83,7 @@ npm.cmd run dev
 
 Open <http://127.0.0.1:3000>. Register your own customer account through the website. Demo seeding creates no usable login passwords and no fabricated transaction history.
 
-Create an administrator from the backend directory with `..\.venv\Scripts\python.exe manage.py createsuperuser`, with `DJANGO_DEBUG=true` still set. Administration is at `/admin/`; the operations screen is at `/portal`. Assign Django groups and permissions deliberately. Operational changes use the validated API workflows rather than direct record editing in the admin.
+Create an administrator from the backend directory with `..\.venv\Scripts\python.exe manage.py createsuperuser`, with `DJANGO_DEBUG=true` still set. Administration is at `/admin/`; add a **Page appearance** for a page path such as `/`, `/catalog` or `/login`, then upload its background and any image replacements. Match existing images by their alt text (separate language variants with `|`) or URL. Uploaded appearance images are limited to 5 MB. The operations screen is at `/portal`. Assign Django groups and permissions deliberately. Operational changes use the validated API workflows rather than direct record editing in the admin.
 
 SQLite is the local development default. PostgreSQL is the intended deployment database; SQLite tests do not establish production concurrency behavior.
 

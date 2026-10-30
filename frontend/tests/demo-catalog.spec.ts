@@ -1,23 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-
-function localFixture(script: string) {
-  const target = new URL(process.env.E2E_URL || "http://127.0.0.1:3000");
-  if (!["127.0.0.1", "localhost"].includes(target.hostname))
-    throw new Error("Restaurant fixture requires local test servers.");
-  const root = path.resolve(process.cwd(), "..");
-  const python = path.join(
-    root,
-    ".venv",
-    process.platform === "win32" ? "Scripts/python.exe" : "bin/python",
-  );
-  return execFileSync(python, ["manage.py", "shell", "--command", script], {
-    cwd: path.join(root, "backend"),
-    encoding: "utf8",
-    env: { ...process.env, DJANGO_DEBUG: "true" },
-  });
-}
+import { localFixture } from "./local-fixture";
 
 test("partner can browse catalog pages and Dhaka coverage spans the district", async ({
   page,
@@ -52,20 +34,21 @@ for index in range(1,26):
   try {
     await page.goto("/portal");
     await page.getByRole("button", { name: "ক্যাটালগ", exact: true }).click();
-    await expect(page.locator(".record h3")).toHaveCount(24);
+    const offerings = page
+      .locator(".record h3")
+      .filter({ hasText: "DEMO Pager" });
+    await expect(offerings).toHaveCount(24);
     const pages = page.getByRole("navigation", {
       name: "Partner catalog pages",
     });
-    await pages.getByRole("button", { name: /Next page/ }).click();
-    await expect(page.locator(".record h3")).toHaveCount(1);
-    await expect(page.locator(".record h3").first()).toContainText(
-      "DEMO Pager 25",
-    );
+    await pages.getByRole("button", { name: "পরের পৃষ্ঠা" }).click();
+    await expect(offerings).toHaveCount(1);
+    await expect(offerings.first()).toContainText("DEMO Pager 1");
     await expect(
-      pages.getByRole("button", { name: /Next page/ }),
+      pages.getByRole("button", { name: "পরের পৃষ্ঠা" }),
     ).toBeDisabled();
-    await pages.getByRole("button", { name: /Previous page/ }).click();
-    await expect(page.locator(".record h3")).toHaveCount(24);
+    await pages.getByRole("button", { name: "আগের পৃষ্ঠা" }).click();
+    await expect(offerings).toHaveCount(24);
     const areas: string[] = [];
     let number = 1,
       more = true;
